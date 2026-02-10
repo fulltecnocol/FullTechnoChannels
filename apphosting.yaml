@@ -6,6 +6,6 @@ runConfig:
   memory: "512Mi"
 env:
   - variable: NEXT_PUBLIC_API_URL
-    value: "https://your-api-url-on-cloud-run.a.run.app"
+    value: "https://api-1054327025113.us-central1.run.app"
   - variable: STRIPE_PUBLIC_KEY
     value: "your-stripe-public-key"
