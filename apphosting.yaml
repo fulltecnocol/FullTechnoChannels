@@ -1,0 +1,11 @@
+kind: "AppHostingYaml"
+apiVersion: "v1alpha"
+runConfig:
+  minInstances: 0
+  maxInstances: 10
+  memory: "512Mi"
+env:
+  - name: NEXT_PUBLIC_API_URL
+    value: "https://your-api-url-on-cloud-run.a.run.app"
+  - name: STRIPE_PUBLIC_KEY
+    value: "your-stripe-public-key"
