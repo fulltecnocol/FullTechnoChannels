@@ -5,7 +5,7 @@ runConfig:
   maxInstances: 10
   memory: "512Mi"
 env:
-  - name: NEXT_PUBLIC_API_URL
+  - variable: NEXT_PUBLIC_API_URL
     value: "https://your-api-url-on-cloud-run.a.run.app"
-  - name: STRIPE_PUBLIC_KEY
+  - variable: STRIPE_PUBLIC_KEY
     value: "your-stripe-public-key"
