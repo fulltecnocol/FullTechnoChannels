@@ -275,7 +275,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        <p className="text-muted font-bold animate-pulse">Cargando tu panel VIP...</p>
+        <p className="text-muted font-bold animate-pulse">Cargando TeleGate...</p>
       </div>
     );
   }
@@ -300,8 +300,8 @@ export default function DashboardPage() {
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 flex-col border-r border-surface-border bg-surface p-6 space-y-8">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">M</div>
-          <span className="font-bold text-xl tracking-tight">Gestor VIP</span>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">T</div>
+          <span className="font-bold text-xl tracking-tight">TeleGate</span>
         </div>
 
         <nav className="flex-1 space-y-2">

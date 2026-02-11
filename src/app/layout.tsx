@@ -13,10 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gestor de Miembros | Admin Dashboard",
+  title: "TeleGate | Admin Dashboard",
   description: "Sistema automatizado de gestión de membresías de Telegram",
   openGraph: {
-    title: "Gestor de Miembros | Dashboard",
+    title: "TeleGate | Dashboard",
     description: "Panel administrativo premium para el control de suscripciones y bot de Telegram.",
     type: "website",
     locale: "es_ES",

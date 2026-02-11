@@ -38,9 +38,9 @@ export default function LoginPage() {
                         <ShieldCheck className="w-8 h-8 text-primary" />
                     </div>
                     <h1 className="text-4xl font-black tracking-tight">
-                        Gestor <span className="gradient-text">VIP</span>
+                        Tele<span className="gradient-text">Gate</span>
                     </h1>
-                    <p className="text-muted font-medium">Accede a tu panel administrativo</p>
+                    <p className="text-muted font-medium">Panel Administrativo</p>
                 </div>
 
                 <div className="premium-card p-8 shadow-2xl bg-surface/80 backdrop-blur-xl">
