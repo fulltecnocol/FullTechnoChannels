@@ -1,0 +1,20 @@
+# Node
+node_modules/
+.next/
+dist/
+build/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.env
+
+# Database
+membership.db
+
+# OS
+.DS_Store
