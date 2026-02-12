@@ -6,6 +6,14 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    python3-cffi \
+    python3-brotli \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz-subset0 \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements from both services
