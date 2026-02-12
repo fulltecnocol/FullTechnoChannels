@@ -17,7 +17,12 @@ async function main() {
 
     // Deploy contract
     const ContractRegistry = await hre.ethers.getContractFactory("ContractRegistry");
-    const registry = await ContractRegistry.deploy();
+
+    // Forzar nonce actual para reemplazar transacciones atascadas
+    const currentNonce = await hre.ethers.provider.getTransactionCount(deployer.address);
+    console.log("Using nonce:", currentNonce);
+
+    const registry = await ContractRegistry.deploy({ nonce: currentNonce });
 
     await registry.waitForDeployment();
 

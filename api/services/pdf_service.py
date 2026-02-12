@@ -5,9 +5,9 @@ Usa WeasyPrint para convertir HTML a PDF con estilos completos
 from pathlib import Path
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
 import hashlib
 import os
+import logging
 
 # Configurar Jinja2
 TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
@@ -17,17 +17,7 @@ class PDFContractService:
     """Servicio para generar PDFs de contratos"""
     
     @staticmethod
-    def generate_contract_pdf(legal_info: dict, signature_data: dict = None) -> bytes:
-        """
-        Genera PDF del contrato de mandato
-        
-        Args:
-            legal_info: Diccionario con información legal del owner
-            signature_data: Diccionario con datos de firma (opcional para preview)
-            
-        Returns:
-            bytes: PDF generado
-        """
+    def _prepare_template_data(legal_info: dict, signature_data: dict = None) -> str:
         # Cargar template
         template = jinja_env.get_template("contrato_mandato.html")
         
@@ -85,12 +75,31 @@ class PDFContractService:
             })
         
         # Renderizar HTML
-        html_content = template.render(**template_data)
+        return template.render(**template_data)
+
+    @staticmethod
+    def generate_contract_html(legal_info: dict, signature_data: dict = None) -> str:
+        """Genera solo el HTML del contrato (útil para debug o fallback)"""
+        return PDFContractService._prepare_template_data(legal_info, signature_data)
+
+    @staticmethod
+    def generate_contract_pdf(legal_info: dict, signature_data: dict = None) -> bytes:
+        """
+        Genera PDF del contrato de mandato
+        """
+        html_content = PDFContractService._prepare_template_data(legal_info, signature_data)
         
-        # Generar PDF
-        pdf_bytes = HTML(string=html_content).write_pdf()
-        
-        return pdf_bytes
+        try:
+            from weasyprint import HTML
+            # Generar PDF
+            pdf_bytes = HTML(string=html_content).write_pdf()
+            return pdf_bytes
+        except ImportError:
+            logging.error("WeasyPrint not installed or missing dependencies")
+            raise
+        except Exception as e:
+            logging.error(f"Error making PDF: {e}")
+            raise
     
     @staticmethod
     def calculate_pdf_hash(pdf_bytes: bytes) -> str:

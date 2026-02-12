@@ -370,35 +370,68 @@ async def handle_save_and_preview(callback: types.CallbackQuery, state: FSMConte
 
 # --- FIRMA DEL CONTRATO ---
 
+from aiogram.types import BufferedInputFile
+from api.services.pdf_service import PDFContractService
+
 @signature_router.callback_query(F.data == "legal_read_pdf")
 async def handle_read_pdf(callback: types.CallbackQuery):
-    await callback.answer("⏳ Generando PDF...", show_alert=False)
+    await callback.message.edit_text("⏳ Generando documento... (Por favor espera)")
     
-    # Obtener token JWT (simulado o generar uno real si es necesario para autenticación interna)
-    # Por ahora usaremos el endpoint público o protegido con API key interna
-    
-    # En desarrollo local:
-    pdf_url = f"{API_URL}/api/legal/contract/preview?telegram_id={callback.from_user.id}"
-    
-    # Como es localhost, Telegram no puede descargar el archivo si le paso la URL.
-    # Tengo que descargar el archivo yo y enviarlo a Telegram.
+    user_id = callback.from_user.id
     
     try:
-        # En producción usaríamos un token real. Aquí simulamos el header de user.
-        # Asumiendo que el endpoint permite preview.
-        # Nota: El endpoint preview requiere autenticación Bearer.
-        # Para simplificar en el bot, vamos a tener que generar el PDF localmente o tener un endpoint público con token temporal.
-        # Vamos a saltarnos la descarga real por ahora y mostrar un mensaje.
-        
-        await callback.message.answer(
-            f"📄 **Vista Previa del Contrato**\n\n"
-            f"Puedes descargar el borrador aquí:\n`[Simulated PDF Link]`\n\n"
-            "(En producción aquí se envía el archivo PDF real)",
-            parse_mode="Markdown"
-        )
+        async with AsyncSessionLocal() as session:
+            # Recuperar datos legales
+            stmt = select(OwnerLegalInfo).join(User).where(User.telegram_id == user_id)
+            result = await session.execute(stmt)
+            legal_info_model = result.scalar_one_or_none()
+            
+            if not legal_info_model:
+                await callback.message.edit_text("❌ Error: No se encontró información legal. Usa /legal para reiniciar.")
+                return
+
+            # Convertir modelo a diccionario
+            legal_info_dict = {c.name: getattr(legal_info_model, c.name) for c in legal_info_model.__table__.columns}
+            
+            # Intentar generar archivo
+            try:
+                # Intento 1: PDF (WeasyPrint)
+                pdf_bytes = PDFContractService.generate_preview_pdf(legal_info_dict)
+                file_data = pdf_bytes
+                filename = "Contrato_Mandato.pdf"
+                caption = "📄 **Contrato de Mandato** (PDF)\nRevisa los términos antes de firmar."
+            except Exception as e_pdf:
+                logging.warning(f"PDF generation failed: {e_pdf}. Falling back to HTML.")
+                
+                # Intento 2: HTML (Fallback)
+                try:
+                    html_content = PDFContractService.generate_contract_html(legal_info_dict)
+                    file_data = html_content.encode('utf-8')
+                    filename = "Contrato_Mandato.html"
+                    caption = "📄 **Contrato de Mandato** (Vista Web)\nDescarga y abre este archivo en tu navegador para leerlo."
+                except Exception as e_html:
+                    logging.error(f"HTML generation failed: {e_html}")
+                    await callback.message.edit_text(f"❌ Error crítico generando documento: {e_html}")
+                    return
+
+            # Enviar documento
+            input_file = BufferedInputFile(file_data, filename=filename)
+            
+            # Borramos el mensaje de "Generando" y enviamos el documento
+            await callback.message.delete()
+            await callback.message.answer_document(
+                document=input_file,
+                caption=caption,
+                parse_mode="Markdown",
+                reply_markup=kbd_sign_contract()
+            )
+
     except Exception as e:
-        print(f"Error PDF preview: {e}")
-        await callback.message.answer("❌ Error generando vista previa.")
+        logging.error(f"Handler error: {e}")
+        try:
+            await callback.message.edit_text(f"❌ Error inesperado: {str(e)}")
+        except:
+            await callback.message.answer(f"❌ Error inesperado: {str(e)}")
 
 
 @signature_router.callback_query(F.data == "legal_sign_now")
@@ -515,6 +548,87 @@ async def process_otp_verification(message: types.Message, state: FSMContext):
         
     else:
         await message.answer("❌ **Código Incorrecto**\nInténtalo de nuevo o escribe /cancelar.")
+
+# --- DESCARGA DE CONTRATO ---
+
+@signature_router.message(Command("contract"))
+async def cmd_download_contract(message: types.Message):
+    """Permite al usuario descargar su contrato firmado"""
+    user_id = message.from_user.id
+    
+    await message.answer("🔍 Buscando contrato firmado...")
+    
+    try:
+        async with AsyncSessionLocal() as session:
+            # 1. Buscar contrato firmado
+            res_contract = await session.execute(
+                select(SignedContract).join(User).where(User.telegram_id == user_id)
+            )
+            signed_contract = res_contract.scalar_one_or_none()
+            
+            if not signed_contract:
+                await message.answer("❌ No tienes un contrato firmado todavía.\nUsa /legal para iniciar el proceso.")
+                return
+
+            # 2. Buscar info legal
+            res_legal = await session.execute(
+                select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == signed_contract.owner_id)
+            )
+            legal_info = res_legal.scalar_one_or_none()
+            
+            if not legal_info:
+                await message.answer("❌ Error: Contrato encontrado pero falta información legal asociada.")
+                return
+
+            # 3. Preparar datos
+            legal_dict = {c.name: getattr(legal_info, c.name) for c in legal_info.__table__.columns}
+            
+            signature_data = {
+                "signature_date": signed_contract.signed_at,
+                "signature_code": signed_contract.signature_code,
+                "telegram_user_id": str(user_id),
+                "ip_address": "Telegram Bot (Signed)",
+                "document_hash": signed_contract.pdf_hash,
+                "blockchain_tx_hash": signed_contract.blockchain_tx_hash,
+                "blockchain_network": "Polygon Amoy",
+                "contract_id": f"CTR-{signed_contract.id}"
+            }
+
+            # 4. Generar Documento (PDF o HTML)
+            try:
+                # Intento PDF
+                pdf_bytes, _ = PDFContractService.generate_signed_pdf(legal_dict, signature_data)
+                file_data = pdf_bytes
+                filename = f"Contrato_Mandato_Firmado_{signed_contract.id}.pdf"
+                caption = (
+                    "✅ **CONTRATO DE MANDATO (FIRMADO)**\n\n"
+                    f"📅 Fecha: {signed_contract.signed_at.strftime('%Y-%m-%d')}\n"
+                    f"🔗 Blockchain TX: `{signed_contract.blockchain_tx_hash}`"
+                )
+            except Exception as e_pdf:
+                logging.warning(f"Falla PDF descarga: {e_pdf}. Usando HTML fallback.")
+                # Intento HTML
+                try:
+                    html_content = PDFContractService.generate_contract_html(legal_dict, signature_data)
+                    file_data = html_content.encode('utf-8')
+                    filename = f"Contrato_Mandato_Firmado_{signed_contract.id}.html"
+                    caption = (
+                        "✅ **CONTRATO DE MANDATO (Vista Web)**\n\n"
+                        "⚠️ PDF no disponible. Descarga este archivo HTML para visualizar tu contrato firmado.\n\n"
+                        f"📅 Fecha: {signed_contract.signed_at.strftime('%Y-%m-%d')}\n"
+                        f"🔗 Blockchain TX: `{signed_contract.blockchain_tx_hash}`"
+                    )
+                except Exception as e_html:
+                    await message.answer(f"❌ Error generando documento: {e_html}")
+                    return
+
+            # 5. Enviar
+            file = BufferedInputFile(file_data, filename=filename)
+            await message.answer_document(document=file, caption=caption, parse_mode="Markdown")
+
+    except Exception as e:
+        logging.error(f"Error /contract: {e}")
+        await message.answer(f"❌ Error interno recuperando contrato: {str(e)}")
 
 # --- UTILIDAD ---
 from datetime import timedelta

@@ -1,8 +1,11 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
+    analytics: {
+        enabled: false,
+    },
     solidity: {
         version: "0.8.20",
         settings: {
@@ -24,7 +27,7 @@ module.exports = {
             url: process.env.POLYGON_AMOY_RPC_URL || "https://rpc-amoy.polygon.technology",
             accounts: process.env.SIGNER_PRIVATE_KEY ? [process.env.SIGNER_PRIVATE_KEY] : [],
             chainId: 80002,
-            gasPrice: 'auto',
+            gasPrice: 60000000000, // 60 gwei (equilibrio)
         },
 
         // Polygon Mumbai Testnet (DEPRECATED - usa Amoy)

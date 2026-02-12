@@ -7,7 +7,7 @@ const { ethers } = require('ethers');
 require('dotenv').config({ path: '../.env' });
 
 async function checkSetup() {
-    console.log('\n🔍 Verificando Setup de Smart Contract...\n');
+    console.log('\n🔍 Verificando Setup de Smart Contract (Amoy)...\n');
     console.log('═'.repeat(60));
 
     let allGood = true;
@@ -16,7 +16,7 @@ async function checkSetup() {
     console.log('\n📋 Variables de Entorno:');
 
     const requiredVars = {
-        'POLYGON_MUMBAI_RPC_URL': process.env.POLYGON_MUMBAI_RPC_URL,
+        'POLYGON_AMOY_RPC_URL': process.env.POLYGON_AMOY_RPC_URL,
         'SIGNER_PRIVATE_KEY': process.env.SIGNER_PRIVATE_KEY,
         'SIGNER_ADDRESS': process.env.SIGNER_ADDRESS,
     };
@@ -48,15 +48,14 @@ async function checkSetup() {
     }
 
     // 2. Check RPC connection
-    console.log('\n🌐 Conectividad RPC:');
+    console.log('\n🌐 Conectividad RPC (Amoy):');
 
     try {
-        const provider = new ethers.JsonRpcProvider(process.env.POLYGON_MUMBAI_RPC_URL);
+        const provider = new ethers.JsonRpcProvider(process.env.POLYGON_AMOY_RPC_URL);
         const network = await provider.getNetwork();
         const blockNumber = await provider.getBlockNumber();
 
-        console.log(`   ✅ Conectado a: ${network.name || 'Mumbai'}`);
-        console.log(`   ✅ Chain ID: ${network.chainId}`);
+        console.log(`   ✅ Conectado a: ${network.name || 'Amoy'} (Chain ID: ${network.chainId})`);
         console.log(`   ✅ Último bloque: ${blockNumber.toLocaleString()}`);
     } catch (error) {
         console.log(`   ❌ Error de conexión: ${error.message}`);
@@ -68,18 +67,15 @@ async function checkSetup() {
 
     try {
         const wallet = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY);
+        const provider = new ethers.JsonRpcProvider(process.env.POLYGON_AMOY_RPC_URL);
 
         if (wallet.address.toLowerCase() !== process.env.SIGNER_ADDRESS.toLowerCase()) {
             console.log(`   ⚠️  WARNING: SIGNER_ADDRESS no coincide con private key`);
-            console.log(`      Configurado: ${process.env.SIGNER_ADDRESS}`);
-            console.log(`      Real: ${wallet.address}`);
-            console.log(`      Usando el address real...`);
         } else {
             console.log(`   ✅ Address: ${wallet.address}`);
         }
 
         // Check balance
-        const provider = new ethers.JsonRpcProvider(process.env.POLYGON_MUMBAI_RPC_URL);
         const balance = await provider.getBalance(wallet.address);
         const balanceMatic = ethers.formatEther(balance);
 
@@ -88,18 +84,11 @@ async function checkSetup() {
         if (parseFloat(balanceMatic) < 0.1) {
             console.log(`   ⚠️  Balance bajo! Necesitas al menos 0.1 MATIC`);
             console.log(`   📥 Obtén MATIC gratis en: https://faucet.polygon.technology/`);
+            console.log(`   Address: ${wallet.address}`);
             allGood = false;
         } else {
             console.log(`   ✅ Balance suficiente para deploy`);
         }
-
-        // Estimate deploy cost
-        const estimatedGas = 500000n; // ~500k gas para deploy
-        const gasPrice = (await provider.getFeeData()).gasPrice || 30000000000n;
-        const estimatedCost = estimatedGas * gasPrice;
-        const estimatedCostMatic = ethers.formatEther(estimatedCost);
-
-        console.log(`   📊 Costo estimado deploy: ~${parseFloat(estimatedCostMatic).toFixed(4)} MATIC`);
 
     } catch (error) {
         console.log(`   ❌ Error con wallet: ${error.message}`);
@@ -111,13 +100,11 @@ async function checkSetup() {
 
     if (allGood) {
         console.log('\n🎉 ¡Todo listo para deploy!');
-        console.log('\n📝 Siguiente paso:');
-        console.log('   npm run deploy:mumbai');
+        console.log('   Run: npm run deploy:amoy');
         console.log('');
         return true;
     } else {
-        console.log('\n❌ Setup incompleto. Revisa los errores arriba.');
-        console.log('\n📚 Guía: blockchain/DEPLOYMENT_GUIDE.md');
+        console.log('\n❌ Setup incompleto.');
         console.log('');
         return false;
     }
