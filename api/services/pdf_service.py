@@ -90,6 +90,44 @@ class PDFContractService:
         html_content = PDFContractService._prepare_template_data(legal_info, signature_data)
         
         try:
+            # FIX PARA MACOS (Silicon/M1/M2/M3)
+            # Cargar librerías manualmente si estamos en Darwin (macOS)
+            import sys
+            import platform
+            if sys.platform == 'darwin':
+                try:
+                    from ctypes import CDLL
+                    from ctypes.util import find_library
+                    
+                    # Intentar cargar pango, cairo, glib desde Homebrew
+                    # Rutas comunes en Apple Silicon (/opt/homebrew) e Intel (/usr/local)
+                    paths = [
+                        '/opt/homebrew/lib', 
+                        '/usr/local/lib',
+                        '/usr/lib'
+                    ]
+                    
+                    libs = ['libpango-1.0.0.dylib', 'libpangoft2-1.0.0.dylib', 'libgobject-2.0.0.dylib', 'libglib-2.0.0.dylib', 'libfontconfig.1.dylib']
+                    
+                    for lib in libs:
+                        found = False
+                        for path in paths:
+                            lib_path = os.path.join(path, lib)
+                            if os.path.exists(lib_path):
+                                try:
+                                    CDLL(lib_path)
+                                    found = True
+                                    break
+                                except:
+                                    pass
+                        if not found:
+                            # Intentar find_library si no está en rutas fijas
+                            lib_name = lib.split('.')[0].replace('lib', '')
+                            l = find_library(lib_name)
+                            if l: CDLL(l)
+                except Exception as e:
+                    logging.warning(f"MacOS library loading warning: {e}")
+
             from weasyprint import HTML
             # Generar PDF
             pdf_bytes = HTML(string=html_content).write_pdf()

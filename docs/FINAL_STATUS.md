@@ -19,7 +19,7 @@
 - Comando `/contract` habilitado para descargas posteriores.
 - Flujo de firma completo: Datos -> Preview -> OTP -> Blockchain.
 - Verificación automática de saldo y estado.
-- **Generación de Documentos:** Implementado sistema híbrido (PDF via WeasyPrint / HTML Fallback) para asegurar compatibilidad en todos los entornos.
+- **Generación de Documentos:** ✅ PDF Nativo funcionando (WeasyPrint configurado con dependencias de sistema). Fallback a HTML disponible como respaldo.
 
 ### 3. Backend & Database
 - Base de datos lista con tablas `owner_legal_info` y `signed_contracts`.
