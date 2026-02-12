@@ -99,11 +99,12 @@ export function LegalSignature() {
 
     if (legalStatus?.status === 'verified') {
         return (
-            <div className="space-y-8 animate-fade-in p-8 border-2 border-primary bg-primary/5">
-                <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-primary text-black flex items-center justify-center rounded-sm">
-                        <CheckCircle2 className="w-10 h-10" />
+            <div className="space-y-8 animate-fade-in p-8 rounded-3xl border border-primary/20 bg-primary/5 backdrop-blur-sm">
+                <div className="flex items-center gap-6">
+                    <div className="w-20 h-20 bg-primary text-primary-foreground flex items-center justify-center rounded-2xl shadow-xl shadow-primary/20">
+                        <CheckCircle2 className="w-12 h-12" />
                     </div>
+
                     <div>
                         <h2 className="text-3xl font-black uppercase tracking-tighter">Identidad Verificada</h2>
                         <p className="text-primary font-bold">Tu contrato ha sido sellado en la Blockchain de Polygon.</p>
@@ -167,67 +168,68 @@ export function LegalSignature() {
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmitInfo} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 border-2 border-surface-border bg-surface/[0.3]">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <form onSubmit={handleSubmitInfo} className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10 premium-card bg-surface/30 backdrop-blur-md">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
                                 <User className="w-3 h-3" /> Nombre Completo
                             </label>
-                            <input required name="full_name" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                            <input required name="full_name" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                                <Fingerprint className="w-3 h-3" /> Documento Identidad (C.C / DNI / Pasaporte)
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
+                                <Fingerprint className="w-3 h-3" /> Documento Identidad
                             </label>
-                            <input required name="document_id" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                            <input required name="document_id" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
                                 <MapPin className="w-3 h-3" /> Dirección de Residencia
                             </label>
-                            <input required name="address" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                            <input required name="address" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
                                 <Phone className="w-3 h-3" /> Teléfono de Contacto
                             </label>
-                            <input required name="phone" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                            <input required name="phone" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                         </div>
 
                         {personType === 'juridica' && (
                             <>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
                                         <Building2 className="w-3 h-3" /> Nombre de la Empresa
                                     </label>
-                                    <input required name="company_name" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                                    <input required name="company_name" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
                                         <Fingerprint className="w-3 h-3" /> NIT / Tax ID
                                     </label>
-                                    <input required name="tax_id" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                                    <input required name="tax_id" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                                 </div>
-                                <div className="space-y-2 md:col-span-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                <div className="space-y-3 md:col-span-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-2 px-1">
                                         <ShieldCheck className="w-3 h-3" /> Representante Legal
                                     </label>
-                                    <input required name="legal_representative" type="text" className="w-full p-4 bg-background border border-surface-border outline-none focus:border-primary transition-colors font-bold text-sm" />
+                                    <input required name="legal_representative" type="text" className="w-full p-4 bg-background border border-surface-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm shadow-inner" />
                                 </div>
                             </>
                         )}
 
-                        <div className="md:col-span-2 pt-4">
+                        <div className="md:col-span-2 pt-6">
                             <button
                                 disabled={submitting}
-                                className="w-full py-4 bg-primary text-black font-black uppercase tracking-[0.2em] text-sm hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
+                                className="w-full py-5 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-[0.2em] text-sm shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50"
                             >
                                 {submitting ? "Guardando..." : "Guardar & Continuar a la Firma"}
                             </button>
                         </div>
                     </form>
+
                 </div>
             </div>
 

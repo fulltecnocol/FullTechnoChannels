@@ -25,8 +25,10 @@ export default function LandingPage() {
             {/* Navigation */}
             <nav className="fixed top-0 w-full z-50 border-b border-surface-border bg-background/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain brightness-125 contrast-125 mix-blend-screen" />
+                    <div className="flex items-center gap-3 group cursor-pointer">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent-gold to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                            <Bot className="w-6 h-6 text-primary-foreground" />
+                        </div>
                         <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
@@ -55,16 +57,19 @@ export default function LandingPage() {
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">Plataforma Auto-Gestionable · 2026 Ready</span>
                         </div>
-                        <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
-                            Control total <span className="gradient-text italic">Premium</span> sobre tus comunidades.
+                        <h1 className="text-5xl lg:text-8xl font-black tracking-tight leading-[0.95] text-white">
+                            Control total <br />
+                            <span className="gradient-text italic">Premium</span> sobre <br />
+                            tu comunidad.
                         </h1>
-                        <p className="text-xl text-muted max-w-xl leading-relaxed">
+                        <p className="text-xl text-muted max-w-xl leading-relaxed font-medium">
                             TeleGate Dashboard: La herramienta de elite para la administración automatizada de miembros, diseñada por <span className="text-foreground font-bold">Full Techno HUB</span>.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                            <Link href="/register" className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-lg shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all">
-                                Nuevo Canal TeleGate <ArrowRight className="w-5 h-5" />
+                        <div className="flex flex-col sm:flex-row gap-5 pt-4">
+                            <Link href="/register" className="flex items-center justify-center gap-3 px-10 py-5 bg-primary text-primary-foreground rounded-2xl font-black text-lg shadow-xl shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 transition-all">
+                                Nuevo Canal VIP <ArrowRight className="w-5 h-5" />
                             </Link>
+
                             <a href="#features" className="flex items-center justify-center gap-3 px-8 py-4 bg-surface border border-surface-border rounded-2xl font-black text-lg hover:bg-surface-border transition-all">
                                 Ver Funcionalidades <Zap className="w-5 h-5 text-amber-500" />
                             </a>
@@ -189,81 +194,128 @@ export default function LandingPage() {
             </section>
 
 
-            {/* How It Works Section - For Owner */}
-            <section id="how-it-works" className="py-24 px-6 lg:py-40 bg-background overflow-hidden border-t border-surface-border">
+            {/* How It Works Section - Comprehensive Ecosystem */}
+            <section id="how-it-works" className="py-24 px-6 lg:py-40 bg-background overflow-hidden border-t border-surface-border relative">
+                <div className="absolute top-1/4 -right-64 w-full h-[800px] bg-primary/5 blur-[160px] rounded-full -z-10" />
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-left mb-24 space-y-4">
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Operativa de Lanzamiento</h2>
-                        <h3 className="text-5xl lg:text-8xl font-black tracking-tighter leading-[0.9]">
-                            Tu imperio en <br />
-                            <span className="gradient-text italic">en tiempo real.</span>
+                    <div className="text-center mb-32 space-y-6">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">El Ecosistema TeleGate</h2>
+                        <h3 className="text-4xl lg:text-7xl font-black tracking-tighter leading-none">
+                            Ingeniería de <span className="gradient-text italic">Siguiente Nivel.</span>
                         </h3>
+                        <p className="text-muted text-lg max-w-2xl mx-auto font-medium">
+                            Nuestra arquitectura integra tres núcleos fundamentales para garantizar la automatización absoluta de tu comunidad VIP.
+                        </p>
                     </div>
 
-                    <div className="relative space-y-32 lg:space-y-48">
-                        {/* Connecting Vertical Line */}
-                        <div className="absolute left-10 lg:left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary via-surface-border to-transparent -z-10 hidden md:block" />
-
-                        {[
-                            {
-                                step: "01",
-                                title: "Vinculación Digital",
-                                desc: "Conecta tu canal y tu Bot mediante un código de validación único generado desde tu dashboard. Infraestructura lista en segundos.",
-                                icon: Bot,
-                                align: "left"
-                            },
-                            {
-                                step: "02",
-                                title: "Arquitectura de Planes",
-                                desc: "Crea ofertas dinámicas: Mensual, Trimestral o Anual. Tú controlas el ticket, nosotros la logística de acceso.",
-                                icon: Layers,
-                                align: "right"
-                            },
-                            {
-                                step: "03",
-                                title: "Ingeniería de Ventas",
-                                desc: "Genera links de oferta con cupones de descuento o pases de cortesía (Trials) para eliminar la fricción bancaria inicial.",
-                                icon: Zap,
-                                align: "left"
-                            },
-                            {
-                                step: "04",
-                                title: "Branding VIP",
-                                desc: "Tu canal, tus reglas. Personaliza mensajes de bienvenida, alertas de expiración y el tono de comunicación del bot.",
-                                icon: MessageSquare,
-                                align: "right"
-                            },
-                            {
-                                step: "05",
-                                title: "Liquidez Real",
-                                desc: "Visualiza tus ganancias en tiempo real. Retiros via USDT (Crypto), Stripe o Wompi con dispersión automática.",
-                                icon: DollarSign,
-                                align: "left"
-                            }
-                        ].map((item, i) => (
-                            <div key={i} className={`flex flex-col md:flex-row items-start md:items-center gap-8 lg:gap-24 ${item.align === 'right' ? 'md:flex-row-reverse' : ''}`}>
-                                <div className="flex-1 space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-6xl font-black text-surface-border/50 outline-text">{item.step}</span>
-                                        <div className="h-[2px] w-12 bg-primary invisible md:visible" />
-                                    </div>
-                                    <h4 className="text-3xl lg:text-5xl font-black tracking-tighter">{item.title}</h4>
-                                    <p className="text-lg text-muted leading-relaxed max-w-md font-medium">{item.desc}</p>
-                                </div>
-
-                                <div className="relative group shrink-0">
-                                    <div className="absolute -inset-8 bg-primary/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                                    <div className="w-20 h-20 lg:w-32 lg:h-32 bg-surface border-2 border-primary/20 flex items-center justify-center relative z-10 group-hover:border-primary transition-all duration-500 rotate-3 group-hover:rotate-0">
-                                        <item.icon className="w-10 h-10 lg:w-16 lg:h-16 text-primary group-hover:scale-110 transition-transform" />
-                                    </div>
-                                    {/* Technical detail elements */}
-                                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary/40 -translate-y-2 translate-x-2 group-hover:border-primary transition-colors" />
-                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary/40 translate-y-2 -translate-x-2 group-hover:border-primary transition-colors" />
-                                </div>
-
-                                <div className="flex-1 hidden md:block" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-8">
+                        {/* Phase 1: The Dashboard */}
+                        <div className="premium-card p-10 space-y-8 group">
+                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-all">
+                                <LayoutGrid className="w-8 h-8 text-primary group-hover:text-primary-foreground" />
                             </div>
-                        ))}
+                            <h4 className="text-2xl font-black tracking-tight uppercase">Dashboard Administrativo</h4>
+                            <p className="text-sm text-muted leading-relaxed font-bold">
+                                Tu centro de mando. Aquí diseñas la arquitectura de tus planes, gestionas la firma legal en blockchain y monitoreas la liquidez en tiempo real.
+                            </p>
+                            <ul className="space-y-3 pt-4 border-t border-surface-border">
+                                {["Pipeline de pagos", "Gestión de branding", "Retiros USDT/PSE"].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-2 text-xs font-black text-white/70">
+                                        <ArrowRight className="w-3 h-3 text-primary" /> {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Phase 2: The Guardian Bot */}
+                        <div className="premium-card p-10 space-y-8 group border-primary/30 shadow-2xl shadow-primary/5 bg-primary/[0.02]">
+                            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                                <Bot className="w-8 h-8 text-primary-foreground" />
+                            </div>
+                            <h4 className="text-2xl font-black tracking-tight uppercase">El Bot Guardián</h4>
+                            <p className="text-sm text-muted leading-relaxed font-bold">
+                                El vigilante incansable. Se encarga de procesar pagos, validar suscripciones y expulsar miembros automáticamente cuando expiren.
+                            </p>
+                            <div className="py-4 px-6 bg-background rounded-xl border border-surface-border flex items-center justify-between">
+                                <div className="flex -space-x-2">
+                                    {[1, 2, 3].map(j => <div key={j} className="w-6 h-6 rounded-full bg-surface-border border border-background" />)}
+                                </div>
+                                <span className="text-[10px] font-black text-primary animate-pulse">VERIFICANDO...</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground italic">99.9% de precisión en validación de transacciones.</p>
+                        </div>
+
+                        {/* Phase 3: The Payment Node */}
+                        <div className="premium-card p-10 space-y-8 group">
+                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary transition-all">
+                                <Network className="w-8 h-8 text-primary group-hover:text-primary-foreground" />
+                            </div>
+                            <h4 className="text-2xl font-black tracking-tight uppercase">Red de Comisiones</h4>
+                            <p className="text-sm text-muted leading-relaxed font-bold">
+                                El motor multinivel. Cada pago activa un algoritmo de dispersión instantánea hacia tu balance y tu red de afiliados en 10 niveles.
+                            </p>
+                            <div className="relative pt-6">
+                                <div className="absolute left-0 top-0 w-full h-[2px] bg-gradient-to-r from-primary to-transparent opacity-20" />
+                                <div className="flex gap-4">
+                                    <div className="p-3 bg-emerald-500/10 rounded-lg">
+                                        <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-white">Multilevel Core</p>
+                                        <p className="text-[10px] text-muted font-bold">Distribución automática 24/7</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Detailed Visual Flow: Multilevel Payments */}
+                    <div className="mt-32 lg:mt-48 space-y-16">
+                        <div className="max-w-3xl">
+                            <h4 className="text-3xl lg:text-5xl font-black tracking-tighter">Cómo funciona el <br /> <span className="text-primary italic">Plan de Compañación VIP</span></h4>
+                        </div>
+
+                        <div className="premium-card p-2 md:p-12 bg-surface/20">
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+                                <div className="md:col-span-2 space-y-8">
+                                    <div className="space-y-4">
+                                        <h5 className="text-lg font-black uppercase text-primary">Regla del 20/80</h5>
+                                        <p className="text-muted text-sm leading-relaxed font-bold">
+                                            Por cada suscripción, el <span className="text-foreground">80%</span> va directo al Dueño del canal, y el <span className="text-foreground">20%</span> se distribuye entre la plataforma y la red de 10 niveles.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-4 pt-6 border-t border-surface-border">
+                                        <h5 className="text-lg font-black uppercase text-foreground">El Efecto Viral</h5>
+                                        <p className="text-muted text-sm leading-relaxed font-bold">
+                                            Tu comunidad crece sola. Tus suscriptores se vuelven tus mejores vendedores motivados por comisiones pasivas recurrentes.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-3">
+                                    <div className="bg-background/50 border border-surface-border rounded-3xl p-6 md:p-10 relative overflow-hidden">
+                                        <div className="space-y-6">
+                                            {[
+                                                { l: "Directo (Nivel 1)", p: "3.0%", w: "w-full" },
+                                                { l: "Nivel 2", p: "1.0%", w: "w-[85%]" },
+                                                { l: "Nivel 3", p: "0.5%", w: "w-[70%]" },
+                                                { l: "Nivel 4 al 10", p: "0.1%", w: "w-[50%]" },
+                                            ].map((level, i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest px-1">
+                                                        <span className="text-muted">{level.l}</span>
+                                                        <span className="text-primary">{level.p}</span>
+                                                    </div>
+                                                    <div className="h-4 w-full bg-surface border border-surface-border rounded-full overflow-hidden p-[2px]">
+                                                        <div className={`${level.w} h-full bg-gradient-to-r from-primary/40 to-primary rounded-full animate-grow-horizontal`} style={{ animationDelay: `${i * 200}ms` }} />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Bot className="absolute -bottom-10 -right-10 w-40 h-40 text-primary/5 -rotate-12" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -337,9 +389,11 @@ export default function LandingPage() {
             <footer className="py-20 px-6 border-t border-surface-border">
                 <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-16">
                     <div className="col-span-2 md:col-span-1 space-y-6">
-                        <div className="flex items-center gap-3">
-                            <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain mix-blend-screen" />
-                            <span className="font-bold text-xl tracking-tight leading-none">TeleGate</span>
+                        <div className="flex items-center gap-3 group cursor-pointer">
+                            <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent-gold to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                                <Bot className="w-6 h-6 text-primary-foreground" />
+                            </div>
+                            <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed font-bold">La infraestructura definitiva para la monetización de comunidades en Telegram.</p>
                         <div className="flex gap-4">
@@ -404,11 +458,16 @@ export default function LandingPage() {
                     0%, 100% { transform: translateY(0); }
                     50% { transform: translateY(-20px); }
                 }
+                @keyframes grow-horizontal {
+                    from { width: 0; }
+                }
                 .animate-fade-in { animation: fade-in 1s ease-out forwards; }
                 .animate-float { animation: float 6s ease-in-out infinite; }
                 .animate-fade-in-up { animation: fade-in 1s ease-out 0.5s forwards; opacity: 0; }
+                .animate-grow-horizontal { animation: grow-horizontal 1.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
                 html { scroll-behavior: smooth; }
             `}</style>
         </div>
     );
 }
+

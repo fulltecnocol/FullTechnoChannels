@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ShieldCheck, Mail, Lock, User, ArrowRight, Loader2, Zap, AlertCircle } from "lucide-react";
+import { ShieldCheck, Mail, Lock, User, ArrowRight, Loader2, Zap, AlertCircle, Bot } from "lucide-react";
 import { authApi } from "@/lib/api";
 
 export default function RegisterPage() {
@@ -28,19 +28,22 @@ export default function RegisterPage() {
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
             {/* Decorative background elements */}
-            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] animate-pulse" />
+            <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[160px] animate-pulse" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[160px] animate-pulse" />
 
-            <div className="w-full max-w-md space-y-8 animate-fade-in relative z-10">
-                <div className="text-center space-y-2">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-4 shadow-inner">
-                        <Zap className="w-8 h-8 text-primary" />
+            <div className="w-full max-w-md space-y-10 animate-fade-in relative z-10">
+                <div className="text-center space-y-4">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary via-accent-gold to-secondary p-[1px] mb-4 shadow-2xl shadow-primary/20">
+                        <div className="w-full h-full bg-background rounded-[22px] flex items-center justify-center">
+                            <Bot className="w-10 h-10 text-primary" />
+                        </div>
                     </div>
-                    <h1 className="text-4xl font-black tracking-tight">
-                        Únete a <span className="gradient-text">VIP</span>
+                    <h1 className="text-5xl font-black tracking-tighter text-white">
+                        Únete a <span className="text-primary">VIP</span>
                     </h1>
-                    <p className="text-muted font-medium">Automatiza tu comunidad hoy mismo</p>
+                    <p className="text-muted-foreground font-bold uppercase tracking-[0.2em] text-xs">Registra tu Imperio Digital</p>
                 </div>
+
 
                 <div className="premium-card p-8 shadow-2xl bg-surface/80 backdrop-blur-xl">
                     {error && (

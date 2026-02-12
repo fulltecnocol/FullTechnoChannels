@@ -30,8 +30,10 @@ import {
   Lock,
   Ticket,
   Trash2,
-  CreditCard
+  CreditCard,
+  Bot
 } from "lucide-react";
+
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, BarChart, Bar
@@ -312,10 +314,15 @@ export default function DashboardPage() {
   return (
     <div className="flex min-h-screen bg-background" aria-label="Panel de Administración del Dueño">
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-surface-border bg-surface p-6 space-y-8">
-        <div className="flex items-center gap-3">
-          <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain brightness-125 contrast-125 mix-blend-screen" />
-          <span className="font-bold text-xl tracking-tight text-white">Tele<span className="text-primary">Gate</span></span>
+      <aside className="hidden md:flex w-72 flex-col border-r border-surface-border bg-surface/50 backdrop-blur-xl p-8 space-y-10">
+        <div className="flex items-center gap-4 group cursor-pointer">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary via-accent-gold to-secondary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 group-hover:rotate-12 transition-all">
+            <Bot className="w-7 h-7 text-primary-foreground" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-xl tracking-tighter text-white leading-none">Tele<span className="text-primary">Gate</span></span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted mt-1">Premium Core</span>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-2">
@@ -361,19 +368,25 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 space-y-10 max-w-7xl mx-auto overflow-y-auto">
         {/* Header Responsive */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-surface-border/50">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Panel de <span className="gradient-text">Control</span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white">
+              Panel de <span className="gradient-text italic">Control</span>
             </h1>
-            <p className="text-muted mt-1 font-medium">Gestiona tus comunidades y ganancias hoy.</p>
+            <p className="text-muted-foreground mt-2 font-medium flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-primary/60" /> Gestión automatizada de comunidades.
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-surface/50 border border-surface-border rounded-xl">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold text-muted">Servidor: Centra-1</span>
+            </div>
             <button
               onClick={handleCreateChannel}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="flex items-center gap-3 px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.05] active:scale-[0.95] transition-all"
             >
-              <PlusCircle className="w-5 h-5" /> Nuevo Canal
+              <PlusCircle className="w-5 h-5" /> Nuevo Canal VIP
             </button>
           </div>
         </header>
@@ -583,19 +596,23 @@ export default function DashboardPage() {
           <div className="space-y-10 animate-fade-in">
             {/* Stats Grid */}
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat) => (
-                <div key={stat.label} className="premium-card p-6 flex flex-col justify-between group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-2 rounded-xl bg-background border border-surface-border group-hover:border-primary/50 transition-colors">
+              {stats.map((stat, i) => (
+                <div key={stat.label} className="premium-card p-6 flex flex-col justify-between group animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="p-3 rounded-2xl bg-background border border-surface-border group-hover:border-primary/50 transition-all group-hover:rotate-6">
                       <stat.icon className={`w-6 h-6 ${stat.color}`} />
                     </div>
-                    <span className="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-lg">
+                    <span className="text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-500 px-3 py-1.5 rounded-lg tracking-widest">
                       {stat.change}
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-muted uppercase tracking-wider">{stat.label}</p>
-                    <h3 className="text-2xl font-black mt-1">{stat.value}</h3>
+                    <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.15em] mb-1">{stat.label}</p>
+                    <h3 className="text-3xl font-black tracking-tighter text-white">{stat.value}</h3>
+                  </div>
+                  {/* Subtle progress indicator */}
+                  <div className="mt-4 h-1 w-full bg-surface-border rounded-full overflow-hidden">
+                    <div className="h-full bg-primary/20 w-1/2 group-hover:w-full transition-all duration-1000" />
                   </div>
                 </div>
               ))}
