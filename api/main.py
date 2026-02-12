@@ -204,7 +204,8 @@ app.add_middleware(
         "http://localhost:3000",
         "https://full-techno-channels--full-techno-channels.us-central1.hosted.app",
         "https://full-techno-channels.web.app",
-        "https://full-techno-channels.firebaseapp.com"
+        "https://full-techno-channels.firebaseapp.com",
+        "https://telegate.fulltechnohub.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
