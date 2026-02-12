@@ -140,62 +140,53 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* Multilevel Section */}
-            <section id="affiliates" className="py-24 px-6 lg:py-40 bg-background relative">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <div className="order-2 lg:order-1 relative">
-                            <div className="flex flex-col gap-4">
-                                {[
-                                    { name: "Directo", percent: "3.0%", color: "bg-primary" },
-                                    { name: "Generación II", percent: "1.0%", color: "bg-primary/80" },
-                                    { name: "Generación III", percent: "0.5%", color: "bg-primary/60" },
-                                    { name: "Embajador", percent: "0.1%", color: "bg-primary/40" },
-                                    { name: "Infinitum", percent: "0.1%", color: "bg-primary/20" }
-                                ].map((level, i) => (
-                                    <div key={i} className="premium-card p-6 flex items-center justify-between group cursor-default">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl ${level.color} flex items-center justify-center text-white font-black text-xs shadow-lg`}>
-                                                {10 - i}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-lg">{level.name}</p>
-                                                <p className="text-xs text-muted">Nivel de profundidad</p>
-                                            </div>
-                                        </div>
-                                        <span className="text-2xl font-black text-primary">{level.percent}</span>
-                                    </div>
-                                ))}
+            {/* Features Section */}
+            <section id="features" className="py-24 px-6 lg:py-40 bg-surface/30 relative scroll-mt-28">
+                {/* Technical Grid Background Overlay */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+
+                <div className="max-w-7xl mx-auto space-y-24 relative z-10">
+                    <div className="text-left space-y-6 max-w-3xl">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Tecnología de Grado Militar</h2>
+                        <h3 className="text-5xl lg:text-7xl font-black tracking-tighter leading-none">
+                            Todo lo que necesitas para <br />
+                            <span className="outline-text">escalar tu imperio VIP.</span>
+                        </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-surface-border border border-surface-border">
+                        {[
+                            { title: "Bot Guardián 24/7", desc: "Verificación instantánea. Algoritmos de aprobación automática y purga de miembros expirados sin intervención humana.", icon: Bot, color: "text-primary" },
+                            { title: "Wompi Pay", desc: "Infraestructura nativa para Nequi y PSE. Liquidación instantánea de ganancias en moneda local.", icon: CreditCard, color: "text-[#ED1C24]" },
+                            { title: "Digital Assets", desc: "Pasarela Crypto global. Acepta USDT y BTC con confirmación en cadena ultrarrápida.", icon: Globe, color: "text-[#f3ba2f]" },
+                            { title: "Data Analytics", desc: "Motores de IA para predecir LTV y tasas de retención. Visualización de métricas críticas en tiempo real.", icon: TrendingUp, color: "text-primary" },
+                            { title: "Logic Builder", desc: "Constructor de triales y embudos de oferta. Crea cupones con lógica de expiración programable.", icon: Zap, color: "text-primary" },
+                            { title: "Core Support", desc: "Sistema de tickets enlazado al bot. Resolución de conflictos escalable con arquitectura multi-hilo.", icon: MessageSquare, color: "text-primary" }
+                        ].map((f, i) => (
+                            <div key={i} className="bg-background p-10 lg:p-14 space-y-8 group hover:bg-primary/[0.02] transition-colors relative transition-all duration-500">
+                                {/* Corner Accents */}
+                                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary/0 group-hover:border-primary/50 transition-all" />
+                                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary/0 group-hover:border-primary/50 transition-all" />
+
+                                <div className={`w-16 h-16 rounded-none bg-surface border border-surface-border flex items-center justify-center ${f.color} group-hover:border-primary transition-all relative`}>
+                                    <f.icon className="w-8 h-8 relative z-10" />
+                                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-2xl font-black tracking-tighter uppercase">{f.title}</h4>
+                                    <p className="text-sm text-muted leading-relaxed font-bold opacity-80 group-hover:opacity-100 transition-opacity">{f.desc}</p>
+                                </div>
+
+                                {/* Reveal Bottom Bar */}
+                                <div className="absolute bottom-0 left-0 h-[2px] bg-primary w-0 group-hover:w-full transition-all duration-700" />
                             </div>
-                        </div>
-                        <div className="order-1 lg:order-2 space-y-8">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Crecimiento Exponencial</h2>
-                            <h3 className="text-4xl lg:text-6xl font-black tracking-tight leading-tight">
-                                Sistema de Red de <span className="italic text-primary">10 Niveles</span>.
-                            </h3>
-                            <p className="text-xl text-muted leading-relaxed">
-                                Deja que tus miembros vendan por ti. Nuestro motor de afiliados multinivel permite que tu canal se vuelva viral, pagando comisiones automáticas hasta en la décima generación.
-                            </p>
-                            <ul className="space-y-4">
-                                {[
-                                    "Comisiones directas e indirectas automáticas.",
-                                    "Rangos de prestigio: Bronce, Oro y Diamante.",
-                                    "Control total de referidos desde el Dashboard.",
-                                    "Notificaciones de ventas en tiempo real vía Telegram."
-                                ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 font-bold text-sm">
-                                        <CheckCircle2 className="w-5 h-5 text-primary" /> {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-
             {/* How It Works Section - Comprehensive Ecosystem */}
-            <section id="how-it-works" className="py-24 px-6 lg:py-40 bg-background overflow-hidden border-t border-surface-border relative">
+            <section id="how-it-works" className="py-24 px-6 lg:py-40 bg-background overflow-hidden border-t border-surface-border relative scroll-mt-28">
                 <div className="absolute top-1/4 -right-64 w-full h-[800px] bg-primary/5 blur-[160px] rounded-full -z-10" />
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-32 space-y-6">
@@ -268,98 +259,72 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Detailed Visual Flow: Multilevel Payments */}
-                    <div className="mt-32 lg:mt-48 space-y-16">
-                        <div className="max-w-3xl">
-                            <h4 className="text-3xl lg:text-5xl font-black tracking-tighter">Cómo funciona el <br /> <span className="text-primary italic">Plan de Compañación VIP</span></h4>
-                        </div>
-
-                        <div className="premium-card p-2 md:p-12 bg-surface/20">
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-                                <div className="md:col-span-2 space-y-8">
-                                    <div className="space-y-4">
-                                        <h5 className="text-lg font-black uppercase text-primary">Regla del 20/80</h5>
-                                        <p className="text-muted text-sm leading-relaxed font-bold">
-                                            Por cada suscripción, el <span className="text-foreground">80%</span> va directo al Dueño del canal, y el <span className="text-foreground">20%</span> se distribuye entre la plataforma y la red de 10 niveles.
-                                        </p>
-                                    </div>
-                                    <div className="space-y-4 pt-6 border-t border-surface-border">
-                                        <h5 className="text-lg font-black uppercase text-foreground">El Efecto Viral</h5>
-                                        <p className="text-muted text-sm leading-relaxed font-bold">
-                                            Tu comunidad crece sola. Tus suscriptores se vuelven tus mejores vendedores motivados por comisiones pasivas recurrentes.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="md:col-span-3">
-                                    <div className="bg-background/50 border border-surface-border rounded-3xl p-6 md:p-10 relative overflow-hidden">
-                                        <div className="space-y-6">
-                                            {[
-                                                { l: "Directo (Nivel 1)", p: "3.0%", w: "w-full" },
-                                                { l: "Nivel 2", p: "1.0%", w: "w-[85%]" },
-                                                { l: "Nivel 3", p: "0.5%", w: "w-[70%]" },
-                                                { l: "Nivel 4 al 10", p: "0.1%", w: "w-[50%]" },
-                                            ].map((level, i) => (
-                                                <div key={i} className="space-y-2">
-                                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest px-1">
-                                                        <span className="text-muted">{level.l}</span>
-                                                        <span className="text-primary">{level.p}</span>
-                                                    </div>
-                                                    <div className="h-4 w-full bg-surface border border-surface-border rounded-full overflow-hidden p-[2px]">
-                                                        <div className={`${level.w} h-full bg-gradient-to-r from-primary/40 to-primary rounded-full animate-grow-horizontal`} style={{ animationDelay: `${i * 200}ms` }} />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <Bot className="absolute -bottom-10 -right-10 w-40 h-40 text-primary/5 -rotate-12" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
-            <section id="features" className="py-24 px-6 lg:py-40 bg-surface/30 relative">
-                {/* Technical Grid Background Overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-
-                <div className="max-w-7xl mx-auto space-y-24 relative z-10">
-                    <div className="text-left space-y-6 max-w-3xl">
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Tecnología de Grado Militar</h2>
-                        <h3 className="text-5xl lg:text-7xl font-black tracking-tighter leading-none">
-                            Todo lo que necesitas para <br />
-                            <span className="outline-text">escalar tu imperio VIP.</span>
-                        </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-surface-border border border-surface-border">
-                        {[
-                            { title: "Bot Guardián 24/7", desc: "Verificación instantánea. Algoritmos de aprobación automática y purga de miembros expirados sin intervención humana.", icon: Bot, color: "text-primary" },
-                            { title: "Wompi Pay", desc: "Infraestructura nativa para Nequi y PSE. Liquidación instantánea de ganancias en moneda local.", icon: CreditCard, color: "text-[#ED1C24]" },
-                            { title: "Digital Assets", desc: "Pasarela Crypto global. Acepta USDT y BTC con confirmación en cadena ultrarrápida.", icon: Globe, color: "text-[#f3ba2f]" },
-                            { title: "Data Analytics", desc: "Motores de IA para predecir LTV y tasas de retención. Visualización de métricas críticas en tiempo real.", icon: TrendingUp, color: "text-primary" },
-                            { title: "Logic Builder", desc: "Constructor de triales y embudos de oferta. Crea cupones con lógica de expiración programable.", icon: Zap, color: "text-primary" },
-                            { title: "Core Support", desc: "Sistema de tickets enlazado al bot. Resolución de conflictos escalable con arquitectura multi-hilo.", icon: MessageSquare, color: "text-primary" }
-                        ].map((f, i) => (
-                            <div key={i} className="bg-background p-10 lg:p-14 space-y-8 group hover:bg-primary/[0.02] transition-colors relative transition-all duration-500">
-                                {/* Corner Accents */}
-                                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary/0 group-hover:border-primary/50 transition-all" />
-                                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary/0 group-hover:border-primary/50 transition-all" />
-
-                                <div className={`w-16 h-16 rounded-none bg-surface border border-surface-border flex items-center justify-center ${f.color} group-hover:border-primary transition-all relative`}>
-                                    <f.icon className="w-8 h-8 relative z-10" />
-                                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                                <div className="space-y-4">
-                                    <h4 className="text-2xl font-black tracking-tighter uppercase">{f.title}</h4>
-                                    <p className="text-sm text-muted leading-relaxed font-bold opacity-80 group-hover:opacity-100 transition-opacity">{f.desc}</p>
-                                </div>
-
-                                {/* Reveal Bottom Bar */}
-                                <div className="absolute bottom-0 left-0 h-[2px] bg-primary w-0 group-hover:w-full transition-all duration-700" />
+            {/* Multilevel Section */}
+            <section id="affiliates" className="py-24 px-6 lg:py-40 bg-background relative scroll-mt-28">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                        <div className="order-2 lg:order-1 relative">
+                            {/* Multilevel Visuals (Graphs) */}
+                            <div className="flex flex-col gap-4">
+                                {[
+                                    { name: "Directo", percent: "3.0%", color: "bg-primary" },
+                                    { name: "Generación II", percent: "1.0%", color: "bg-primary/80" },
+                                    { name: "Generación III", percent: "0.5%", color: "bg-primary/60" },
+                                    { name: "Embajador", percent: "0.1%", color: "bg-primary/40" },
+                                    { name: "Infinitum", percent: "0.1%", color: "bg-primary/20" }
+                                ].map((level, i) => (
+                                    <div key={i} className="premium-card p-6 flex items-center justify-between group cursor-default">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-xl ${level.color} flex items-center justify-center text-white font-black text-xs shadow-lg`}>
+                                                {10 - i}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-lg">{level.name}</p>
+                                                <p className="text-xs text-muted">Nivel de profundidad</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-2xl font-black text-primary">{level.percent}</span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
+                        <div className="order-1 lg:order-2 space-y-8">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Crecimiento Exponencial</h2>
+                            <h3 className="text-4xl lg:text-6xl font-black tracking-tight leading-tight">
+                                Sistema de Red de <span className="italic text-primary">10 Niveles</span>.
+                            </h3>
+                            <p className="text-xl text-muted leading-relaxed">
+                                Deja que tus miembros vendan por ti. Nuestro motor de afiliados multinivel permite que tu canal se vuelva viral, pagando comisiones automáticas hasta en la décima generación.
+                            </p>
+
+                            {/* Visual Breakdown of 80/20 Rule */}
+                            <div className="premium-card p-6 border-primary/20 bg-primary/5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="font-black text-primary uppercase text-xs">Distribución de Ingresos</span>
+                                    <span className="font-black text-white">100% por venta</span>
+                                </div>
+                                <div className="flex h-6 rounded-full overflow-hidden w-full">
+                                    <div className="w-[80%] bg-primary flex items-center justify-center text-[10px] font-black text-black">80% PARA TI (DUEÑO)</div>
+                                    <div className="w-[20%] bg-zinc-800 flex items-center justify-center text-[10px] font-black text-white/50">20% RED</div>
+                                </div>
+                            </div>
+
+                            <ul className="space-y-4 pt-4">
+                                {[
+                                    "Comisiones directas e indirectas automáticas.",
+                                    "Rangos de prestigio: Bronce, Oro y Diamante.",
+                                    "Control total de referidos desde el Dashboard.",
+                                    "Notificaciones de ventas en tiempo real vía Telegram."
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-3 font-bold text-sm">
+                                        <CheckCircle2 className="w-5 h-5 text-primary" /> {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
