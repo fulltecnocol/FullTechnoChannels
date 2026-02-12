@@ -26,8 +26,8 @@ export default function LandingPage() {
             <nav className="fixed top-0 w-full z-50 border-b border-surface-border bg-background/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground font-black text-xl shadow-lg shadow-primary/20">M</div>
-                        <span className="font-bold text-2xl tracking-tighter">Gestor<span className="text-primary">VIP</span></span>
+                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain" />
+                        <span className="font-extrabold text-2xl tracking-tighter">Tele<span className="text-primary">Gate</span></span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
                         <a href="#features" className="hover:text-primary transition-colors">Funcionalidades</a>
@@ -56,14 +56,14 @@ export default function LandingPage() {
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">Plataforma Auto-Gestionable · 2026 Ready</span>
                         </div>
                         <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
-                            Monetiza tu <span className="gradient-text">Telegram</span> con el motor más potente.
+                            El estándar <span className="gradient-text italic">Premium</span> para tu comunidad.
                         </h1>
                         <p className="text-xl text-muted max-w-xl leading-relaxed">
-                            Gestión automática de miembros, red de afiliados de 10 niveles y pagos globales (Stripe, Wompi, Crypto). Todo en un solo lugar.
+                            TeleGate automatiza la gestión de miembros, red de afiliados y pagos globales con la infraestructura de elite de <span className="text-foreground font-bold">Full Techno HUB</span>.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                            <Link href="/register" className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-lg shadow-xl shadow-primary/30 hover:scale-[1.03] transition-all">
-                                Lanzar mi Canal VIP <ArrowRight className="w-5 h-5" />
+                            <Link href="/register" className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black text-lg shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all">
+                                Lanzar mi Canal TeleGate <ArrowRight className="w-5 h-5" />
                             </Link>
                             <a href="#features" className="flex items-center justify-center gap-3 px-8 py-4 bg-surface border border-surface-border rounded-2xl font-black text-lg hover:bg-surface-border transition-all">
                                 Ver Funcionalidades <Zap className="w-5 h-5 text-amber-500" />
@@ -79,8 +79,9 @@ export default function LandingPage() {
                         </div>
                     </div>
                     <div className="relative animate-float lg:block flex justify-center">
-                        <div className="w-full max-w-[500px] aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-primary/20 border-2 border-primary/10 bg-surface">
-                            <img src="/saas_hero_illustration.png" alt="Gestor VIP Dashboard" className="w-full h-full object-cover" />
+                        <div className="w-full max-w-[500px] aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-primary/20 bg-surface relative">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent" />
+                            <img src="/saas_hero_illustration.png" alt="TeleGate Dashboard" className="w-full h-full object-cover" />
                         </div>
                         {/* Floating Stats Card */}
                         <div className="absolute -bottom-10 -left-10 premium-card p-6 scale-90 hidden sm:block animate-fade-in-up">
@@ -225,13 +226,13 @@ export default function LandingPage() {
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                    <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-primary-foreground relative z-10">¿Tu canal está listo para facturar?</h3>
+                    <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-primary-foreground relative z-10">¿Listo para el siguiente nivel?</h3>
                     <p className="text-xl text-primary-foreground/80 font-bold max-w-2xl mx-auto relative z-10">
-                        Deja de perder tiempo en la administración manual. Automatiza tu comunidad hoy mismo con Gestor VIP.
+                        Automatiza, escala y domina tu mercado con la tecnología de TeleGate. Una solución exclusiva de Full Techno HUB.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-6 relative z-10">
-                        <Link href="/register" className="px-10 py-5 bg-white text-primary rounded-2xl font-black text-xl shadow-2xl hover:scale-105 active:scale-95 transition-all">
-                            Crear Mi Bot VIP Gratis
+                        <Link href="/register" className="px-10 py-5 bg-white text-primary rounded-2xl font-black text-xl shadow-2xl hover:scale-[1.02] active:scale-95 transition-all">
+                            Crear Canal TeleGate Gratis
                         </Link>
                         <Link href="/login" className="px-10 py-5 bg-black/20 text-white rounded-2xl font-black text-xl hover:bg-black/30 transition-all border border-white/20">
                             Ir al Dashboard
@@ -245,8 +246,8 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-16">
                     <div className="col-span-2 md:col-span-1 space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">M</div>
-                            <span className="font-bold text-xl tracking-tight leading-none">GestorVIP</span>
+                            <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain" />
+                            <span className="font-bold text-xl tracking-tight leading-none">TeleGate</span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed font-bold">La infraestructura definitiva para la monetización de comunidades en Telegram.</p>
                         <div className="flex gap-4">
@@ -285,20 +286,22 @@ export default function LandingPage() {
                         </ul>
                     </div>
                 </div>
-                <div className="max-w-7xl mx-auto pt-20 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-surface-border mt-20 text-[10px] font-bold text-muted uppercase tracking-widest">
-                    <p>© 2026 GestorVIP. Todos los derechos reservados.</p>
-                    <p className="flex items-center gap-2 italic">Construido con <Zap className="w-3 h-3 text-primary" /> por Antigravity</p>
+                <div className="max-w-7xl mx-auto pt-20 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-surface-border mt-20 text-[10px] font-black text-muted uppercase tracking-[0.4em]">
+                    <p>© 2026 TeleGate. Todos los derechos reservados.</p>
+                    <p className="flex items-center gap-2">
+                        Designed & Powered by <span className="text-primary">Full Techno HUB</span>
+                    </p>
                 </div>
             </footer>
 
             <style jsx global>{`
                 .gradient-text {
-                    background: linear-gradient(to right, #10b981, #3b82f6);
+                    background: linear-gradient(to right, var(--primary), #ffffff);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                 }
                 @keyframes fade-in {
-                    from { opacity: 0; transform: translateY(20px); }
+                    from { opacity: 0; transform: translateY(15px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
                 @keyframes float {

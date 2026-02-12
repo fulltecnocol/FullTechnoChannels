@@ -61,8 +61,8 @@ async def send_welcome(message: types.Message, command: CommandObject):
                 user.telegram_id = message.from_user.id
                 await session.commit()
                 await message.reply(
-                    f"✅ **¡Cuenta Vinculada con Éxito!**\n\n"
-                    f"Hola **{user.full_name}**, ahora recibirás notificaciones inmediatas de tus comisiones y ventas en este chat."
+                    f"✅ **¡Cuenta TeleGate Vinculada!**\n\n"
+                    f"Hola **{user.full_name}**, ahora recibirás notificaciones inmediatas de tus comisiones y ventas. Una solución de **Full Techno HUB**."
                 )
                 return
             else:
@@ -80,7 +80,7 @@ async def send_welcome(message: types.Message, command: CommandObject):
             if referrer and not user.referred_by_id and user.id != referrer.id:
                 user.referred_by_id = referrer.id
                 await session.commit()
-                await message.reply(f"🎯 **¡Te has unido a la red de {referrer.full_name}!**")
+                await message.reply(f"🎯 **¡Te has unido a la red TeleGate de {referrer.full_name}!**")
             
             # Continuar como un inicio normal después de vincular el referido
             args = None 
@@ -211,7 +211,7 @@ async def cmd_profile(message: types.Message):
         tier_info = await get_affiliate_tier_info(session, user.id)
         
         profile_text = (
-            f"👤 **PERFIL VIP: {message.from_user.full_name}**\n"
+            f"👤 **PERFIL TELEGATE: {message.from_user.full_name}**\n"
             f"━━━━━━━━━━━━━━━━━━\n\n"
             f"🆔 **ID**: `{user.id}`\n"
             f"🏆 **Rango**: {tier_info['tier']}\n"
@@ -229,6 +229,7 @@ async def cmd_profile(message: types.Message):
         else:
             profile_text += "_No tienes membresías activas._\n"
             
+        profile_text += "\n\n_Powered by Full Techno HUB_"
         await message.answer(profile_text, parse_mode="Markdown")
 
 @router.message(Command("soporte"))
@@ -287,12 +288,13 @@ async def handle_cancel_ticket(callback: types.CallbackQuery):
 @router.message(Command("ayuda"))
 async def cmd_help(message: types.Message):
     help_text = (
-        "❓ **¿Cómo puedo ayudarte?**\n\n"
+        "❓ **¿Cómo puedo ayudarte con TeleGate?**\n\n"
         "/me - Ver mi perfil, saldo y membresías.\n"
         "/legal - ✍️ **Activar Pagos** (Firmar Contrato).\n"
         "/ayuda - Mostrar este menú.\n"
         "/soporte [mensaje] - Contactar con el soporte.\n\n"
-        "🚀 **Para unirse a un canal**: Usa el link de invitación que te proporcionó el dueño del canal."
+        "🚀 **Para unirse a un canal**: Usa el link de invitación que te proporcionó el dueño del canal.\n\n"
+        "_Designed & Powered by Full Techno HUB_"
     )
     await message.answer(help_text, parse_mode="Markdown")
 
