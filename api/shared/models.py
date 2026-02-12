@@ -24,6 +24,11 @@ class User(Base):
     is_admin = Column(Boolean, default=False)  # Admin central de la plataforma
     is_owner = Column(Boolean, default=False)  # Si es dueño de canales
     
+    # --- VERIFICACIÓN LEGAL (NUEVO) ---
+    legal_verification_status = Column(String(50), default="pending")
+    # Valores: 'pending', 'info_submitted', 'contract_signed', 'rejected'
+    can_create_channels = Column(Boolean, default=False)
+    
     # --- SISTEMA DE AFILIADOS ---
     # Código único para invitar a otros
     referral_code = Column(String, unique=True, index=True, default=lambda: str(uuid.uuid4())[:8])
@@ -46,6 +51,11 @@ class User(Base):
     
     # Relación de Afiliados (Self-referencing)
     referrer = relationship("User", remote_side=[id], backref="referrals")
+    
+    # Relaciones para Sistema de Firma (NUEVO)
+    legal_info = relationship("OwnerLegalInfo", back_populates="owner", uselist=False)
+    signature_codes = relationship("SignatureCode", back_populates="owner")
+    signed_contracts = relationship("SignedContract", back_populates="owner")
 
 class SystemConfig(Base):
     """
