@@ -19,13 +19,13 @@ echo "Checking Secret Manager configuration..."
 # Mandatory secrets: DATABASE_URL, JWT_SECRET_KEY, BOT_TOKEN
 
 # 2. Deploy to Cloud Run using SECRETS (not env vars)
-# We use --clear-env-vars to avoid conflicts with previous insecure deployments
+# Extended timeout to allow for initialization
 gcloud run deploy $SERVICE_NAME \
   --source . \
   --region $REGION \
   --platform managed \
   --allow-unauthenticated \
-  --clear-env-vars \
+  --timeout=300 \
   --set-secrets="DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,BOT_TOKEN=BOT_TOKEN:latest" \
   --project $PROJECT_ID \
   --quiet
