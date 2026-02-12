@@ -193,7 +193,11 @@ async def cmd_profile(message: types.Message):
         
         # 1. Obtener Suscripciones Activas
         sub_res = await session.execute(
-            select(Subscription, Plan, Channel).join(Plan).join(Channel).where(
+            select(Subscription, Plan, Channel)
+            .select_from(Subscription)
+            .join(Plan, Subscription.plan_id == Plan.id)
+            .join(Channel, Plan.channel_id == Channel.id)
+            .where(
                 and_(Subscription.user_id == user.id, Subscription.is_active == True, Subscription.end_date > datetime.utcnow())
             )
         )
