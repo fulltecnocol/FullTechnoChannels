@@ -8,24 +8,20 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy all requirements first for better caching
-COPY api/requirements.txt api_requirements.txt
-COPY bot/requirements.txt bot_requirements.txt
+# Copy API requirements
+COPY api/requirements.txt .
 
-# Install all Python dependencies
-RUN pip install --no-cache-dir -r api_requirements.txt
-RUN pip install --no-cache-dir -r bot_requirements.txt
-RUN pip install --no-cache-dir python-dotenv aiogram
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir python-dotenv
 
 # Copy source code
 COPY api/ ./api/
-COPY bot/ ./bot/
 COPY shared/ ./shared/
 
 # Environment variables
 ENV PORT=8080
 ENV PYTHONPATH=/app
 
-# Start both API and Bot
-# API runs on $PORT, Bot runs in background with webhook mode
-CMD sh -c "python3 bot/main.py & uvicorn api.main:app --host 0.0.0.0 --port $PORT"
+# Start API only
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
