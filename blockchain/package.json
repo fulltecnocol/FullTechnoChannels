@@ -1,0 +1,29 @@
+{
+    "name": "telegate-blockchain",
+    "version": "1.0.0",
+    "description": "Smart contracts for TeleGate signature system",
+    "main": "index.js",
+    "scripts": {
+        "compile": "hardhat compile",
+        "test": "hardhat test",
+        "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai",
+        "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
+        "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
+        "verify": "hardhat verify --network"
+    },
+    "keywords": [
+        "blockchain",
+        "polygon",
+        "smart-contracts",
+        "signature"
+    ],
+    "author": "Full Techno Hub",
+    "license": "MIT",
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+        "hardhat": "^2.19.4"
+    },
+    "dependencies": {
+        "dotenv": "^16.4.1"
+    }
+}

@@ -1,0 +1,23 @@
+# Hardhat files
+cache/
+artifacts/
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# TypeChain files
+typechain/
+typechain-types/
+
+# Hardhat Ignition files
+ignition/deployments/
+
+# Coverage reports
+coverage/
+coverage.json
+
+# Logs
+*.log
