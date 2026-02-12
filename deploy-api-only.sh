@@ -12,10 +12,14 @@ echo "=========================================="
 echo "🚀 TeleGate API-Only Deployment"
 echo "=========================================="
 
-# Deploy to Cloud Run using API-specific Dockerfile
+# 1. Build the container using Cloud Build explicitly
+echo "🛠 Building container with Cloud Build..."
+gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME --dockerfile Dockerfile.api . --project $PROJECT_ID
+
+# 2. Deploy the built image to Cloud Run
+echo "🚀 Deploying to Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
-  --source . \
-  --dockerfile Dockerfile.api \
+  --image gcr.io/$PROJECT_ID/$SERVICE_NAME \
   --region $REGION \
   --platform managed \
   --allow-unauthenticated \
