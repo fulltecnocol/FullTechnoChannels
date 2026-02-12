@@ -1,0 +1,6 @@
+aiogram
+sqlalchemy[asyncio]
+aiosqlite
+asyncpg
+pydantic-settings
+httpx

@@ -63,7 +63,7 @@ def is_page_file(file_path: Path) -> bool:
     
     # Filename indicators for pages
     page_names = ['page', 'index', 'home', 'about', 'contact', 'blog', 
-                  'post', 'article', 'product', 'landing']
+                  'post', 'article', 'product', 'landing', 'layout']
     
     if any(p in stem for p in page_names):
         return True
@@ -102,21 +102,21 @@ def check_page(file_path: Path) -> dict:
     except Exception as e:
         return {"file": str(file_path.name), "issues": [f"Error: {e}"]}
     
-    # Detect if this is a layout/template file
-    is_layout = 'layout' in file_path.name.lower()
+    # Detect if this is a layout/template file (has Head component)
+    is_layout = 'Head>' in content or '<head' in content.lower()
     
     # 1. Title tag
-    has_title = '<title' in content.lower() or 'title:' in content or 'Head>' in content
+    has_title = '<title' in content.lower() or 'title=' in content or 'Head>' in content
     if not has_title and is_layout:
         issues.append("Missing <title> tag")
     
     # 2. Meta description
-    has_description = 'description:' in content.lower() or 'name="description"' in content.lower()
+    has_description = 'name="description"' in content.lower() or 'name=\'description\'' in content.lower()
     if not has_description and is_layout:
         issues.append("Missing meta description")
     
     # 3. Open Graph tags
-    has_og = 'og:' in content or 'openGraph:' in content or 'property="og:' in content.lower()
+    has_og = 'og:' in content or 'property="og:' in content.lower()
     if not has_og and is_layout:
         issues.append("Missing Open Graph tags")
     

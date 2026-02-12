@@ -36,12 +36,10 @@ async def distribute_payment_funds(
     owner = owner_result.scalar_one_or_none()
     
     # 2. Obtener Comisión del Sitio (Total Pool)
-    # Configuración por defecto: 20% Plataforma (Bruto), 80% Dueño
-    platform_fee_percent = await get_config_value(db, "platform_fee", 0.20) 
+    platform_fee_percent = await get_config_value(db, "platform_fee", 0.10) 
     total_commission_pool = total_amount * platform_fee_percent
     
-    # El dueño del canal recibe el resto (Total - Comisión Total del Sitio)
-    # Ejemplo: 100 - 20 = 80 (80%)
+    # El dueño del canal siempre recibe el resto (Total - Comisión Total del Sitio)
     owner_amount = total_amount - total_commission_pool
     
     # Nombres de los niveles para branding
@@ -61,18 +59,9 @@ async def distribute_payment_funds(
             break
             
         # Obtener porcentaje para este nivel
-        # Total Afiliados = 8% (Para dejar 12% Neto a la Plataforma de un 20% Bruto)
         default_fees = {
-            1: 0.04,   # 4.0% Directo
-            2: 0.015,  # 1.5%
-            3: 0.01,   # 1.0%
-            4: 0.005,  # 0.5%
-            5: 0.003,  # 0.3%
-            6: 0.002,  # 0.2%
-            7: 0.001,  # 0.1%
-            8: 0.001,  # 0.1%
-            9: 0.001,  # 0.1%
-            10: 0.002  # 0.2% (Bono Infinitum)
+            1: 0.03, 2: 0.01, 3: 0.005, 4: 0.003, 5: 0.002,
+            6: 0.001, 7: 0.001, 8: 0.001, 9: 0.001, 10: 0.001
         }
         fee_key = f"affiliate_level_{level}_fee"
         level_fee_percent = await get_config_value(db, fee_key, default_fees.get(level, 0.0))
