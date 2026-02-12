@@ -413,6 +413,26 @@ async def bot_webhook(request: Request):
     await dp.feed_update(bot, update)
     return {"ok": True}
 
+@app.get("/health")
+async def bot_health_check():
+    """Bot service health check"""
+    health_status = {
+        "service": "TeleGate Bot",
+        "status": "healthy",
+        "components": {
+            "bot": {"status": "configured" if bot else "not_initialized"},
+            "dispatcher": {"status": "configured" if dp else "not_initialized"},
+            "telegram_token": {"status": "configured" if API_TOKEN else "missing"}
+        }
+    }
+    
+    if not bot or not dp or not API_TOKEN:
+        health_status["status"] = "unhealthy"
+        from fastapi import Response
+        return Response(content=str(health_status), status_code=503)
+    
+    return health_status
+
 
 
 @app.on_event("startup")

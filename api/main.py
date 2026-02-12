@@ -187,6 +187,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Health Check Endpoint ---
+@app.get("/health")
+async def api_health_check():
+    """API-specific health check with database validation"""
+    from sqlalchemy import text
+    
+    health_status = {
+        "service": "TeleGate API",
+        "status": "healthy",
+        "components": {
+            "database": {"status": "unknown"},
+            "stripe": {"status": "configured" if STRIPE_WEBHOOK_SECRET else "not_configured"}
+        }
+    }
+    
+    # Test database
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+            health_status["components"]["database"] = {"status": "healthy"}
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["components"]["database"] = {"status": "unhealthy", "error": str(e)}
+        from fastapi import Response
+        return Response(content=str(health_status), status_code=503)
+    
+    return health_status
+
+
+
 # --- Endpoints de Autenticación ---
 
 @app.post("/register", response_model=Token)

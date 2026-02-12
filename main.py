@@ -30,9 +30,52 @@ async def root():
         "status": "running",
         "endpoints": {
             "api": "/api/docs",
-            "bot_webhook": f"/bot/webhook/{os.getenv('TELEGRAM_BOT_TOKEN', '[token]')}"
+            "bot_webhook": f"/bot/webhook/{os.getenv('TELEGRAM_BOT_TOKEN', '[token]')}",
+            "health": "/health"
         }
     }
+
+@app.get("/health")
+async def health_check():
+    """
+    Comprehensive health check for Cloud Monitoring uptime checks
+    Returns 200 if healthy, 503 if unhealthy
+    """
+    from shared.database import AsyncSessionLocal
+    from sqlalchemy import text
+    from shared.logger import get_logger
+    
+    logger = get_logger("health_check")
+    health_status = {
+        "service": "TeleGate",
+        "status": "healthy",
+        "timestamp": os.popen("date -u +%Y-%m-%dT%H:%M:%SZ").read().strip(),
+        "components": {}
+    }
+    
+    # Check database connectivity
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+            health_status["components"]["database"] = {"status": "healthy"}
+            logger.info("Health check: database healthy")
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["components"]["database"] = {
+            "status": "unhealthy",
+            "error": str(e)
+        }
+        logger.error("Health check: database unhealthy", error=str(e))
+        from fastapi import Response
+        return Response(
+            content=str(health_status),
+            status_code=503,
+            media_type="application/json"
+        )
+    
+    # All checks passed
+    return health_status
+
 
 if __name__ == "__main__":
     import uvicorn
