@@ -460,8 +460,11 @@ async def on_startup():
     ])
 
     if WEBHOOK_URL:
-        await bot.set_webhook(url=WEBHOOK_URL + WEBHOOK_PATH)
-        logging.info(f"Webhook set to {WEBHOOK_URL + WEBHOOK_PATH}")
+        try:
+            await bot.set_webhook(url=WEBHOOK_URL + WEBHOOK_PATH)
+            logging.info(f"Webhook set to {WEBHOOK_URL + WEBHOOK_PATH}")
+        except Exception as e:
+            logging.warning(f"Failed to set webhook (will retry later): {e}")
     else:
         logging.info("Starting in POLLING mode")
 
