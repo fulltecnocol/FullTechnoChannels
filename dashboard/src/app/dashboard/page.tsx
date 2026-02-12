@@ -13,6 +13,7 @@ import {
   PlusCircle,
   Copy,
   ArrowDownCircle,
+  AlertTriangle,
   History,
   Loader2,
   LogOut,
@@ -38,8 +39,9 @@ import {
 import { ownerApi, adminApi } from "@/lib/api";
 import {
   SummaryData, Channel, ConfigItem, Withdrawal, SupportTicket,
-  TicketMessage, AnalyticsData, Promotion, Payment
+  TicketMessage, AnalyticsData, Promotion, Payment, UserAdmin
 } from "../../lib/types";
+import { LegalSignature } from "@/components/LegalSignature";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -59,7 +61,9 @@ export default function DashboardPage() {
   const [managingPromos, setManagingPromos] = useState<Channel | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [adminPayments, setAdminPayments] = useState<Payment[]>([]);
+  const [adminUsers, setAdminUsers] = useState<UserAdmin[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("wompi");
 
   useEffect(() => {
     setMounted(true);
@@ -88,16 +92,18 @@ export default function DashboardPage() {
       setAnalyticsData(anData);
 
       if (sumData.is_admin) {
-        const [configData, admWithData, admTickData, admPayData] = await Promise.all([
+        const [configData, admWithData, admTickData, admPayData, admUsersData] = await Promise.all([
           adminApi.getConfig(),
           adminApi.getWithdrawals(),
           adminApi.getTickets(),
-          adminApi.getPendingPayments()
+          adminApi.getPendingPayments(),
+          adminApi.getUsers()
         ]);
         setConfigs(configData);
         setAdminWithdrawals(admWithData);
         setAdminTickets(admTickData);
         setAdminPayments(admPayData);
+        setAdminUsers(admUsersData);
       }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
@@ -259,6 +265,12 @@ export default function DashboardPage() {
   };
 
   const handleCreateChannel = async () => {
+    if (summary?.legal_verification_status !== 'verified' && !summary?.is_admin) {
+      alert("⚠️ Debes completar la Verificación de Identidad (Firma Legal) antes de crear canales.");
+      setActiveTab("legal");
+      return;
+    }
+
     const title = prompt("Introduce el nombre de tu nuevo canal:");
     if (title) {
       try {
@@ -297,15 +309,13 @@ export default function DashboardPage() {
     { id: "crypto", name: "USDT / Crypto", description: "Pago en Stablecoins (Red TRC20).", active: false },
   ];
 
-  const [selectedMethod, setSelectedMethod] = useState("wompi");
-
   return (
     <div className="flex min-h-screen bg-background" aria-label="Panel de Administración del Dueño">
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 flex-col border-r border-surface-border bg-surface p-6 space-y-8">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">T</div>
-          <span className="font-bold text-xl tracking-tight">TeleGate</span>
+          <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain brightness-125 contrast-125 mix-blend-screen" />
+          <span className="font-bold text-xl tracking-tight text-white">Tele<span className="text-primary">Gate</span></span>
         </div>
 
         <nav className="flex-1 space-y-2">
@@ -314,6 +324,7 @@ export default function DashboardPage() {
             { id: "channels", label: "Mis Canales", icon: Users },
             { id: "affiliates", label: "Afiliados", icon: Zap },
             { id: "support", label: "Soporte", icon: LifeBuoy },
+            { id: "legal", label: "Identidad Legal", icon: ShieldCheck },
             { id: "wallet", label: "Billetera", icon: Wallet },
             { id: "settings", label: "Configuración", icon: Settings },
             ...(summary?.is_admin ? [
@@ -975,8 +986,52 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
                 <ShieldEllipsis className="w-8 h-8" /> Configuración Maestro del Sistema
               </h2>
-              <p className="text-muted font-medium">Controla las comisiones y umbrales de todo el SaaS.</p>
+              <p className="text-muted font-medium">Controla las comisiones, umbrales y usuarios de todo el SaaS.</p>
             </header>
+
+            {/* Gestión de Usuarios (Admin) */}
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold flex items-center gap-2 text-primary">
+                <Users className="w-6 h-6" /> Gestión de Propietarios (Owners)
+              </h3>
+              <div className="premium-card overflow-hidden">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-background/50 text-[10px] font-black uppercase tracking-widest text-muted border-b border-surface-border">
+                      <th className="p-5">Usuario / Email</th>
+                      <th className="p-5">ID</th>
+                      <th className="p-5">Firma Legal</th>
+                      <th className="p-5">Fecha Registro</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-border">
+                    {adminUsers.map(u => (
+                      <tr key={u.id} className="hover:bg-background/30 transition-colors">
+                        <td className="p-5">
+                          <p className="font-bold text-sm">{u.full_name || 'Sin Nombre'}</p>
+                          <p className="text-[10px] text-muted">{u.email}</p>
+                        </td>
+                        <td className="p-5">
+                          <span className="px-2 py-0.5 bg-surface-border text-muted text-[10px] font-black rounded">#{u.id}</span>
+                        </td>
+                        <td className="p-5">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-tighter border ${u.legal_verification_status === 'verified' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                            u.legal_verification_status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                              'bg-red-500/10 text-red-500 border-red-500/20'
+                            }`}>
+                            {u.legal_verification_status === 'verified' ? <ShieldCheck className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                            {u.legal_verification_status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="p-5">
+                          <p className="text-xs font-medium text-muted">{mounted ? new Date(u.created_at).toLocaleDateString() : '...'}</p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Tarjeta de Comisión Plataforma */}
@@ -1423,6 +1478,7 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+        {activeTab === "legal" && <LegalSignature />}
 
         <footer className="pt-10 border-t border-surface-border flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 text-xs font-bold text-muted">

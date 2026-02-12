@@ -135,6 +135,17 @@ class BrandingUpdate(BaseModel):
     welcome_message: Optional[str] = None
     expiration_message: Optional[str] = None
 
+class UserAdminResponse(BaseModel):
+    id: int
+    full_name: Optional[str]
+    email: Optional[str]
+    is_admin: bool
+    is_owner: bool
+    legal_verification_status: str
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
 # --- Utilidades de Auth ---
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -303,6 +314,11 @@ async def update_config(data: ConfigUpdate, current_user: DBUser = Depends(get_c
     
     await db.commit()
     return {"status": "updated", "key": data.key, "value": data.value}
+
+@app.get("/admin/users", response_model=List[UserAdminResponse])
+async def get_all_users(current_user: DBUser = Depends(get_current_admin), db: AsyncSessionLocal = Depends(get_db)):
+    result = await db.execute(select(DBUser).where(DBUser.is_owner == True).order_by(DBUser.created_at.desc()))
+    return result.scalars().all()
 
 @app.get("/admin/withdrawals")
 async def get_all_withdrawals(current_user: DBUser = Depends(get_current_admin), db: AsyncSessionLocal = Depends(get_db)):

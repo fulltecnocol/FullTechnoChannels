@@ -26,8 +26,8 @@ export default function LandingPage() {
             <nav className="fixed top-0 w-full z-50 border-b border-surface-border bg-background/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain" />
-                        <span className="font-extrabold text-2xl tracking-tighter">Tele<span className="text-primary">Gate</span></span>
+                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain brightness-125 contrast-125 mix-blend-screen" />
+                        <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
                         <a href="#features" className="hover:text-primary transition-colors">Funcionalidades</a>
@@ -85,8 +85,8 @@ export default function LandingPage() {
                         {/* Floating Stats Card */}
                         <div className="absolute -bottom-10 -left-10 premium-card p-6 scale-90 hidden sm:block animate-fade-in-up">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-emerald-500/10 rounded-xl">
-                                    <TrendingUp className="w-6 h-6 text-emerald-500" />
+                                <div className="p-3 bg-primary/10 rounded-xl">
+                                    <TrendingUp className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black uppercase text-muted">Cobros en Tiempo Real</p>
@@ -94,9 +94,9 @@ export default function LandingPage() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 text-[10px] font-bold rounded-md">+24% hoy</span>
+                                <span className="px-2 py-0.5 bg-primary/20 text-primary text-[10px] font-bold rounded-md">+24% hoy</span>
                                 <div className="h-1 flex-1 bg-surface-border rounded-full overflow-hidden">
-                                    <div className="h-full w-2/3 bg-emerald-500" />
+                                    <div className="h-full w-2/3 bg-primary" />
                                 </div>
                             </div>
                         </div>
@@ -283,12 +283,12 @@ export default function LandingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-surface-border border border-surface-border">
                         {[
-                            { title: "Bot Guardián 24/7", desc: "Verificación instantánea. Algoritmos de aprobación automática y purga de miembros expirados sin intervención humana.", icon: Bot, color: "text-blue-500" },
+                            { title: "Bot Guardián 24/7", desc: "Verificación instantánea. Algoritmos de aprobación automática y purga de miembros expirados sin intervención humana.", icon: Bot, color: "text-primary" },
                             { title: "Wompi Pay", desc: "Infraestructura nativa para Nequi y PSE. Liquidación instantánea de ganancias en moneda local.", icon: CreditCard, color: "text-[#ED1C24]" },
                             { title: "Digital Assets", desc: "Pasarela Crypto global. Acepta USDT y BTC con confirmación en cadena ultrarrápida.", icon: Globe, color: "text-[#f3ba2f]" },
                             { title: "Data Analytics", desc: "Motores de IA para predecir LTV y tasas de retención. Visualización de métricas críticas en tiempo real.", icon: TrendingUp, color: "text-primary" },
-                            { title: "Logic Builder", desc: "Constructor de triales y embudos de oferta. Crea cupones con lógica de expiración programable.", icon: Zap, color: "text-amber-500" },
-                            { title: "Core Support", desc: "Sistema de tickets enlazado al bot. Resolución de conflictos escalable con arquitectura multi-hilo.", icon: MessageSquare, color: "text-pink-500" }
+                            { title: "Logic Builder", desc: "Constructor de triales y embudos de oferta. Crea cupones con lógica de expiración programable.", icon: Zap, color: "text-primary" },
+                            { title: "Core Support", desc: "Sistema de tickets enlazado al bot. Resolución de conflictos escalable con arquitectura multi-hilo.", icon: MessageSquare, color: "text-primary" }
                         ].map((f, i) => (
                             <div key={i} className="bg-background p-10 lg:p-14 space-y-8 group hover:bg-primary/[0.02] transition-colors relative transition-all duration-500">
                                 {/* Corner Accents */}
@@ -318,8 +318,8 @@ export default function LandingPage() {
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                    <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-primary-foreground relative z-10">¿Listo para escalar al infinito?</h3>
-                    <p className="text-xl text-primary-foreground/80 font-bold max-w-2xl mx-auto relative z-10">
+                    <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-white relative z-10 leading-none">¿Listo para escalar al infinito?</h3>
+                    <p className="text-xl text-white/70 font-bold max-w-2xl mx-auto relative z-10 leading-relaxed">
                         Optimiza tu operativa con la infraestructura de TeleGate. Potenciado por Full Techno HUB.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-6 relative z-10">
@@ -338,7 +338,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-16">
                     <div className="col-span-2 md:col-span-1 space-y-6">
                         <div className="flex items-center gap-3">
-                            <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain" />
+                            <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain mix-blend-screen" />
                             <span className="font-bold text-xl tracking-tight leading-none">TeleGate</span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed font-bold">La infraestructura definitiva para la monetización de comunidades en Telegram.</p>

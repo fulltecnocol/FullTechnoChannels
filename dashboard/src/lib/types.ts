@@ -129,6 +129,7 @@ export interface SummaryData {
     affiliate_next_tier_min?: number;
     is_admin: boolean;
     telegram_linked: boolean;
+    legal_verification_status: string;
 }
 
 export interface ConfigItem {
@@ -146,4 +147,31 @@ export interface AuthResponse {
 export interface TicketDetailsResponse {
     ticket: SupportTicket;
     messages: TicketMessage[];
+}
+
+export interface LegalInfo {
+    person_type: 'natural' | 'juridica';
+    full_name: string;
+    document_id: string;
+    address: string;
+    phone: string;
+    company_name?: string;
+    tax_id?: string;
+    legal_representative?: string;
+}
+
+export interface LegalStatus {
+    status: 'unverified' | 'pending' | 'verified';
+    blockchain_hash?: string;
+    signed_at?: string;
+}
+
+export interface UserAdmin {
+    id: number;
+    full_name: string;
+    email: string;
+    is_admin: boolean;
+    is_owner: boolean;
+    legal_verification_status: string;
+    created_at: string;
 }

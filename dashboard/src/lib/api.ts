@@ -1,6 +1,7 @@
 import {
     AuthResponse, SummaryData, Channel, Withdrawal, SupportTicket,
-    TicketDetailsResponse, ConfigItem, Payment, Promotion, AnalyticsData
+    TicketDetailsResponse, ConfigItem, TicketMessage, AnalyticsData, Promotion, Payment,
+    LegalInfo, LegalStatus, UserAdmin
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -127,4 +128,22 @@ export const adminApi = {
     verifyCryptoPayment: (id: number) => apiRequest<Payment>(`/admin/payments/${id}/verify-crypto`, {
         method: "POST",
     }),
+    getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),
+};
+
+export const legalApi = {
+    getStatus: () => apiRequest<LegalStatus>("/api/legal/status"),
+    submitInfo: (data: LegalInfo) => apiRequest<void>("/api/legal/info", {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    requestSignature: () => apiRequest<{ message: string }>("/api/legal/request-signature", {
+        method: "POST",
+    }),
+    verifySignature: (otp: string) => apiRequest<{ hash: string; pdf_url: string }>("/api/legal/verify-signature", {
+        method: "POST",
+        body: JSON.stringify({ otp }),
+    }),
+    getPreviewUrl: () => `${API_URL}/api/legal/contract/preview`,
+    getDownloadUrl: () => `${API_URL}/api/legal/contract/download`,
 };

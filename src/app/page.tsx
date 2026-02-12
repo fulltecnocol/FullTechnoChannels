@@ -26,8 +26,8 @@ export default function LandingPage() {
             <nav className="fixed top-0 w-full z-50 border-b border-surface-border bg-background/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain" />
-                        <span className="font-extrabold text-2xl tracking-tighter">Tele<span className="text-primary">Gate</span></span>
+                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain brightness-110 contrast-125 mix-blend-screen" />
+                        <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
                         <a href="#features" className="hover:text-primary transition-colors">Funcionalidades</a>
@@ -226,8 +226,8 @@ export default function LandingPage() {
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                    <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-primary-foreground relative z-10">¿Listo para el siguiente nivel?</h3>
-                    <p className="text-xl text-primary-foreground/80 font-bold max-w-2xl mx-auto relative z-10">
+                    <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-white relative z-10 leading-none">¿Listo para el siguiente nivel?</h3>
+                    <p className="text-xl text-white/70 font-bold max-w-2xl mx-auto relative z-10 leading-relaxed">
                         Automatiza, escala y domina tu mercado con la tecnología de TeleGate. Una solución exclusiva de Full Techno HUB.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-6 relative z-10">
@@ -246,8 +246,8 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-16">
                     <div className="col-span-2 md:col-span-1 space-y-6">
                         <div className="flex items-center gap-3">
-                            <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain" />
-                            <span className="font-bold text-xl tracking-tight leading-none">TeleGate</span>
+                            <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 object-contain brightness-125 contrast-125 mix-blend-screen" />
+                            <span className="font-bold text-xl tracking-tight leading-none text-white">TeleGate</span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed font-bold">La infraestructura definitiva para la monetización de comunidades en Telegram.</p>
                         <div className="flex gap-4">
