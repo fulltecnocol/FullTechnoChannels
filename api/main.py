@@ -24,6 +24,9 @@ from shared.database import init_db, get_db, AsyncSessionLocal
 from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion
 from shared.accounting import distribute_payment_funds, get_affiliate_tier_info
 
+# Importar router de firma digital
+from api.routes.legal import router as legal_router
+
 # Configuración de Seguridad
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "84d57d1155888a8a991e2326c39648dd46575675ceb1a164995fef82ee97627f")
 ALGORITHM = "HS256"
@@ -165,6 +168,9 @@ async def get_current_owner(token: str = Depends(oauth2_scheme), db: AsyncSessio
         raise credentials_exception
     return user
 
+# Alias para compatibilidad con otros módulos
+get_current_user = get_current_owner
+
 # --- Aplicación FastAPI ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -172,6 +178,11 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="TeleGate API", lifespan=lifespan)
+
+# Montar router de firma digital e inyectar dependencias
+import api.routes.legal
+api.routes.legal.get_current_user = get_current_owner
+app.include_router(legal_router)
 
 # Configuración de CORS
 app.add_middleware(
