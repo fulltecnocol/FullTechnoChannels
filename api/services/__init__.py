@@ -1,4 +1,3 @@
 # API Services
-from . import pdf_service, blockchain_service
-
+# Lazy imports to avoid WeasyPrint loading issues on macOS
 __all__ = ['pdf_service', 'blockchain_service']

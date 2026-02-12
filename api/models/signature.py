@@ -1,11 +1,14 @@
-# Modelos SQLAlchemy para Sistema de Firma Digital
-# Usuario: owners, contratos, códigos de firma
-
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey, Text, BigInteger
+"""
+Modelos SQLAlchemy para el sistema de firma digital
+"""
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, BigInteger, TIMESTAMP
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from api.shared.database import Base
+
+from api.shared.database import get_base
+Base = get_base()
+
 
 class OwnerLegalInfo(Base):
     """
@@ -24,7 +27,7 @@ class OwnerLegalInfo(Base):
     id_type = Column(String(20))  # 'CC', 'CE', 'PA', 'PEP'
     id_number = Column(String(50))
     
-    # Persona Jurídica
+    #  Persona Jurídica
     business_name = Column(String(255))
     nit = Column(String(20))
     legal_rep_name = Column(String(255))
