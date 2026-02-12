@@ -32,9 +32,9 @@ export default function LandingPage() {
                         <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
-                        <a href="#features" className="hover:text-primary transition-colors">Funcionalidades</a>
-                        <a href="#affiliates" className="hover:text-primary transition-colors">Red Multinivel</a>
-                        <a href="#how-it-works" className="hover:text-primary transition-colors">Cómo funciona</a>
+                        <Link href="/#features" className="hover:text-primary transition-colors">Funcionalidades</Link>
+                        <Link href="/#affiliates" className="hover:text-primary transition-colors">Red Multinivel</Link>
+                        <Link href="/how-it-works" className="hover:text-primary transition-colors">Cómo funciona</Link>
                     </div>
                     <div className="flex items-center gap-4">
                         <Link href="/login" className="px-5 py-2.5 text-sm font-bold text-muted hover:text-foreground transition-all">Iniciar Sesión</Link>
