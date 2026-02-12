@@ -12,14 +12,11 @@ echo "=========================================="
 echo "🚀 TeleGate API-Only Deployment"
 echo "=========================================="
 
-# 1. Build the container using Cloud Build explicitly
-echo "🛠 Building container with Cloud Build..."
-gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME --dockerfile Dockerfile.api . --project $PROJECT_ID
-
-# 2. Deploy the built image to Cloud Run
-echo "🚀 Deploying to Cloud Run..."
+# Standard deploy command - most compatible with all gcloud versions
+# This uses the default Dockerfile and our new SERVICE_TYPE switch in main.py
+echo "🚀 Deploying and configuring service..."
 gcloud run deploy $SERVICE_NAME \
-  --image gcr.io/$PROJECT_ID/$SERVICE_NAME \
+  --source . \
   --region $REGION \
   --platform managed \
   --allow-unauthenticated \
@@ -27,6 +24,7 @@ gcloud run deploy $SERVICE_NAME \
   --cpu=2 \
   --memory=1Gi \
   --cpu-boost \
+  --set-env-vars="SERVICE_TYPE=api" \
   --set-secrets="DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest" \
   --project $PROJECT_ID \
   --quiet

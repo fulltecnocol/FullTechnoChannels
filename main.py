@@ -9,19 +9,26 @@ from fastapi import FastAPI
 from api.main import app as api_app
 from bot.main import app as bot_app, on_startup
 
+# Selective service mounting based on SERVICE_TYPE env var
+# Options: unified (default), api, bot
+SERVICE_TYPE = os.getenv("SERVICE_TYPE", "unified").lower()
+
 # Create main application
-app = FastAPI(title="TeleGate Unified API")
+app = FastAPI(title=f"TeleGate {SERVICE_TYPE.upper()} Service")
 
-# Mount API routes at /api
-app.mount("/api", api_app)
+# Mount API
+if SERVICE_TYPE in ["unified", "api"]:
+    app.mount("/api", api_app)
+    # Also mount at root for api-only mode convenience
+    if SERVICE_TYPE == "api":
+        app.mount("/", api_app)
 
-# Mount Bot routes at /bot  
-app.mount("/bot", bot_app)
-
-# Register startup handlers
-@app.on_event("startup")
-async def startup():
-    await on_startup()
+# Mount Bot
+if SERVICE_TYPE in ["unified", "bot"]:
+    app.mount("/bot", bot_app)
+    @app.on_event("startup")
+    async def startup():
+        await on_startup()
 
 @app.get("/")
 async def root():
