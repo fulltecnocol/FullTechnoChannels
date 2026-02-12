@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contrato de Mandato Comercial - TeleGate</title>
+    <style>
+        @page {
+            size: Letter;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #000;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+        
+        h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        h2 {
+            font-size: 13pt;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            text-transform: uppercase;
+        }
+        
+        h3 {
+            font-size: 11pt;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+        }
+        
+        .clause {
+            margin: 15px 0;
+            text-align: justify;
+        }
+        
+        .clause-title {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .parties {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-left: 4px solid #333;
+        }
+        
+        .signature-box {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #000;
+            page-break-inside: avoid;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        table td {
+            padding: 5px;
+            vertical-align: top;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #666;
+            font-size: 9pt;
+            text-align: center;
+            color: #666;
+        }
+        
+        ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        .metadata {
+            font-size: 9pt;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CONTRATO DE MANDATO COMERCIAL</h1>
+        <p style="margin: 5px 0;">Para Intermediación en Recaudo de Pagos</p>
+        <p style="margin: 5px 0; font-size: 10pt;">Firmado digitalmente vía TeleGate</p>
+    </div>
+
+    <div class="parties">
+        <p><strong>Entre los suscritos a saber:</strong></p>
+        
+        <p style="margin-top: 15px;">
+            <strong>EL MANDANTE:</strong> 
+            {% if person_type == 'natural' %}
+                {{ full_legal_name }}, identificado con {{ id_type }} No. {{ id_number }},
+                domiciliado en {{ city }}, {{ department }}, dirección {{ address }},
+            {% else %}
+                {{ business_name }}, identificada con NIT {{ nit }},
+                representada legalmente por {{ legal_rep_name }}, identificado con cédula No. {{ legal_rep_id }},
+                domiciliada en {{ city }}, {{ department }}, dirección {{ address }},
+            {% endif %}
+            quien para efectos del presente contrato se denominará <strong>EL MANDANTE</strong>.
+        </p>
+        
+        <p style="margin-top: 15px;">
+            <strong>EL MANDATARIO:</strong>
+            [RAZÓN SOCIAL DE TU EMPRESA], sociedad comercial identificada con NIT [TU_NIT],
+            representada legalmente por [REPRESENTANTE LEGAL], cédula [CÉDULA],
+            con domicilio en [CIUDAD], dirección [DIRECCIÓN],
+            quien para efectos del presente contrato se denominará <strong>EL MANDATARIO</strong>.
+        </p>
+    </div>
+
+    <h2>Cláusulas</h2>
+
+    <div class="clause">
+        <p class="clause-title">Primera - Objeto:</p>
+        <p>
+            EL MANDANTE confiere mandato especial a EL MANDATARIO para que en su nombre y representación
+            reciba, administre y distribuya los pagos realizados por suscriptores de los canales privados
+            de Telegram administrados por EL MANDANTE a través de la plataforma TeleGate.
+        </p>
+        <p>
+            El presente mandato comprende la gestión integral de cobros, recepción de pagos mediante
+            pasarelas de pago autorizadas, administración temporal de fondos y transferencia de los montos
+            correspondientes a EL MANDANTE según lo estipulado en el presente contrato.
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Segunda - Obligaciones del Mandatario:</p>
+        <p>EL MANDATARIO se obliga a:</p>
+        <ul>
+            <li>Recaudar los pagos de suscripciones en nombre de EL MANDANTE a través de pasarelas de pago autorizadas.</li>
+            <li>Mantener contabilidad separada y transparente de los fondos recaudados para cada MANDANTE.</li>
+            <li>Transferir a EL MANDANTE el ochenta y ocho por ciento (88%) del total recaudado, descontando únicamente:
+                <ul>
+                    <li>Doce por ciento (12%) como comisión por servicios de intermediación</li>
+                    <li>Impuestos, retenciones y costos de transacción legalmente aplicables</li>
+                </ul>
+            </li>
+            <li>Proveer reporte mensual detallado de todas las transacciones realizadas.</li>
+            <li>Procesar retiros solicitados por EL MANDANTE en un plazo máximo de cinco (5) días hábiles.</li>
+            <li>Mantener la plataforma tecnológica en funcionamiento y disponibilidad razonable.</li>
+            <li>Proteger los datos personales conforme a la Ley 1581 de 2012 y normativa aplicable.</li>
+        </ul>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Tercera - Obligaciones del Mandante:</p>
+        <p>EL MANDANTE se obliga a:</p>
+        <ul>
+            <li>Proporcionar información veraz, completa y actualizada para el desarrollo del mandato.</li>
+            <li>Mantener actividad lícita en sus canales de Telegram, respetando términos de servicio de Telegram y legislación aplicable.</li>
+            <li>Cumplir con todas las obligaciones tributarias derivadas de los ingresos percibidos.</li>
+            <li>Responder directamente ante los suscriptores por la calidad del contenido y servicios ofrecidos.</li>
+            <li>Notificar a EL MANDATARIO cualquier cambio en su información personal o bancaria.</li>
+            <li>Mantener actualizada la información de sus canales en la plataforma TeleGate.</li>
+        </ul>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Cuarta - Comisión:</p>
+        <p>
+            EL MANDANTE autoriza expresamente a EL MANDATARIO a retener el doce por ciento (12%) del total
+            de pagos recibidos como comisión por sus servicios de intermediación, procesamiento de pagos,
+            infraestructura tecnológica, soporte técnico y gestión administrativa.
+        </p>
+        <p>
+            Esta comisión se descontará automáticamente de cada transacción antes de contabilizar el saldo
+            disponible para retiro de EL MANDANTE.
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Quinta - Cuenta Bancaria:</p>
+        <p>Los desembolsos a favor de EL MANDANTE se realizarán a la cuenta bancaria registrada:</p>
+        <table style="margin: 15px 0; border: 1px solid #ccc;">
+            <tr>
+                <td style="width: 30%; font-weight: bold; border-right: 1px solid #ccc;">Banco:</td>
+                <td style="padding-left: 10px;">{{ bank_name }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; border-right: 1px solid #ccc; border-top: 1px solid #ccc;">Tipo de Cuenta:</td>
+                <td style="padding-left: 10px; border-top: 1px solid #ccc;">{{ account_type|title }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; border-right: 1px solid #ccc; border-top: 1px solid #ccc;">Número:</td>
+                <td style="padding-left: 10px; border-top: 1px solid #ccc;">{{ account_number }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; border-right: 1px solid #ccc; border-top: 1px solid #ccc;">Titular:</td>
+                <td style="padding-left: 10px; border-top: 1px solid #ccc;">{{ account_holder_name }}</td>
+            </tr>
+        </table>
+        <p>
+            EL MANDANTE se compromete a mantener activa dicha cuenta y notificar cualquier cambio con
+            al menos quince (15) días de anticipación.
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Sexta - Responsabilidad Tributaria:</p>
+        <p>
+            EL MANDANTE será responsable de cumplir con todas las obligaciones tributarias derivadas de
+            los ingresos percibidos a través de la plataforma, incluyendo pero no limitándose a declaraciones
+            de renta, IVA (si aplica) y demás impuestos nacionales o territoriales.
+        </p>
+        <p>
+            EL MANDATARIO actuará como agente retenedor cuando la ley así lo requiera, expidiendo los
+            certificados correspondientes.
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Séptima - Duración y Terminación:</p>
+        <p>
+            El presente contrato tendrá vigencia indefinida desde la fecha de su firma digital,
+            pudiendo ser terminado por cualquiera de las partes con treinta (30) días de anticipación
+            mediante comunicación escrita enviada al correo electrónico registrado.
+        </p>
+        <p>
+            En caso de terminación, EL MANDATARIO deberá transferir a EL MANDANTE todos los saldos
+            pendientes dentro de los quince (15) días hábiles siguientes a la terminación efectiva.
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Octava - Protección de Datos Personales:</p>
+        <p>
+            EL MANDANTE autoriza expresamente el tratamiento de sus datos personales por parte de EL MANDATARIO
+            para el desarrollo del objeto contractual, de conformidad con la Ley 1581 de 2012 y su decreto
+            reglamentario 1377 de 2013.
+        </p>
+        <p>
+            La política de privacidad completa se encuentra disponible en [URL_POLITICA_PRIVACIDAD].
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Novena - Resolución de Conflictos:</p>
+        <p>
+            Las partes acuerdan que cualquier controversia derivada del presente contrato será resuelta
+            mediante negociación directa. De no ser posible, se someterán a arbitraje según las reglas
+            del Centro de Arbitraje y Conciliación de la Cámara de Comercio de [CIUDAD].
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Décima - Ley Aplicable:</p>
+        <p>
+            Este contrato se regirá por las leyes de la República de Colombia, especialmente las disposiciones
+            del Código de Comercio (Arts. 1262-1316) sobre mandato comercial.
+        </p>
+    </div>
+
+    <div class="clause">
+        <p class="clause-title">Undécima - Firma Electrónica:</p>
+        <p>
+            Las partes acuerdan expresamente que la firma mediante código OTP enviado a Telegram constituye
+            manifestación inequívoca de voluntad y tiene plena validez legal conforme a la Ley 527 de 1999
+            sobre comercio electrónico y firma digital.
+        </p>
+        <p>
+            La autenticidad del presente documento puede verificarse mediante el hash registrado en
+            blockchain (red Polygon).
+        </p>
+    </div>
+
+    <div class="signature-box" style="margin-top: 40px;">
+        <h3>Firma Digital del Mandante</h3>
+        <table>
+            <tr>
+                <td style="width: 40%; font-weight: bold;">Nombre:</td>
+                <td>{{ full_legal_name if person_type == 'natural' else business_name }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Documento:</td>
+                <td>{{ id_type }} {{ id_number if person_type == 'natural' else 'NIT ' + nit }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Fecha y hora:</td>
+                <td>{{ signature_date.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Método de firma:</td>
+                <td>Código OTP vía Telegram (ID: {{ telegram_user_id }})</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Código de verificación:</td>
+                <td>{{ signature_code }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Dirección IP:</td>
+                <td>{{ ip_address }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="signature-box">
+        <h3>Firma del Mandatario</h3>
+        <table>
+            <tr>
+                <td style="width: 40%; font-weight: bold;">Razón Social:</td>
+                <td>[RAZÓN SOCIAL DE TU EMPRESA]</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">NIT:</td>
+                <td>[TU_NIT]</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Representante Legal:</td>
+                <td>[NOMBRE REPRESENTANTE]</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Fecha:</td>
+                <td>{{ signature_date.strftime('%Y-%m-%d') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p class="metadata">
+            Documento ID: {{ contract_id }}<br>
+            Hash SHA-256: {{ document_hash }}<br>
+            Blockchain TX: {{ blockchain_tx_hash if blockchain_tx_hash else 'Pendiente' }}<br>
+            Red: {{ blockchain_network|upper }}<br>
+            Generado por TeleGate Contract System v{{ contract_version }}
+        </p>
+        <p style="margin-top: 15px; font-size: 8pt;">
+            Este documento es legalmente vinculante. La firma digital tiene plena validez conforme a la Ley 527 de 1999.
+        </p>
+    </div>
+</body>
+</html>
