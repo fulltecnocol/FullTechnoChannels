@@ -148,7 +148,10 @@ async def handle_promotion_link(message: types.Message, promo, user, session):
     if promo.promo_type == "trial":
         # Verificar si ya usó trial en este canal
         trial_check = await session.execute(
-            select(Subscription).join(Plan).where(
+            select(Subscription)
+            .select_from(Subscription)
+            .join(Plan, Subscription.plan_id == Plan.id)
+            .where(
                 and_(Subscription.user_id == user.id, Plan.channel_id == promo.channel_id, Subscription.is_trial == True)
             )
         )
@@ -388,7 +391,10 @@ async def handle_join_request(update: ChatJoinRequest):
         
         if user and channel:
             sub_result = await session.execute(
-                select(Subscription).join(Plan).where(
+                select(Subscription)
+                .select_from(Subscription)
+                .join(Plan, Subscription.plan_id == Plan.id)
+                .where(
                     and_(Subscription.user_id == user.id, Plan.channel_id == channel.id, Subscription.is_active == True, Subscription.end_date > datetime.utcnow())
                 )
             )
