@@ -39,7 +39,7 @@ import { ownerApi, adminApi } from "@/lib/api";
 import {
   SummaryData, Channel, ConfigItem, Withdrawal, SupportTicket,
   TicketMessage, AnalyticsData, Promotion, Payment
-} from "@/lib/types";
+} from "../../lib/types";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
