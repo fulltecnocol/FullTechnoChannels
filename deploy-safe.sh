@@ -28,7 +28,7 @@ gcloud run deploy $SERVICE_NAME \
   --timeout=300 \
   --cpu=2 \
   --memory=1Gi \
-  --startup-cpu-boost \
+  --cpu-boost \
   --set-secrets="DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,BOT_TOKEN=BOT_TOKEN:latest" \
   --project $PROJECT_ID \
   --quiet
