@@ -289,6 +289,7 @@ async def cmd_help(message: types.Message):
     help_text = (
         "❓ **¿Cómo puedo ayudarte?**\n\n"
         "/me - Ver mi perfil, saldo y membresías.\n"
+        "/legal - ✍️ **Activar Pagos** (Firmar Contrato).\n"
         "/ayuda - Mostrar este menú.\n"
         "/soporte [mensaje] - Contactar con el soporte.\n\n"
         "🚀 **Para unirse a un canal**: Usa el link de invitación que te proporcionó el dueño del canal."
@@ -440,6 +441,11 @@ async def on_startup():
     global bot, dp
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher()
+    
+    # Importar y registrar rutas
+    from bot.handlers.signature_handlers import signature_router
+    dp.include_router(signature_router)
+    
     dp.include_router(router)
     
 
@@ -461,6 +467,11 @@ async def run_polling():
     global bot, dp
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher()
+    
+    # Importar y registrar rutas
+    from bot.handlers.signature_handlers import signature_router
+    dp.include_router(signature_router)
+    
     dp.include_router(router)
     await dp.start_polling(bot)
 

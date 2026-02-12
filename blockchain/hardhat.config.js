@@ -19,7 +19,15 @@ module.exports = {
             chainId: 31337
         },
 
-        // Polygon Mumbai Testnet
+        // Polygon Amoy Testnet (Reemplaza Mumbai - Enero 2024)
+        amoy: {
+            url: process.env.POLYGON_AMOY_RPC_URL || "https://rpc-amoy.polygon.technology",
+            accounts: process.env.SIGNER_PRIVATE_KEY ? [process.env.SIGNER_PRIVATE_KEY] : [],
+            chainId: 80002,
+            gasPrice: 'auto',
+        },
+
+        // Polygon Mumbai Testnet (DEPRECATED - usa Amoy)
         mumbai: {
             url: process.env.POLYGON_MUMBAI_RPC_URL || "https://rpc-mumbai.maticvigil.com",
             accounts: process.env.SIGNER_PRIVATE_KEY ? [process.env.SIGNER_PRIVATE_KEY] : [],
@@ -32,7 +40,7 @@ module.exports = {
             url: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
             accounts: process.env.SIGNER_PRIVATE_KEY ? [process.env.SIGNER_PRIVATE_KEY] : [],
             chainId: 137,
-            gasPrice: 50000000000, // 50 gwei (ajustar según red)
+            gasPrice: 'auto',
         }
     },
 
