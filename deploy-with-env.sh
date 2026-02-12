@@ -21,7 +21,7 @@ gcloud run deploy $SERVICE_NAME \
   --region $REGION \
   --platform managed \
   --allow-unauthenticated \
-  --set-env-vars="DATABASE_URL=postgresql://postgres:NNjrJRDdbcoQNDoI@db.oavgufpxufhwcznucbaf.supabase.co:5432/postgres,JWT_SECRET_KEY=84d57d1155888a8a991e2326c39648dd46575675ceb1a164995fef82ee97627f" \
+  --set-env-vars="DATABASE_URL=${DATABASE_URL},JWT_SECRET_KEY=${JWT_SECRET_KEY}" \
   --project $PROJECT_ID \
   --quiet
 

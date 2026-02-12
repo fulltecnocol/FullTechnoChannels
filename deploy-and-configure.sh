@@ -47,14 +47,13 @@ if [ "$LOCAL_MODE" = true ]; then
     exit 0
 fi
 
-echo ""
-echo "Step 3: Deploying to Cloud Run..."
+# Step 3: Deploying to Cloud Run...
 gcloud run deploy membership-backend \
   --source . \
   --region us-central1 \
   --platform managed \
   --allow-unauthenticated \
-  --set-env-vars="DATABASE_URL=postgresql://postgres:DiUtFs5IRxls7G0F@db.oavgufpxufhwcznucbaf.supabase.co:5432/postgres,JWT_SECRET_KEY=84d57d1155888a8a991e2326c39648dd46575675ceb1a164995fef82ee97627f" \
+  --set-env-vars="DATABASE_URL=${DATABASE_URL},JWT_SECRET_KEY=${JWT_SECRET_KEY}" \
   --project full-techno-channels \
   --quiet
 

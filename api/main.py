@@ -28,7 +28,9 @@ from shared.accounting import distribute_payment_funds, get_affiliate_tier_info
 from api.routes.legal import router as legal_router
 
 # Configuración de Seguridad
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "84d57d1155888a8a991e2326c39648dd46575675ceb1a164995fef82ee97627f")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("JWT_SECRET_KEY environment variable is not set")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 día
 
