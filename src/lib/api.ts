@@ -1,6 +1,12 @@
+import {
+    AuthResponse, SummaryData, Channel, Withdrawal, SupportTicket,
+    TicketDetailsResponse, ConfigItem, TicketMessage, AnalyticsData, Promotion, Payment,
+    LegalInfo, LegalStatus, UserAdmin
+} from "./types";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export async function apiRequest(endpoint: string, options: RequestInit = {}) {
+export async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
 
     const headers = {
@@ -30,7 +36,7 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
 }
 
 export const authApi = {
-    login: (data: any) => {
+    login: (data: { email: string; password: string }): Promise<AuthResponse> => {
         // FastAPI OAuth2PasswordRequestForm expects form data
         const formData = new URLSearchParams();
         formData.append("username", data.email);
@@ -45,7 +51,7 @@ export const authApi = {
             return res.json();
         });
     },
-    register: (data: any) => apiRequest("/register", {
+    register: (data: any) => apiRequest<void>("/register", {
         method: "POST",
         body: JSON.stringify({
             email: data.email,
@@ -57,69 +63,87 @@ export const authApi = {
 };
 
 export const ownerApi = {
-    getSummary: () => apiRequest("/owner/dashboard/summary"),
-    getChannels: () => apiRequest("/owner/channels"),
-    createChannel: (title: string) => apiRequest("/owner/channels", {
+    getSummary: () => apiRequest<SummaryData>("/owner/dashboard/summary"),
+    getChannels: () => apiRequest<Channel[]>("/owner/channels"),
+    createChannel: (title: string) => apiRequest<Channel>("/owner/channels", {
         method: "POST",
         body: JSON.stringify({ title }),
     }),
-    getWithdrawals: () => apiRequest("/owner/withdrawals"),
-    requestWithdrawal: (data: any) => apiRequest("/owner/withdrawals", {
+    getWithdrawals: () => apiRequest<Withdrawal[]>("/owner/withdrawals"),
+    requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/owner/withdrawals", {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    getTickets: () => apiRequest("/owner/tickets"),
-    createTicket: (data: any) => apiRequest("/owner/tickets", {
+    getTickets: () => apiRequest<SupportTicket[]>("/owner/tickets"),
+    createTicket: (data: { subject: string; content: string }) => apiRequest<SupportTicket>("/owner/tickets", {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    getTicketDetails: (id: number) => apiRequest(`/owner/tickets/${id}`),
-    replyTicket: (id: number, content: string) => apiRequest(`/owner/tickets/${id}/reply`, {
+    getTicketDetails: (id: number) => apiRequest<TicketDetailsResponse>(`/owner/tickets/${id}`),
+    replyTicket: (id: number, content: string) => apiRequest<void>(`/owner/tickets/${id}/reply`, {
         method: "POST",
         body: JSON.stringify({ content }),
     }),
-    updateBranding: (channelId: number, data: any) => apiRequest(`/owner/channels/${channelId}/branding`, {
+    updateBranding: (channelId: number, data: { welcome_message: string; expiration_message: string }) => apiRequest<Channel>(`/owner/channels/${channelId}/branding`, {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    updateProfile: (data: any) => apiRequest("/owner/profile", {
+    updateProfile: (data: { full_name: string; avatar_url: string }) => apiRequest<void>("/owner/profile", {
         method: "PUT",
         body: JSON.stringify(data),
     }),
-    updatePassword: (data: any) => apiRequest("/owner/password", {
+    updatePassword: (data: any) => apiRequest<void>("/owner/password", {
         method: "PUT",
         body: JSON.stringify(data),
     }),
-    getPromotions: (channelId: number) => apiRequest(`/owner/channels/${channelId}/promotions`),
-    createPromotion: (channelId: number, data: any) => apiRequest(`/owner/channels/${channelId}/promotions`, {
+    getPromotions: (channelId: number) => apiRequest<Promotion[]>(`/owner/channels/${channelId}/promotions`),
+    createPromotion: (channelId: number, data: any) => apiRequest<Promotion>(`/owner/channels/${channelId}/promotions`, {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    deletePromotion: (promoId: number) => apiRequest(`/owner/promotions/${promoId}`, {
+    deletePromotion: (promoId: number) => apiRequest<void>(`/owner/promotions/${promoId}`, {
         method: "DELETE",
     }),
-    getAnalytics: () => apiRequest("/owner/analytics"),
+    getAnalytics: () => apiRequest<AnalyticsData>("/owner/analytics"),
 };
 
 export const adminApi = {
-    getConfig: () => apiRequest("/admin/config"),
-    updateConfig: (key: string, value: number) => apiRequest("/admin/config", {
+    getConfig: () => apiRequest<ConfigItem[]>("/admin/config"),
+    updateConfig: (key: string, value: number) => apiRequest<ConfigItem>("/admin/config", {
         method: "POST",
         body: JSON.stringify({ key, value }),
     }),
-    getWithdrawals: () => apiRequest("/admin/withdrawals"),
-    processWithdrawal: (id: number, status: string) => apiRequest(`/admin/withdrawals/${id}/process`, {
+    getWithdrawals: () => apiRequest<Withdrawal[]>("/admin/withdrawals"),
+    processWithdrawal: (id: number, status: string) => apiRequest<Withdrawal>(`/admin/withdrawals/${id}/process`, {
         method: "POST",
         body: JSON.stringify({ status }),
     }),
-    getTickets: () => apiRequest("/admin/tickets"),
-    getTicketDetails: (id: number) => apiRequest(`/admin/tickets/${id}`),
-    replyTicket: (id: number, content: string) => apiRequest(`/admin/tickets/${id}/reply`, {
+    getTickets: () => apiRequest<SupportTicket[]>("/admin/tickets"),
+    getTicketDetails: (id: number) => apiRequest<TicketDetailsResponse>(`/admin/tickets/${id}`),
+    replyTicket: (id: number, content: string) => apiRequest<void>(`/admin/tickets/${id}/reply`, {
         method: "POST",
         body: JSON.stringify({ content }),
     }),
-    getPendingPayments: () => apiRequest("/admin/payments/pending"),
-    verifyCryptoPayment: (id: number) => apiRequest(`/admin/payments/${id}/verify-crypto`, {
+    getPendingPayments: () => apiRequest<Payment[]>("/admin/payments/pending"),
+    verifyCryptoPayment: (id: number) => apiRequest<Payment>(`/admin/payments/${id}/verify-crypto`, {
         method: "POST",
     }),
+    getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),
+};
+
+export const legalApi = {
+    getStatus: () => apiRequest<LegalStatus>("/api/legal/status"),
+    submitInfo: (data: LegalInfo) => apiRequest<void>("/api/legal/info", {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    requestSignature: () => apiRequest<{ message: string }>("/api/legal/request-signature", {
+        method: "POST",
+    }),
+    verifySignature: (otp: string) => apiRequest<{ hash: string; pdf_url: string }>("/api/legal/verify-signature", {
+        method: "POST",
+        body: JSON.stringify({ otp }),
+    }),
+    getPreviewUrl: () => `${API_URL}/api/legal/contract/preview`,
+    getDownloadUrl: () => `${API_URL}/api/legal/contract/download`,
 };
