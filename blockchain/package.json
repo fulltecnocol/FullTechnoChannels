@@ -4,6 +4,7 @@
     "description": "Smart contracts for TeleGate signature system",
     "main": "index.js",
     "scripts": {
+        "check-setup": "node scripts/check-setup.js",
         "compile": "hardhat compile",
         "test": "hardhat test",
         "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai",
