@@ -153,3 +153,9 @@ h6 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+.outline-text {
+  -webkit-text-stroke: 1px var(--foreground);
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}

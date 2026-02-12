@@ -36,25 +36,29 @@ import {
   LineChart, Line, BarChart, Bar
 } from "recharts";
 import { ownerApi, adminApi } from "@/lib/api";
+import {
+  SummaryData, Channel, ConfigItem, Withdrawal, SupportTicket,
+  TicketMessage, AnalyticsData, Promotion, Payment
+} from "@/lib/types";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState<any>(null);
-  const [channels, setChannels] = useState<any[]>([]);
-  const [configs, setConfigs] = useState<any[]>([]);
-  const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const [adminWithdrawals, setAdminWithdrawals] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [adminTickets, setAdminTickets] = useState<any[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<any>(null);
-  const [ticketMessages, setTicketMessages] = useState<any[]>([]);
+  const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [configs, setConfigs] = useState<ConfigItem[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [adminWithdrawals, setAdminWithdrawals] = useState<Withdrawal[]>([]);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [adminTickets, setAdminTickets] = useState<SupportTicket[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [ticketMessages, setTicketMessages] = useState<TicketMessage[]>([]);
   const [isViewingAsAdmin, setIsViewingAsAdmin] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [editingBranding, setEditingBranding] = useState<any>(null);
-  const [managingPromos, setManagingPromos] = useState<any>(null);
-  const [promotions, setPromotions] = useState<any[]>([]);
-  const [adminPayments, setAdminPayments] = useState<any[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [editingBranding, setEditingBranding] = useState<Channel | null>(null);
+  const [managingPromos, setManagingPromos] = useState<Channel | null>(null);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [adminPayments, setAdminPayments] = useState<Payment[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -734,7 +738,7 @@ export default function DashboardPage() {
                   <div className="p-4 bg-background rounded-2xl border border-surface-border space-y-1">
                     <p className="text-xs font-bold text-muted uppercase">Balance Neto</p>
                     <h3 className="text-3xl font-black text-primary tracking-tight">
-                      ${(summary?.available_balance + (summary?.affiliate_balance || 0)).toFixed(2) || "0.00"}
+                      ${((summary?.available_balance || 0) + (summary?.affiliate_balance || 0)).toFixed(2) || "0.00"}
                     </h3>
                     <p className="text-[10px] text-muted">Incluye ganancias de canales y red de afiliados.</p>
                   </div>
@@ -921,13 +925,13 @@ export default function DashboardPage() {
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface/30">
                   {ticketMessages.map(m => (
-                    <div key={m.id} className={`flex ${m.sender_id === summary.id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${m.sender_id === summary.id
+                    <div key={m.id} className={`flex ${summary && m.sender_id === summary.id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${summary && m.sender_id === summary.id
                         ? 'bg-primary text-primary-foreground rounded-tr-none'
                         : 'bg-background border border-surface-border rounded-tl-none'
                         }`}>
                         <p className="font-medium leading-relaxed">{m.content}</p>
-                        <p className={`text-[9px] mt-2 font-bold opacity-60 ${m.sender_id === summary.id ? 'text-right' : ''}`}>
+                        <p className={`text-[9px] mt-2 font-bold opacity-60 ${summary && m.sender_id === summary.id ? 'text-right' : ''}`}>
                           {new Date(m.created_at).toLocaleTimeString()}
                         </p>
                       </div>
@@ -1383,7 +1387,7 @@ export default function DashboardPage() {
                             <p className="font-black text-emerald-500">${p.amount.toFixed(2)} USDT</p>
                           </td>
                           <td className="p-5">
-                            <code className="text-[10px] font-mono bg-background p-1 rounded border border-surface-border">{p.reference}</code>
+                            <code className="text-[10px] font-mono bg-background p-1 rounded border border-surface-border">{p.provider_tx_id}</code>
                           </td>
                           <td className="p-5">
                             <button
