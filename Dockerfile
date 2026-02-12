@@ -8,20 +8,24 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy API requirements
-COPY api/requirements.txt .
+# Copy requirements from both services
+COPY api/requirements.txt api-requirements.txt
+COPY bot/requirements.txt bot-requirements.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r api-requirements.txt
+RUN pip install --no-cache-dir -r bot-requirements.txt  
 RUN pip install --no-cache-dir python-dotenv
 
 # Copy source code
 COPY api/ ./api/
+COPY bot/ ./bot/
 COPY shared/ ./shared/
+COPY main.py ./
 
 # Environment variables
 ENV PORT=8080
 ENV PYTHONPATH=/app
 
-# Start API only
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Start unified app (API + Bot)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
