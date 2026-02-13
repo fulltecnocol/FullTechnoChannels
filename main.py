@@ -32,8 +32,8 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    # Allow Google Auth frames and scripts
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com"
+    # Allow Google Auth frames, scripts and API connections
+    response.headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' https://membership-backend-dhtw77aq7a-uc.a.run.app; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
