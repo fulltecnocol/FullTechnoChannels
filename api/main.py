@@ -8,10 +8,11 @@ from fastapi import FastAPI, Depends, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt  # Direct usage instead of passlib
 from pydantic import BaseModel
 from sqlalchemy.future import select
 from sqlalchemy import func, and_
+from sqlalchemy.exc import IntegrityError
 import hashlib
 import httpx
 import logging
@@ -34,7 +35,7 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 día
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Configuración Stripe/SaaS
@@ -150,10 +151,14 @@ class UserAdminResponse(BaseModel):
 
 # --- Utilidades de Auth ---
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    # bcrypt.checkpw expects bytes. ensure encoding.
+    if isinstance(hashed_password, str):
+        hashed_password = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
 
 def get_hashed_password(password):
-    return pwd_context.hash(password)
+    # bcrypt.hashpw returns bytes, decode to store as string
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -266,7 +271,11 @@ async def register_owner(user_data: UserRegister, db: AsyncSessionLocal = Depend
         referred_by_id=referred_by_id
     )
     db.add(new_owner)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Este email ya está registrado")
     
     access_token = create_access_token(data={"sub": new_owner.email})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -729,6 +738,21 @@ async def activate_membership(user_id: int, plan_id: int, db: AsyncSessionLocal,
     plan_result = await db.execute(select(Plan).where(Plan.id == plan_id))
     plan = plan_result.scalar_one_or_none()
     if not plan: return None
+
+    # 0. Idempotencia: Verificar si el pago ya fue procesado
+    if provider_tx_id:
+        # Verificar en tabla Payments
+        pay_check = await db.execute(select(Payment).where(Payment.provider_tx_id == provider_tx_id))
+        existing_payment = pay_check.scalar_one_or_none()
+        if existing_payment:
+            print(f"⚠️ Idempotency check: Payment {provider_tx_id} already processed.")
+            # Buscar y devolver la suscripción actual para no romper flujo
+            sub_check = await db.execute(
+                select(Subscription).where(
+                    and_(Subscription.user_id == user_id, Subscription.plan_id == plan_id)
+                )
+            )
+            return sub_check.scalars().first()
 
     # 1. Distribuir fondos (MLM + Dueño + Plataforma)
     # Calculamos el precio final considerando posibles promociones

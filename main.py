@@ -19,9 +19,9 @@ app = FastAPI(title=f"TeleGate {SERVICE_TYPE.upper()} Service")
 # Mount API
 if SERVICE_TYPE in ["unified", "api"]:
     app.mount("/api", api_app)
-    # Also mount at root for api-only mode convenience
-    if SERVICE_TYPE == "api":
-        app.mount("/", api_app)
+    # Also mount at root as fallback so endpoints like /register work 
+    # even if the client omits the /api prefix.
+    app.mount("/", api_app)
 
 # Mount Bot
 if SERVICE_TYPE in ["unified", "bot"]:
