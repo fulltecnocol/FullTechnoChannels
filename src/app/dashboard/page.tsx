@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Users, Wallet, TrendingUp, LayoutGrid, Settings, LogOut,
   Menu, X, PlusCircle, Ticket, Zap, LifeBuoy, ShieldEllipsis, CreditCard,
-  Copy, Trash2, CheckCircle2, AlertCircle, ArrowRight, Loader2
+  Copy, Trash2, CheckCircle2, AlertCircle, ArrowRight, Loader2, Calculator, ShieldCheck
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ownerApi, adminApi } from "@/lib/api";
@@ -20,6 +20,7 @@ import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
 import { AdminPaymentValidation } from "@/components/dashboard/AdminPaymentValidation";
 import { AffiliateSection } from "@/components/dashboard/AffiliateSection";
 import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
+import { TaxHub } from "@/components/dashboard/TaxHub";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -304,7 +305,8 @@ export default function DashboardPage() {
             { id: "settings", label: "Configuración", icon: Settings },
             ...(summary?.is_admin ? [
               { id: "admin", label: "Admin Sistema", icon: ShieldEllipsis },
-              { id: "admin_payments", label: "Admin Pagos", icon: CreditCard }
+              { id: "admin_payments", label: "Admin Pagos", icon: CreditCard },
+              { id: "admin_tax", label: "Tax Hub", icon: Calculator }
             ] : []),
           ].map((item) => (
             <button
@@ -379,7 +381,13 @@ export default function DashboardPage() {
 
         {activeTab === "overview" && (
           <>
-            <DashboardStats summary={summary} />
+            <DashboardStats
+              summary={summary}
+              onTabChange={(tab) => {
+                setActiveTab(tab);
+                setIsViewingAsAdmin(tab.startsWith("admin"));
+              }}
+            />
 
             {/* Recent Activity / Chart could go here, for now basic list */}
             <div className="premium-card p-8 border-surface-border">
@@ -484,6 +492,10 @@ export default function DashboardPage() {
             pendingPayments={pendingPayments}
             onValidatePayment={handleValidatePayment}
           />
+        )}
+
+        {activeTab === "admin_tax" && summary?.is_admin && (
+          <TaxHub />
         )}
 
         {/* Footer */}

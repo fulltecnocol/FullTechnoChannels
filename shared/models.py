@@ -229,3 +229,17 @@ class RegistrationToken(Base):
     full_name = Column(String, nullable=True)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class BusinessExpense(Base):
+    __tablename__ = "business_expenses"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id")) # Admin Owner
+    description = Column(String)
+    amount = Column(Float)
+    currency = Column(String, default="USD")
+    date = Column(DateTime, default=datetime.utcnow)
+    category = Column(String) # Softare, Legal, Ads, Other
+    receipt_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")

@@ -25,7 +25,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared.database import init_db, get_db, AsyncSessionLocal
-from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion, RegistrationToken
+from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion, RegistrationToken, BusinessExpense
 from shared.accounting import distribute_payment_funds, get_affiliate_tier_info
 
 # Importar router de firma digital
@@ -76,6 +76,12 @@ class GenerateTokenRequest(BaseModel):
 
 class CreateMagicLinkRequest(BaseModel):
     telegram_id: int
+
+class TaxExpenseRequest(BaseModel):
+    description: str
+    amount: float
+    category: str
+    date: str # ISO format
 
 class ChannelCreate(BaseModel):
     title: str
@@ -1344,3 +1350,94 @@ async def get_owner_analytics(current_user: DBUser = Depends(get_current_owner),
         "subscriber_series": subscriber_chart,
         "mlm_series": mlm_chart
     }
+
+# --- ADMIN TAX HUB ---
+
+@app.get("/admin/tax/summary")
+async def get_tax_summary(year: int = None, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    if not year:
+        year = datetime.utcnow().year
+        
+    start_date = datetime(year, 1, 1)
+    end_date = datetime(year, 12, 31, 23, 59, 59)
+    
+    # 1. Gross Revenue (Platform Fees from all payments)
+    # Asumimos que "platform_amount" es el ingreso de la empresa
+    revenue_query = await db.execute(
+        select(func.sum(Payment.platform_amount))
+        .where(and_(Payment.status == "completed", Payment.created_at >= start_date, Payment.created_at <= end_date))
+    )
+    gross_revenue = revenue_query.scalar() or 0.0
+    
+    # 2. Expenses
+    expense_query = await db.execute(
+        select(BusinessExpense)
+        .where(and_(BusinessExpense.user_id == current_user.id, BusinessExpense.date >= start_date, BusinessExpense.date <= end_date))
+    )
+    expenses = expense_query.scalars().all()
+    total_expenses = sum(e.amount for e in expenses)
+    
+    # 3. Categorized Expenses
+    categories = {}
+    for e in expenses:
+        categories[e.category] = categories.get(e.category, 0) + e.amount
+        
+    return {
+        "year": year,
+        "gross_revenue": gross_revenue,
+        "total_expenses": total_expenses,
+        "net_income": gross_revenue - total_expenses,
+        "expenses_by_category": categories
+    }
+
+@app.get("/admin/expenses")
+async def get_expenses(year: int = None, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+
+    query = select(BusinessExpense).where(BusinessExpense.user_id == current_user.id)
+    
+    if year:
+        start_date = datetime(year, 1, 1)
+        end_date = datetime(year, 12, 31, 23, 59, 59)
+        query = query.where(and_(BusinessExpense.date >= start_date, BusinessExpense.date <= end_date))
+        
+    query = query.order_by(BusinessExpense.date.desc())
+    result = await db.execute(query)
+    return result.scalars().all()
+
+@app.post("/admin/expenses")
+async def create_expense(data: TaxExpenseRequest, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+        
+    new_expense = BusinessExpense(
+        user_id=current_user.id,
+        description=data.description,
+        amount=data.amount,
+        category=data.category,
+        date=datetime.fromisoformat(data.date.replace("Z", "+00:00")),
+        currency="USD"
+    )
+    db.add(new_expense)
+    await db.commit()
+    await db.refresh(new_expense)
+    return new_expense
+
+@app.delete("/admin/expenses/{expense_id}")
+async def delete_expense(expense_id: int, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+        
+    result = await db.execute(select(BusinessExpense).where(and_(BusinessExpense.id == expense_id, BusinessExpense.user_id == current_user.id)))
+    expense = result.scalar_one_or_none()
+    
+    if not expense:
+        raise HTTPException(status_code=404, detail="Gasto no encontrado")
+        
+    await db.delete(expense)
+    await db.commit()
+    return {"ok": True}

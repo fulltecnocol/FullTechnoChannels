@@ -147,6 +147,15 @@ export const adminApi = {
         method: "POST",
     }),
     getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),
+    getTaxSummary: (year?: number) => apiRequest(`/admin/tax/summary${year ? `?year=${year}` : ""}`),
+    getExpenses: (year?: number) => apiRequest<any[]>(`/admin/expenses${year ? `?year=${year}` : ""}`),
+    createExpense: (data: { description: string; amount: number; category: string; date: string }) => apiRequest("/admin/expenses", {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    deleteExpense: (id: number) => apiRequest(`/admin/expenses/${id}`, {
+        method: "DELETE",
+    }),
 };
 
 export const legalApi = {
@@ -165,3 +174,5 @@ export const legalApi = {
     getPreviewUrl: () => `${API_URL}/api/legal/contract/preview`,
     getDownloadUrl: () => `${API_URL}/api/legal/contract/download`,
 };
+
+
