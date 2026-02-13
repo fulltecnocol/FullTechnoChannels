@@ -48,71 +48,82 @@ async def get_or_create_user(tg_user: types.User, session):
 async def send_welcome(message: types.Message, command: CommandObject):
     async with AsyncSessionLocal() as session:
         args = command.args
-        
-        # 🟢 CASO A: Sincronización de Cuenta de Dueño/Afiliado
-        if args and args.startswith("sync_"):
-            sync_code = args.replace("sync_", "")
-            # Buscar al usuario por su código de referido (que usamos como sync_code temporalmente o un UUID)
-            # Para simplificar, usaremos el referral_code como código de sincronización
-            result = await session.execute(select(DBUser).where(DBUser.referral_code == sync_code))
-            user = result.scalar_one_or_none()
-            
-            if user:
-                user.telegram_id = message.from_user.id
-                await session.commit()
-                await message.reply(
-                    f"✅ **¡Cuenta TeleGate Vinculada!**\n\n"
-                    f"Hola **{user.full_name}**, ahora recibirás notificaciones inmediatas de tus comisiones y ventas. Una solución de **Full Techno HUB**."
-                )
-                return
-            else:
-                await message.reply("❌ El código de sincronización no es válido o ha expirado.")
-                return
-
-        # 🟠 CASO C: Registro de Referido (Red de 10 niveles)
-        if args and args.startswith("ref_"):
-            ref_code = args.replace("ref_", "")
-            # Buscar al usuario que refiere
-            ref_result = await session.execute(select(DBUser).where(DBUser.referral_code == ref_code))
-            referrer = ref_result.scalar_one_or_none()
-            
-            user = await get_or_create_user(message.from_user, session)
-            if referrer and not user.referred_by_id and user.id != referrer.id:
-                user.referred_by_id = referrer.id
-                await session.commit()
-                await message.reply(f"🎯 **¡Te has unido a la red TeleGate de {referrer.full_name}!**")
-            
-            # Continuar como un inicio normal después de vincular el referido
-            args = None 
-
-        # 🔵 CASO D: Registro de Suscriptor normal
-        user = await get_or_create_user(message.from_user, session)
         if args:
-            # Primero intentar buscar como promoción o trial (CASO C)
-            promo_res = await session.execute(select(Promotion).where(and_(Promotion.code == args, Promotion.is_active == True)))
-            promo = promo_res.scalar_one_or_none()
-            if promo:
-                if promo.max_uses and promo.current_uses >= promo.max_uses:
-                    await message.reply("❌ Esta oferta ya no está disponible.")
-                    return
-                await handle_promotion_link(message, promo, user, session)
-                return
+            await process_code(message, args, session)
+        else:
+            await message.reply("¡Hola! Soy tu bot de membresía multi-canal. Usa un link de invitación o envía tu código de vinculación para empezar.")
 
-            # Si no es promo, buscar como vinculación de canal (CASO B)
-            result = await session.execute(select(Channel).where(Channel.validation_code == args))
-            channel = result.scalar_one_or_none()
-            if channel:
-                if not channel.is_verified:
-                    await message.reply(f"📍 Intento de vinculación: **{channel.title}**.", 
-                                       reply_markup=InlineKeyboardBuilder().row(
-                                           types.InlineKeyboardButton(text="✅ Confirmar Vinculación", callback_data=f"verify_{channel.id}_{message.chat.id}")
-                                       ).as_markup())
-                    return
-                else:
-                    await show_channel_plans(message, channel.id)
-                    return
+async def process_code(message: types.Message, code: str, session):
+    # 🟢 CASO A: Sincronización de Cuenta de Dueño/Afiliado
+    if code.startswith("sync_"):
+        sync_code = code.replace("sync_", "")
+        result = await session.execute(select(DBUser).where(DBUser.referral_code == sync_code))
+        user = result.scalar_one_or_none()
         
-        await message.reply("¡Hola! Soy tu bot de membresía multi-canal. Usa un link de invitación para empezar.")
+        if user:
+            user.telegram_id = message.from_user.id
+            await session.commit()
+            await message.reply(
+                f"✅ **¡Cuenta TeleGate Vinculada!**\n\n"
+                f"Hola **{user.full_name}**, ahora recibirás notificaciones inmediatas de tus comisiones y ventas. Una solución de **Full Techno HUB**."
+            )
+            return True
+        else:
+            await message.reply("❌ El código de sincronización no es válido o ha expirado.")
+            return True
+
+    # 🟠 CASO C: Registro de Referido (Red de 10 niveles)
+    if code.startswith("ref_"):
+        ref_code = code.replace("ref_", "")
+        ref_result = await session.execute(select(DBUser).where(DBUser.referral_code == ref_code))
+        referrer = ref_result.scalar_one_or_none()
+        
+        user = await get_or_create_user(message.from_user, session)
+        if referrer and not user.referred_by_id and user.id != referrer.id:
+            user.referred_by_id = referrer.id
+            await session.commit()
+            await message.reply(f"🎯 **¡Te has unido a la red TeleGate de {referrer.full_name}!**")
+        return True
+
+    # 🔵 CASO D: Registro de Suscriptor normal / Vinculación
+    user = await get_or_create_user(message.from_user, session)
+    
+    # 1. Intentar buscar como promoción o trial
+    promo_res = await session.execute(select(Promotion).where(and_(Promotion.code == code, Promotion.is_active == True)))
+    promo = promo_res.scalar_one_or_none()
+    if promo:
+        if promo.max_uses and promo.current_uses >= promo.max_uses:
+            await message.reply("❌ Esta oferta ya no está disponible.")
+            return True
+        await handle_promotion_link(message, promo, user, session)
+        return True
+
+    # 2. Buscar como vinculación de canal (CASO B)
+    result = await session.execute(select(Channel).where(Channel.validation_code == code))
+    channel = result.scalar_one_or_none()
+    if channel:
+        if not channel.is_verified:
+            await message.reply(f"📍 Intento de vinculación: **{channel.title}**.", 
+                               reply_markup=InlineKeyboardBuilder().row(
+                                   types.InlineKeyboardButton(text="✅ Confirmar Vinculación", callback_data=f"verify_{channel.id}_{message.chat.id}")
+                               ).as_markup())
+            return True
+        else:
+            await show_channel_plans(message, channel.id)
+            return True
+    
+    return False
+
+@router.message(F.text)
+async def handle_text_message(message: types.Message):
+    if message.text.startswith("/"):
+        return # Ignorar comandos ya manejados
+        
+    async with AsyncSessionLocal() as session:
+        # Intentar procesar el texto como un código
+        processed = await process_code(message, message.text.strip(), session)
+        if not processed:
+            await message.reply("Si tienes un código de invitación o de vinculación, envíalo ahora. Si no, usa /ayuda para ver los comandos disponibles.")
 
 @router.callback_query(F.data.startswith("verify_"))
 async def handle_verify_callback(callback: types.CallbackQuery):
