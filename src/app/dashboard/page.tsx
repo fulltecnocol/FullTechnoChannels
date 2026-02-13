@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("wompi");
+  const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -68,6 +69,13 @@ export default function DashboardPage() {
       window.location.href = "/login";
       return;
     }
+
+    // Detectar si es un flujo de recuperación
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.recovery) setIsRecovery(true);
+    } catch (e) { }
+
     fetchData();
   }, []);
 
@@ -1341,14 +1349,21 @@ export default function DashboardPage() {
                 </h3>
 
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted">Contraseña Actual</label>
-                    <input
-                      id="pass_current"
-                      type="password"
-                      className="w-full p-4 bg-background border border-surface-border rounded-xl focus:ring-1 ring-primary outline-none font-medium"
-                    />
-                  </div>
+                  {!isRecovery && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted">Contraseña Actual</label>
+                      <input
+                        id="pass_current"
+                        type="password"
+                        className="w-full p-4 bg-background border border-surface-border rounded-xl focus:ring-1 ring-primary outline-none font-medium"
+                      />
+                    </div>
+                  )}
+                  {isRecovery && (
+                    <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl mb-4">
+                      <p className="text-xs font-bold text-primary italic">✨ Has entrado mediante enlace seguro de recuperación. No necesitas tu contraseña anterior.</p>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-muted">Nueva Contraseña</label>
                     <input
@@ -1367,10 +1382,11 @@ export default function DashboardPage() {
                   </div>
                   <button
                     onClick={() => {
-                      const current = (document.getElementById('pass_current') as HTMLInputElement).value;
+                      const current = isRecovery ? "" : (document.getElementById('pass_current') as HTMLInputElement).value;
                       const next = (document.getElementById('pass_new') as HTMLInputElement).value;
                       const confirm = (document.getElementById('pass_confirm') as HTMLInputElement).value;
 
+                      if (!next) return alert("Ingresa la nueva contraseña");
                       if (next !== confirm) return alert("Las contraseñas no coinciden");
                       handleUpdatePassword(current, next);
                     }}

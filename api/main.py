@@ -94,7 +94,7 @@ class ProfileUpdate(BaseModel):
     avatar_url: Optional[str] = None
 
 class PasswordUpdate(BaseModel):
-    current_password: str
+    current_password: Optional[str] = None
     new_password: str
 
 class PromotionCreate(BaseModel):
@@ -414,8 +414,8 @@ async def magic_login(token: str, db: AsyncSessionLocal = Depends(get_db)):
     if not user:
         raise credentials_exception
         
-    # Generate standard access token
-    access_token = create_access_token(data={"sub": user.email})
+    # Generate standard access token with recovery flag
+    access_token = create_access_token(data={"sub": user.email, "recovery": True})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/token", response_model=Token)
@@ -663,13 +663,33 @@ async def update_profile(data: ProfileUpdate, current_user: DBUser = Depends(get
     return {"status": "success"}
 
 @app.put("/owner/password")
-async def update_password(data: PasswordUpdate, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
-    if not verify_password(data.current_password, current_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Contraseña actual incorrecta")
-    
+async def update_password(
+    data: PasswordUpdate, 
+    current_user: DBUser = Depends(get_current_owner), 
+    db: AsyncSessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    # Decodificar el token para ver si es recovery
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        is_recovery = payload.get("recovery", False)
+    except:
+        is_recovery = False
+
+    # Solo exigimos contraseña actual si NO es un flujo de recuperación
+    if not is_recovery:
+        if not data.current_password:
+             raise HTTPException(status_code=400, detail="Se requiere la contraseña actual")
+        
+        if not current_user.hashed_password:
+            # Caso raro: usuario sin contraseña (solo Google) intentando poner una
+            pass
+        elif not verify_password(data.current_password, current_user.hashed_password):
+            raise HTTPException(status_code=400, detail="Contraseña actual incorrecta")
+            
     current_user.hashed_password = get_hashed_password(data.new_password)
     await db.commit()
-    return {"status": "success"}
+    return {"status": "success", "message": "Contraseña actualizada correctamente"}
 
 @app.get("/owner/channels")
 async def get_owner_channels(current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
