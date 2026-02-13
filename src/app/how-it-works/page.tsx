@@ -224,7 +224,7 @@ export default function HowItWorksPage() {
                         </div>
                         <h2 className="text-4xl lg:text-6xl font-black tracking-tighter">La Red de Poder</h2>
                         <p className="text-xl text-muted max-w-2xl mx-auto">
-                            Transformamos a cada suscriptor en un socio comercial. Nuestro sistema multinivel reparte comisiones automáticamente hasta <span className="text-primary font-bold">10 niveles de profundidad</span>.
+                            Transformamos la competencia en colaboración. Invita a otros **Dueños de Canales** a TeleGate y obtén una participación de sus ganancias netas automáticamente hasta <span className="text-primary font-bold">10 niveles de profundidad</span>.
                         </p>
                     </div>
 
@@ -253,7 +253,7 @@ export default function HowItWorksPage() {
                                         </div>
                                         <div className="text-right shrink-0">
                                             <span className="text-3xl font-black text-white">{item.percent}</span>
-                                            <p className="text-[10px] text-muted uppercase font-bold text-right mt-1">Comisión por venta</p>
+                                            <p className="text-[10px] text-muted uppercase font-bold text-right mt-1">Participación de Ganancias</p>
                                         </div>
                                     </div>
                                 </div>
@@ -272,8 +272,8 @@ export default function HowItWorksPage() {
                                                 <TrendingUp className="w-4 h-4 text-emerald-500" />
                                             </div>
                                             <div>
-                                                <h5 className="font-bold text-white">Ingresos Pasivos Reales</h5>
-                                                <p className="text-sm text-muted">Ganas no solo por quien invitas, sino por los invitados de tus invitados. Una cadena viral de ganancias.</p>
+                                                <h5 className="font-bold text-white">Ecosistema de Dueños</h5>
+                                                <p className="text-sm text-muted">No solo ganas por tus ventas, sino un porcentaje del éxito de cada Administrador que traigas a la plataforma.</p>
                                             </div>
                                         </li>
                                         <li className="flex gap-4">
@@ -281,8 +281,8 @@ export default function HowItWorksPage() {
                                                 <Network className="w-4 h-4 text-blue-500" />
                                             </div>
                                             <div>
-                                                <h5 className="font-bold text-white">Viralidad Automática</h5>
-                                                <p className="text-sm text-muted">Tus usuarios tienen un incentivo financiero para promocionar TU comunidad. Marketing gratuito y efectivo.</p>
+                                                <h5 className="font-bold text-white">Crecimiento Multinivel</h5>
+                                                <p className="text-sm text-muted">Tu red escala orgánicamente. Cada nuevo canal en tu red expande tu flujo de ingresos pasivos de forma perpetua.</p>
                                             </div>
                                         </li>
                                         <li className="flex gap-4">
