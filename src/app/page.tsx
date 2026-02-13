@@ -24,6 +24,13 @@ import { ProductShowcase } from "@/components/landing/ProductShowcase";
 
 export default function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
 
     return (
         <div className="min-h-screen bg-background text-foreground scroll-smooth font-sans">

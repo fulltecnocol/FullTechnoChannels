@@ -20,7 +20,7 @@ echo "Checking Secret Manager configuration..."
 
 # 2. Deploy to Cloud Run using SECRETS (not env vars)
 # Extended timeout and resources for initialization
-gcloud run deploy $SERVICE_NAME \
+/Users/felipegomez/google-cloud-sdk/bin/gcloud run deploy $SERVICE_NAME \
   --source . \
   --region $REGION \
   --platform managed \
@@ -37,4 +37,4 @@ gcloud run deploy $SERVICE_NAME \
 echo ""
 echo "✅ Secure deployment complete!"
 echo "📍 Backend URL:"
-gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(status.url)' --project=$PROJECT_ID
+/Users/felipegomez/google-cloud-sdk/bin/gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(status.url)' --project=$PROJECT_ID

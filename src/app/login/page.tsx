@@ -9,27 +9,35 @@ import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
+    const [mounted, setMounted] = React.useState(false);
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({ email: "", password: "" });
 
-    // MAGIC LINK HANDLER
     React.useEffect(() => {
+        setMounted(true);
         const query = new URLSearchParams(window.location.search);
         const magicToken = query.get("magic_token");
 
-        if (magicToken) {
+        if (magicToken && !loading) {
             setLoading(true);
             authApi.magicLogin(magicToken)
                 .then((data: AuthResponse) => {
-                    localStorage.setItem("token", data.access_token);
-                    window.location.href = "/dashboard";
+                    if (data && data.access_token) {
+                        localStorage.setItem("token", data.access_token);
+                        window.location.href = "/dashboard";
+                    } else {
+                        throw new Error("Token no recibido");
+                    }
                 })
-                .catch((err: Error) => {
+                .catch((err: any) => {
+                    console.error("Magic login error:", err);
                     setError("Enlace de acceso inválido o expirado.");
                     setLoading(false);
                 });
         }
-    }, []);
+    }, [loading]);
+
+    if (!mounted) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

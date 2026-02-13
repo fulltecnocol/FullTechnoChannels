@@ -298,6 +298,8 @@ export default function DashboardPage() {
 
   const [selectedMethod, setSelectedMethod] = useState("wompi");
 
+  if (!mounted) return null;
+
   return (
     <div className="flex min-h-screen bg-background" aria-label="Panel de Administración del Creador">
       {/* Mobile Sidebar Overlay */}

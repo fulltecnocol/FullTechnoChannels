@@ -21,7 +21,7 @@ app = FastAPI(title=f"TeleGate {SERVICE_TYPE.upper()} Service")
 # Broadened for Cloud Run internal health checks and domains
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["telegate.fulltechnohub.com", "membership-backend-dhtw77aq7a-uc.a.run.app", "*.a.run.app", "*.hosted.app", "*.web.app", "*.firebaseapp.com", "localhost", "127.0.0.1"]
+    allowed_hosts=["*"]
 )
 
 # 2. Custom Security Headers Middleware
