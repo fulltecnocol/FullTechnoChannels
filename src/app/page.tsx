@@ -16,31 +16,62 @@ import {
     Globe,
     Layers,
     DollarSign,
-    CheckCircle2
+    CheckCircle2,
+    Menu,
+    X
 } from "lucide-react";
+import { ProductShowcase } from "@/components/landing/ProductShowcase";
 
 export default function LandingPage() {
+    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
     return (
         <div className="min-h-screen bg-background text-foreground scroll-smooth font-sans">
             {/* Navigation */}
             <nav className="fixed top-0 w-full z-50 border-b border-surface-border bg-background/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-12 h-12 object-contain brightness-110 contrast-125 mix-blend-screen" />
-                        <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
+                        <img src="/logo_telegate.png" alt="TeleGate Logo" className="w-10 h-10 md:w-12 md:h-12 object-contain brightness-110 contrast-125 mix-blend-screen" />
+                        <span className="font-extrabold text-xl md:text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
                     </div>
+
+                    {/* Desktop Menu */}
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
                         <a href="#features" className="hover:text-primary transition-colors">Funcionalidades</a>
                         <a href="#affiliates" className="hover:text-primary transition-colors">Red Multinivel</a>
                         <Link href="/how-it-works" className="hover:text-primary transition-colors">Cómo Funciona</Link>
                     </div>
-                    <div className="flex items-center gap-4">
+
+                    <div className="hidden md:flex items-center gap-4">
                         <Link href="/login" className="px-5 py-2.5 text-sm font-bold text-muted hover:text-foreground transition-all">Iniciar Sesión</Link>
                         <Link href="/register" className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                             Empezar Ahora
                         </Link>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="md:hidden p-2 text-muted hover:text-white transition-colors"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
+
+                {/* Mobile Menu Drawer */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden absolute top-20 left-0 w-full bg-surface border-b border-surface-border p-6 space-y-6 animate-fade-in z-50">
+                        <div className="flex flex-col gap-4">
+                            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white p-2">Funcionalidades</a>
+                            <a href="#affiliates" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white p-2">Red Multinivel</a>
+                            <Link href="/how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white p-2">Cómo Funciona</Link>
+                        </div>
+                        <div className="pt-4 border-t border-surface-border flex flex-col gap-4">
+                            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full py-4 text-center font-bold text-muted border border-surface-border rounded-xl">Iniciar Sesión</Link>
+                            <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="w-full py-4 text-center bg-primary text-primary-foreground rounded-xl font-bold">Empezar Ahora</Link>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero Section */}
@@ -55,7 +86,7 @@ export default function LandingPage() {
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">Plataforma Auto-Gestionable · 2026 Ready</span>
                         </div>
-                        <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
+                        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.1]">
                             El estándar <span className="gradient-text italic">Premium</span> para tu comunidad.
                         </h1>
                         <p className="text-xl text-muted max-w-xl leading-relaxed">
@@ -104,6 +135,9 @@ export default function LandingPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Scroll-Linked Product Showcase */}
+            <ProductShowcase />
 
             {/* Global Payments Section */}
             <section className="py-24 border-y border-surface-border bg-surface/30">

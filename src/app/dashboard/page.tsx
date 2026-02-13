@@ -29,7 +29,9 @@ import {
   Lock,
   Ticket,
   Trash2,
-  CreditCard
+  CreditCard,
+  Menu,
+  X
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -56,6 +58,7 @@ export default function DashboardPage() {
   const [promotions, setPromotions] = useState<any[]>([]);
   const [adminPayments, setAdminPayments] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -296,15 +299,28 @@ export default function DashboardPage() {
   const [selectedMethod, setSelectedMethod] = useState("wompi");
 
   return (
-    <div className="flex min-h-screen bg-background" aria-label="Panel de Administración del Dueño">
-      {/* Sidebar Desktop */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-surface-border bg-surface p-6 space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">T</div>
-          <span className="font-bold text-xl tracking-tight">TeleGate</span>
+    <div className="flex min-h-screen bg-background" aria-label="Panel de Administración del Creador">
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Desktop & Mobile Drawer */}
+      <aside className={`fixed inset-y-0 left-0 w-64 flex flex-col border-r border-surface-border bg-surface p-6 space-y-8 z-[70] transition-transform duration-300 md:relative md:translate-x-0 ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">T</div>
+            <span className="font-bold text-xl tracking-tight">TeleGate</span>
+          </div>
+          <button className="md:hidden text-muted hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <nav className="flex-1 space-y-2">
+        <nav className="flex-1 space-y-2 overflow-y-auto">
           {[
             { id: "overview", label: "Vista General", icon: LayoutGrid },
             { id: "channels", label: "Mis Canales", icon: Users },
@@ -322,6 +338,7 @@ export default function DashboardPage() {
               onClick={() => {
                 setActiveTab(item.id);
                 setIsViewingAsAdmin(item.id.startsWith("admin"));
+                setMobileSidebarOpen(false);
               }}
               className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-all ${activeTab === item.id ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted hover:bg-surface-border"}`}
             >
@@ -347,18 +364,39 @@ export default function DashboardPage() {
       <main className="flex-1 p-6 md:p-10 space-y-10 max-w-7xl mx-auto overflow-y-auto">
         {/* Header Responsive */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Panel de <span className="gradient-text">Control</span>
-            </h1>
-            <p className="text-muted mt-1 font-medium">Gestiona tus comunidades y ganancias hoy.</p>
+          <div className="flex items-center justify-between md:block">
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="p-2 -ml-2 text-muted hover:text-white"
+              >
+                <Menu className="w-7 h-7" />
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-xs">T</div>
+                <span className="font-bold text-lg tracking-tight">TeleGate</span>
+              </div>
+            </div>
+
+            <div className="hidden md:block">
+              <h1 className="text-3xl font-bold tracking-tight">
+                Panel de <span className="gradient-text">Control</span>
+              </h1>
+              <p className="text-muted mt-1 font-medium">Gestiona tus comunidades y ganancias hoy.</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center justify-between md:justify-end gap-3">
+            <div className="md:hidden">
+              <h1 className="text-2xl font-bold tracking-tight">
+                Panel de <span className="gradient-text">Control</span>
+              </h1>
+            </div>
             <button
               onClick={handleCreateChannel}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="flex items-center gap-2 px-4 md:px-5 py-2 md:py-2.5 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm md:text-base"
             >
-              <PlusCircle className="w-5 h-5" /> Nuevo Canal
+              <PlusCircle className="w-5 h-5" /> <span className="hidden sm:inline">Nuevo Canal</span><span className="sm:hidden">Nuevo</span>
             </button>
           </div>
         </header>
@@ -595,7 +633,7 @@ export default function DashboardPage() {
                   </h3>
                   <div className="text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded">Crecimiento Positivo</div>
                 </div>
-                <div className="h-64 w-full">
+                <div className="h-48 md:h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={analyticsData?.revenue_series}>
                       <defs>
@@ -624,7 +662,7 @@ export default function DashboardPage() {
                   </h3>
                   <div className="text-[10px] font-black uppercase bg-blue-500/10 text-blue-500 px-2 py-1 rounded">Suscripciones Activas</div>
                 </div>
-                <div className="h-64 w-full">
+                <div className="h-48 md:h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={analyticsData?.subscriber_series}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
@@ -677,44 +715,44 @@ export default function DashboardPage() {
                 <div className="premium-card overflow-hidden">
                   <div className="divide-y divide-surface-border">
                     {channels.length > 0 ? channels.map((ch) => (
-                      <div key={ch.id} className="p-5 flex items-center justify-between hover:bg-background/50 transition-colors">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center font-bold text-secondary-foreground shadow-sm">
+                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center font-bold text-secondary-foreground shadow-sm shrink-0">
                             {ch.title[0]}
                           </div>
                           <div>
                             <p className="font-bold">{ch.title}</p>
-                            <p className="text-xs text-muted font-medium">Estado: {ch.is_verified ? "Verificado" : "Pendiente"}</p>
+                            <p className="text-[10px] text-muted font-black uppercase tracking-widest">
+                              {ch.is_verified ? 'Verificado' : 'Pendiente'}
+                            </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="hidden sm:flex flex-col items-end gap-1">
-                            <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Código Bot</span>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-surface-border sm:border-0">
+                          <div className="flex flex-col items-start sm:items-end gap-1">
+                            <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest hidden sm:block">Código Bot</span>
                             <button
                               onClick={() => copyToClipboard(ch.validation_code)}
-                              className="flex items-center gap-1 px-2 py-0.5 bg-background rounded border border-surface-border text-xs font-mono hover:bg-surface-border transition-colors"
+                              className="flex items-center gap-1 px-3 py-1 bg-background rounded-lg border border-surface-border text-xs font-mono hover:bg-surface-border transition-colors group"
                             >
-                              {ch.validation_code} <Copy className="w-3 h-3 text-muted" />
+                              <span className="text-primary group-hover:text-white transition-colors">{ch.validation_code}</span> <Copy className="w-3.5 h-3.5 text-muted" />
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleOpenPromos(ch)}
-                            className="p-2 hover:bg-surface-border rounded-lg transition-colors text-amber-500"
-                            title="Ofertas y Cupones"
-                          >
-                            <Ticket className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => setEditingBranding(ch)}
-                            className="p-2 hover:bg-surface-border rounded-lg transition-colors text-primary"
-                            title="Personalizar Branding"
-                          >
-                            <Palette className="w-5 h-5" />
-                          </button>
-                          <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-lg ${ch.is_verified ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                            }`}>
-                            {ch.is_verified ? 'Verificado' : 'Pendiente'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleOpenPromos(ch)}
+                              className="p-2.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl transition-all text-amber-500 border border-amber-500/20"
+                              title="Ofertas y Cupones"
+                            >
+                              <Ticket className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => setEditingBranding(ch)}
+                              className="p-2.5 bg-primary/10 hover:bg-primary/20 rounded-xl transition-all text-primary border border-primary/20"
+                              title="Personalizar Branding"
+                            >
+                              <Palette className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )) : (
@@ -1137,7 +1175,7 @@ export default function DashboardPage() {
           <div className="space-y-10 animate-fade-in">
             <header>
               <h2 className="text-2xl font-bold tracking-tight">Programa de Embajadores</h2>
-              <p className="text-muted font-medium">Invita a otros dueños de canales y gana comisiones vitalicias.</p>
+              <p className="text-muted font-medium">Invita a otros creadores de contenido y gana comisiones vitalicias.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

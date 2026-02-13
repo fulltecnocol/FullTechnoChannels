@@ -7,7 +7,7 @@ Base = declarative_base()
 
 class User(Base):
     """
-    Representa tanto a suscriptores como a dueños de canales.
+    Representa tanto a suscriptores como a creadores de contenido.
     Los "owners" se registran vía Dashboard (email/pass).
     Los "suscriptores" se registran vía Telegram.
     """
@@ -23,7 +23,7 @@ class User(Base):
     google_id = Column(String, unique=True, index=True, nullable=True)
     
     is_admin = Column(Boolean, default=False)  # Admin central de la plataforma
-    is_owner = Column(Boolean, default=False)  # Si es dueño de canales
+    is_owner = Column(Boolean, default=False)  # Si es creador de contenido
     
     # --- SISTEMA DE AFILIADOS ---
     # Código único para invitar a otros

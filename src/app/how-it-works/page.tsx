@@ -14,10 +14,14 @@ import {
     CheckCircle2,
     LayoutGrid,
     Globe,
-    Lock
+    Lock,
+    Menu,
+    X
 } from "lucide-react";
 
 export default function HowItWorksPage() {
+    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
     return (
         <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
             {/* Navigation (Simplified for this page) */}
@@ -31,7 +35,7 @@ export default function HowItWorksPage() {
                             Tele<span className="text-primary">Gate</span>
                         </span>
                     </Link>
-                    <div className="flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-4">
                         <Link href="/login" className="px-5 py-2.5 text-sm font-bold text-muted hover:text-foreground transition-all">
                             Iniciar Sesión
                         </Link>
@@ -39,7 +43,30 @@ export default function HowItWorksPage() {
                             Empezar Ahora
                         </Link>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="md:hidden p-2 text-muted hover:text-white transition-colors"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
+
+                {/* Mobile Menu Drawer */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden absolute top-20 left-0 w-full bg-surface border-b border-surface-border p-6 space-y-6 animate-fade-in z-50">
+                        <div className="flex flex-col gap-4">
+                            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white p-2">Inicio</Link>
+                            <Link href="/#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white p-2">Funcionalidades</Link>
+                            <Link href="/#affiliates" onClick={() => setMobileMenuOpen(false)} className="text-lg font-bold text-white p-2">Red Multinivel</Link>
+                        </div>
+                        <div className="pt-4 border-t border-surface-border flex flex-col gap-4">
+                            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full py-4 text-center font-bold text-muted border border-surface-border rounded-xl">Iniciar Sesión</Link>
+                            <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="w-full py-4 text-center bg-primary text-primary-foreground rounded-xl font-bold">Empezar Ahora</Link>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             <main className="pt-32 pb-20">
@@ -92,10 +119,10 @@ export default function HowItWorksPage() {
                         </div>
                         <div className="lg:w-1/2">
                             {/* Visual Logic of Bot */}
-                            <div className="relative premium-card p-8 aspect-video flex items-center justify-center">
+                            <div className="relative premium-card p-6 md:p-8 aspect-auto md:aspect-video flex items-center justify-center min-h-[400px] md:min-h-0">
                                 <div className="absolute inset-0 bg-grid-white/[0.02] bg-[length:20px_20px]" />
 
-                                <div className="relative flex items-center gap-8">
+                                <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8">
                                     {/* User Node */}
                                     <div className="flex flex-col items-center gap-2">
                                         <div className="w-16 h-16 rounded-full bg-surface border border-surface-border flex items-center justify-center relative z-10">
@@ -105,8 +132,8 @@ export default function HowItWorksPage() {
                                     </div>
 
                                     {/* Connection Line */}
-                                    <div className="w-24 h-[2px] bg-surface-border relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-primary w-1/2 animate-grow-horizontal" />
+                                    <div className="w-1 md:w-24 h-12 md:h-[2px] bg-surface-border relative overflow-hidden">
+                                        <div className="absolute inset-x-0 md:inset-0 bg-primary h-1/2 md:w-1/2 md:h-full animate-grow-vertical md:animate-grow-horizontal" />
                                     </div>
 
                                     {/* Bot Node */}
@@ -119,8 +146,8 @@ export default function HowItWorksPage() {
                                     </div>
 
                                     {/* Connection Line */}
-                                    <div className="w-24 h-[2px] bg-surface-border relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-primary w-full animate-grow-horizontal" style={{ animationDelay: '0.5s' }} />
+                                    <div className="w-1 md:w-24 h-12 md:h-[2px] bg-surface-border relative overflow-hidden">
+                                        <div className="absolute inset-x-0 md:inset-0 bg-primary h-full md:w-full md:h-full animate-grow-vertical md:animate-grow-horizontal" style={{ animationDelay: '0.5s' }} />
                                     </div>
 
                                     {/* Channel Node */}
@@ -155,12 +182,12 @@ export default function HowItWorksPage() {
                                         <span className="font-black text-white text-xs">$100.00 USD (Ejemplo)</span>
                                     </div>
                                     <div className="flex h-12 rounded-lg overflow-hidden w-full shadow-lg">
-                                        <div className="w-[80%] bg-gradient-to-r from-primary to-accent-gold flex items-center justify-center relative overflow-hidden group">
+                                        <div className="w-[70%] sm:w-[80%] bg-gradient-to-r from-primary to-accent-gold flex items-center justify-center relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                                            <span className="text-xs md:text-sm font-black text-black z-10">80% PARA TI ($80.00)</span>
+                                            <span className="text-[10px] sm:text-xs md:text-sm font-black text-black z-10">80% PARA TI</span>
                                         </div>
-                                        <div className="w-[20%] bg-zinc-800 flex items-center justify-center border-l border-white/10">
-                                            <span className="text-[10px] md:text-xs font-black text-white/50">20% ECOSYSTEM</span>
+                                        <div className="w-[30%] sm:w-[20%] bg-zinc-800 flex items-center justify-center border-l border-white/10">
+                                            <span className="text-[8px] sm:text-xs font-black text-white/50">20% ECO</span>
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-muted mt-3 text-center">
@@ -224,7 +251,7 @@ export default function HowItWorksPage() {
                         </div>
                         <h2 className="text-4xl lg:text-6xl font-black tracking-tighter">La Red de Poder</h2>
                         <p className="text-xl text-muted max-w-2xl mx-auto">
-                            Transformamos la competencia en colaboración. Invita a otros <span className="text-white font-bold">Dueños de Canales</span> a TeleGate y obtén una participación de sus ganancias netas automáticamente hasta <span className="text-primary font-bold">10 niveles de profundidad</span>.
+                            Transformamos la competencia en colaboración. Invita a otros <span className="text-white font-bold">Creadores de Contenido</span> a TeleGate y obtén una participación de sus ganancias netas automáticamente hasta <span className="text-primary font-bold">10 niveles de profundidad</span>.
                         </p>
                     </div>
 
@@ -277,8 +304,8 @@ export default function HowItWorksPage() {
                                                 <TrendingUp className="w-4 h-4 text-emerald-500" />
                                             </div>
                                             <div>
-                                                <h5 className="font-bold text-white">Ecosistema de Dueños</h5>
-                                                <p className="text-sm text-muted">No solo ganas por tus ventas, sino un porcentaje del éxito de cada Administrador que traigas a la plataforma.</p>
+                                                <h5 className="font-bold text-white">Ecosistema de Creadores</h5>
+                                                <p className="text-sm text-muted">No solo ganas por tus ventas, sino un porcentaje del éxito de cada Creador que traigas a la plataforma.</p>
                                             </div>
                                         </li>
                                         <li className="flex gap-4">
@@ -338,6 +365,13 @@ export default function HowItWorksPage() {
                 @keyframes grow {
                     from { width: 0; }
                     to { width: 100%; }
+                }
+                @keyframes grow-vertical {
+                    from { height: 0; }
+                    to { height: 100%; }
+                }
+                .animate-grow-vertical {
+                    animation: grow-vertical 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
                 }
             `}</style>
         </div>

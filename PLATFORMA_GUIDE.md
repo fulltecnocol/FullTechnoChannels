@@ -7,12 +7,12 @@ Bienvenido a **TeleGate**, la infraestructura definitiva para monetizar comunida
 ## 🏗️ 1. Arquitectura del Sistema
 La plataforma se divide en tres piezas tecnológicas que trabajan en sincronía:
 *   **El Bot Central**: Actúa como el portero y gestor de ventas dentro de Telegram.
-*   **El Dashboard (Web)**: Panel de control premium para dueños de canales alojado en `telegate.fulltechnohub.com`.
+*   **El Dashboard (Web)**: Panel de control premium para creadores de contenido alojado en `telegate.fulltechnohub.com`.
 *   **La API Core**: El cerebro que procesa pagos, valida suscripciones y gestiona la red de afiliados.
 
 ---
 
-## 💎 2. Flujo para el Dueño de Canal (Creador)
+## 💎 2. Flujo para el Creador de Contenido
 Si tienes un canal de señales, contenido exclusivo o mentoría, así es como TeleGate trabaja para ti:
 
 1.  **Registro y Vinculación**: Te registras en el Dashboard y vinculas tu bot/canal mediante un código de validación único.
@@ -55,15 +55,15 @@ La plataforma integra un potente motor de red que incentiva el crecimiento masiv
     10. **Infinitum**: La cúspide de la profundidad (0.1% comisión).
 *   **Rangos de Prestigio (Branding)**: 
     *   `BRONCE`: Nivel inicial.
-    *   `ORO`: Alcanzado al referir directamente a 6 dueños de canales.
-    *   `DIAMANTE`: Rango máximo al referir a 21+ dueños de canales.
+    *   `ORO`: Alcanzado al referir directamente a 6 creadores de contenido.
+    *   `DIAMANTE`: Rango máximo al referir a 21+ creadores de contenido.
 *   **Gestión de Red**: Dashboard dedicado para monitorear el crecimiento de tu organización, ingresos por nivel y notificaciones instantáneas vía Telegram cada vez que alguien en tu red realiza una venta.
 
 ---
 
 ## 🛡️ 5. Seguridad y Automatización Admin
 Para el administrador de la plataforma:
-*   **Validación de Retiros**: Panel para aprobar o rechazar pagos a los dueños de canales.
+*   **Validación de Retiros**: Panel para aprobar o rechazar pagos a los creadores de contenido.
 *   **Dispersión Automática**: Integración con Wompi Payouts para pagar a los creadores colombianos con un solo clic.
 *   **Soporte**: Sistema de tickets interno para resolver dudas de los usuarios sin salir del panel.
 
