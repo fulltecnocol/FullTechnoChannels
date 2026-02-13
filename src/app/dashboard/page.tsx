@@ -772,7 +772,7 @@ export default function DashboardPage() {
                   <div className="p-4 bg-background rounded-2xl border border-surface-border space-y-1">
                     <p className="text-xs font-bold text-muted uppercase">Balance Neto</p>
                     <h3 className="text-3xl font-black text-primary tracking-tight">
-                      ${(summary?.available_balance + (summary?.affiliate_balance || 0)).toFixed(2) || "0.00"}
+                      ${((summary?.available_balance || 0) + (summary?.affiliate_balance || 0)).toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-muted">Incluye ganancias de canales y red de afiliados.</p>
                   </div>
@@ -959,13 +959,13 @@ export default function DashboardPage() {
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface/30">
                   {ticketMessages.map(m => (
-                    <div key={m.id} className={`flex ${m.sender_id === summary.id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${m.sender_id === summary.id
+                    <div key={m.id} className={`flex ${m.sender_id === summary?.id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${m.sender_id === summary?.id
                         ? 'bg-primary text-primary-foreground rounded-tr-none'
                         : 'bg-background border border-surface-border rounded-tl-none'
                         }`}>
                         <p className="font-medium leading-relaxed">{m.content}</p>
-                        <p className={`text-[9px] mt-2 font-bold opacity-60 ${m.sender_id === summary.id ? 'text-right' : ''}`}>
+                        <p className={`text-[9px] mt-2 font-bold opacity-60 ${m.sender_id === summary?.id ? 'text-right' : ''}`}>
                           {new Date(m.created_at).toLocaleTimeString()}
                         </p>
                       </div>
