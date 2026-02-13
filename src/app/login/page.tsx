@@ -15,29 +15,48 @@ export default function LoginPage() {
 
     React.useEffect(() => {
         setMounted(true);
-        const query = new URLSearchParams(window.location.search);
-        const magicToken = query.get("magic_token");
+    }, []);
 
-        if (magicToken && !loading) {
-            setLoading(true);
-            authApi.magicLogin(magicToken)
-                .then((data: AuthResponse) => {
-                    if (data && data.access_token) {
-                        localStorage.setItem("token", data.access_token);
-                        window.location.href = "/dashboard";
-                    } else {
-                        throw new Error("Token no recibido");
-                    }
-                })
-                .catch((err: any) => {
-                    console.error("Magic login error:", err);
-                    setError("Enlace de acceso inválido o expirado.");
-                    setLoading(false);
-                });
+    // Separated Magic Link check to run only once after mount
+    React.useEffect(() => {
+        if (!mounted) return;
+
+        try {
+            const query = new URLSearchParams(window.location.search);
+            const magicToken = query.get("magic_token");
+
+            if (magicToken && !loading) {
+                setLoading(true);
+                authApi.magicLogin(magicToken)
+                    .then((data: AuthResponse) => {
+                        if (data && data.access_token) {
+                            localStorage.setItem("token", data.access_token);
+                            window.location.href = "/dashboard";
+                        } else {
+                            throw new Error("Token no recibido");
+                        }
+                    })
+                    .catch((err: any) => {
+                        console.error("Magic login error:", err);
+                        setError("Enlace de acceso inválido o expirado.");
+                        setLoading(false);
+                    });
+            }
+        } catch (e) {
+            console.error("URL Parsing error", e);
         }
-    }, [loading]);
+    }, [mounted]);
 
-    if (!mounted) return null;
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                <div className="mt-4 text-xs font-black uppercase tracking-[0.2em] text-primary/50 animate-pulse">
+                    Verificando Seguridad
+                </div>
+            </div>
+        );
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
