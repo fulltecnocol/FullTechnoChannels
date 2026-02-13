@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, Request, HTTPException, status
+from fastapi import FastAPI, Depends, Request, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 import bcrypt  # Direct usage instead of passlib
@@ -223,6 +224,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Trusted Host Middleware (Security Hardening)
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["telegate.fulltechnohub.com", "*.hosted.app", "localhost", "127.0.0.1"]
+)
+
+# Custom Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 # --- Health Check Endpoint ---
 @app.get("/health")
