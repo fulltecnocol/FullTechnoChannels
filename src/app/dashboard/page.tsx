@@ -247,16 +247,9 @@ export default function DashboardPage() {
     } catch (e: any) { alert(e.message) }
   };
 
-  const handleDeleteChannel = async (channelId: number) => {
-    if (!confirm("⚠️ ¿Estás seguro de que quieres eliminar este canal?\n\nEsta acción no se puede deshacer. Se perderán las configuraciones y afiliados asociados.\n\nNota: Si tienes suscriptores activos, no podrás eliminarlo.")) return;
-
-    try {
-      await ownerApi.deleteChannel(channelId);
-      alert("Canal eliminado correctamente");
-      fetchData(true);
-    } catch (e: any) {
-      alert(e.message || "Error al eliminar el canal");
-    }
+  const handleDeleteChannel = (channelId: number) => {
+    const ch = channels.find(c => c.id === channelId);
+    if (ch) setDeletingChannel(ch);
   };
 
   const handleDeletePromo = async (promoId: string) => {
