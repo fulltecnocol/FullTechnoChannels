@@ -36,30 +36,39 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestInit
 }
 
 export const authApi = {
-    login: (data: { email: string; password: string }): Promise<AuthResponse> => {
+    login: async (data: { email: string; password: string }): Promise<AuthResponse> => {
         // FastAPI OAuth2PasswordRequestForm expects form data
         const formData = new URLSearchParams();
         formData.append("username", data.email);
         formData.append("password", data.password);
+
+        console.log("LOGIN REQUEST:", { url: `${API_URL}/token`, username: data.email });
 
         return fetch(`${API_URL}/token`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: formData,
         }).then(async (res) => {
-            if (!res.ok) throw new Error("Credenciales inválidas");
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("LOGIN FAILED:", res.status, text);
+                throw new Error(`Login failed: ${res.status} ${text}`);
+            }
             return res.json();
         });
     },
-    register: (data: any) => apiRequest<void>("/register", {
-        method: "POST",
-        body: JSON.stringify({
-            email: data.email,
-            password: data.password,
-            full_name: data.fullName,
-            referral_code: data.referral_code
-        }),
-    }),
+    register: (data: any) => {
+        console.log("REGISTER REQUEST:", { url: `${API_URL}/register`, data });
+        return apiRequest<void>("/register", {
+            method: "POST",
+            body: JSON.stringify({
+                email: data.email,
+                password: data.password,
+                full_name: data.fullName,
+                referral_code: data.referral_code
+            }),
+        });
+    },
 };
 
 export const ownerApi = {
