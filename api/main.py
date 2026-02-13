@@ -717,6 +717,31 @@ async def create_channel(channel_data: ChannelCreate, current_user: DBUser = Dep
     await db.refresh(new_channel)
     return new_channel
 
+@app.delete("/owner/channels/{channel_id}")
+async def delete_channel(channel_id: int, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    result = await db.execute(select(Channel).where(and_(Channel.id == channel_id, Channel.owner_id == current_user.id)))
+    channel = result.scalar_one_or_none()
+    
+    if not channel:
+        raise HTTPException(status_code=404, detail="Canal no encontrado")
+        
+    # Check if channel has active subscriptions
+    active_subs = await db.execute(
+        select(Subscription).join(Plan).where(
+            and_(
+                Plan.channel_id == channel_id,
+                Subscription.is_active == True,
+                Subscription.end_date > datetime.utcnow()
+            )
+        )
+    )
+    if active_subs.first():
+        raise HTTPException(status_code=400, detail="No se puede eliminar un canal con suscriptores activos")
+
+    await db.delete(channel)
+    await db.commit()
+    return {"status": "deleted", "id": channel_id}
+
 @app.post("/owner/channels/{channel_id}/branding")
 async def update_channel_branding(channel_id: int, data: BrandingUpdate, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
     result = await db.execute(select(Channel).where(and_(Channel.id == channel_id, Channel.owner_id == current_user.id)))

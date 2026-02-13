@@ -1,4 +1,4 @@
-import { Users, Megaphone, ArrowRight, Settings } from 'lucide-react';
+import { Users, Megaphone, ArrowRight, Settings, Trash2 } from 'lucide-react';
 
 interface ChannelListProps {
     channels: any[];
@@ -6,10 +6,11 @@ interface ChannelListProps {
     onManagePromos: (channel: any) => void;
     onViewSubscribers: (channelId: string) => void;
     onLinkChannel: (channel: any) => void;
+    onDeleteChannel: (channelId: number) => void;
     isLoading: boolean;
 }
 
-export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSubscribers, onLinkChannel, isLoading }: ChannelListProps) {
+export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSubscribers, onLinkChannel, onDeleteChannel, isLoading }: ChannelListProps) {
     if (isLoading) {
         return <div className="p-10 text-center text-muted animate-pulse">Cargando canales...</div>;
     }
@@ -83,6 +84,13 @@ export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSu
                             className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-105 transition-transform flex items-center gap-2"
                         >
                             Ver Suscriptores <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                            onClick={() => onDeleteChannel(channel.id)}
+                            className="p-2.5 text-muted hover:text-red-500 bg-surface hover:bg-red-500/10 rounded-xl transition-all"
+                            title="Eliminar Canal"
+                        >
+                            <Trash2 className="w-4 h-4" /> {/* Trash2 needs to be imported if not already, check imports */}
                         </button>
                     </div>
                 </div>

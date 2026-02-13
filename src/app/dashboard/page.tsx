@@ -245,6 +245,18 @@ export default function DashboardPage() {
     } catch (e: any) { alert(e.message) }
   };
 
+  const handleDeleteChannel = async (channelId: number) => {
+    if (!confirm("⚠️ ¿Estás seguro de que quieres eliminar este canal?\n\nEsta acción no se puede deshacer. Se perderán las configuraciones y afiliados asociados.\n\nNota: Si tienes suscriptores activos, no podrás eliminarlo.")) return;
+
+    try {
+      await ownerApi.deleteChannel(channelId);
+      alert("Canal eliminado correctamente");
+      fetchData(true);
+    } catch (e: any) {
+      alert(e.message || "Error al eliminar el canal");
+    }
+  };
+
   const handleDeletePromo = async (promoId: string) => {
     if (!confirm("¿Eliminar promoción?")) return;
     try {
@@ -405,6 +417,7 @@ export default function DashboardPage() {
                   setNewChannelStep(2);
                   setIsAddingChannel(true);
                 }}
+                onDeleteChannel={handleDeleteChannel}
                 onViewSubscribers={(id) => router.push(`/dashboard/channel/${id}`)}
               />
               {channels.length > 3 && (
@@ -430,6 +443,7 @@ export default function DashboardPage() {
               setNewChannelStep(2);
               setIsAddingChannel(true);
             }}
+            onDeleteChannel={handleDeleteChannel}
             onViewSubscribers={(id) => router.push(`/dashboard/channel/${id}`)}
           />
         )}

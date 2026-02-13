@@ -76,6 +76,9 @@ export const ownerApi = {
         method: "POST",
         body: JSON.stringify({ title }),
     }),
+    deleteChannel: (channelId: number) => apiRequest<void>(`/owner/channels/${channelId}`, {
+        method: "DELETE",
+    }),
     getWithdrawals: () => apiRequest<Withdrawal[]>("/owner/withdrawals"),
     requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/owner/withdrawals", {
         method: "POST",
