@@ -5,10 +5,11 @@ interface ChannelListProps {
     onEditBranding: (channel: any) => void;
     onManagePromos: (channel: any) => void;
     onViewSubscribers: (channelId: string) => void;
+    onLinkChannel: (channel: any) => void;
     isLoading: boolean;
 }
 
-export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSubscribers, isLoading }: ChannelListProps) {
+export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSubscribers, onLinkChannel, isLoading }: ChannelListProps) {
     if (isLoading) {
         return <div className="p-10 text-center text-muted animate-pulse">Cargando canales...</div>;
     }
@@ -50,7 +51,7 @@ export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSu
                         {/* Botón ¿Cómo vincular? si no está verificado */}
                         {!channel.is_verified && (
                             <button
-                                onClick={() => onManagePromos(channel)} // Reutilizamos managePromos para abrir el modal, OJO: esto debe ser manejado por el padre correctamente o pasar una prop especifica.
+                                onClick={() => onLinkChannel(channel)}
                                 // En el original page.tsx, usaba: setIsAddingChannel(true); setNewChannelStep(2); setCreatedChannel(channel);
                                 // Aquí lo ideal es que el padre maneje esto.
                                 // Voy a asumir que el padre pasará una función para "continuar vinculación".

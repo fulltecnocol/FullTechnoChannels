@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 WEBHOOK_PATH = f"/webhook/{API_TOKEN}"
 

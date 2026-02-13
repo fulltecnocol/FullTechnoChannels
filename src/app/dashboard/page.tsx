@@ -400,6 +400,11 @@ export default function DashboardPage() {
                   setManagingPromos(ch);
                   handleLoadPromos(ch.id);
                 }}
+                onLinkChannel={(channel) => {
+                  setCreatedChannel(channel);
+                  setNewChannelStep(2);
+                  setIsAddingChannel(true);
+                }}
                 onViewSubscribers={(id) => router.push(`/dashboard/channel/${id}`)}
               />
               {channels.length > 3 && (
@@ -419,6 +424,11 @@ export default function DashboardPage() {
             onManagePromos={(ch) => {
               setManagingPromos(ch);
               handleLoadPromos(ch.id);
+            }}
+            onLinkChannel={(channel) => {
+              setCreatedChannel(channel);
+              setNewChannelStep(2);
+              setIsAddingChannel(true);
             }}
             onViewSubscribers={(id) => router.push(`/dashboard/channel/${id}`)}
           />

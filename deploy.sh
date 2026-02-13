@@ -21,7 +21,7 @@ gcloud run deploy $SERVICE_NAME \
   --region $REGION \
   --platform managed \
   --allow-unauthenticated \
-  --set-env-vars="WEBHOOK_URL=https://${SERVICE_NAME}-${PROJECT_ID}.${REGION}.run.app" \
+  --set-env-vars="WEBHOOK_URL=https://${SERVICE_NAME}-${PROJECT_ID}.${REGION}.run.app,SERVICE_TYPE=unified" \
   --set-secrets="BOT_TOKEN=BOT_TOKEN:latest,DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest" \
   --project $PROJECT_ID \
   --quiet
