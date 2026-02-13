@@ -635,7 +635,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="h-48 md:h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={analyticsData?.revenue_series}>
+                    <AreaChart data={analyticsData?.revenue_series || []}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -664,7 +664,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="h-48 md:h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData?.subscriber_series}>
+                    <BarChart data={analyticsData?.subscriber_series || []}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
                       <XAxis dataKey="date" hide />
                       <YAxis hide />
@@ -688,7 +688,7 @@ export default function DashboardPage() {
               </div>
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analyticsData?.mlm_series}>
+                  <LineChart data={analyticsData?.mlm_series || []}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.1} />
                     <XAxis dataKey="date" hide />
                     <YAxis hide />
