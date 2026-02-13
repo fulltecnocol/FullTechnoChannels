@@ -1,7 +1,7 @@
-# Importaciones de todos los modelos
-# Esto asegura que SQLAlchemy conozca todas las tablas
+# Importaciones de todos los modelos Consolidados
+# Esto asegura que SQLAlchemy conozca todas las tablas usando el mismo Base
 
-from api.shared.models import (
+from shared.models import (
     Base,
     User,
     SystemConfig,
@@ -16,7 +16,7 @@ from api.shared.models import (
     TicketMessage
 )
 
-from api.models.signature import (
+from shared.signature_models import (
     OwnerLegalInfo,
     SignatureCode,
     SignedContract

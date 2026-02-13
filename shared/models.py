@@ -45,6 +45,11 @@ class User(Base):
     channels = relationship("Channel", back_populates="owner")
     withdrawals = relationship("Withdrawal", back_populates="owner")
     
+    # Sistema de Firma Digital
+    legal_info = relationship("OwnerLegalInfo", uselist=False, back_populates="owner")
+    signature_codes = relationship("SignatureCode", back_populates="owner")
+    signed_contracts = relationship("SignedContract", back_populates="owner")
+    
     # Relación de Afiliados (Self-referencing)
     referrer = relationship("User", remote_side=[id], backref="referrals")
 

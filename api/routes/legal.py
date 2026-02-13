@@ -12,9 +12,9 @@ from typing import Optional
 import secrets
 import os
 
-from api.shared.database import get_db
-from api.shared.models import User
-from api.models.signature import OwnerLegalInfo, SignatureCode, SignedContract
+from shared.database import get_db
+from shared.models import User
+from shared.signature_models import OwnerLegalInfo, SignatureCode, SignedContract
 from api.services.pdf_service import PDFContractService
 from api.services.blockchain_service import get_blockchain_service
 

@@ -449,7 +449,7 @@ async def handle_sign_request(callback: types.CallbackQuery, state: FSMContext):
     try:
         import secrets
         from datetime import datetime
-        from api.models.signature import SignatureCode
+        from shared.signature_models import SignatureCode
         
         async with AsyncSessionLocal() as session:
              # Get user
