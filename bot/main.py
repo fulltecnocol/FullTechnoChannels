@@ -562,9 +562,20 @@ async def on_startup():
     ])
 
     if WEBHOOK_URL:
+        # Si el bot está montado en /bot (como en main.py), el webhook debe reflejarlo
+        final_webhook_url = WEBHOOK_URL + WEBHOOK_PATH
+        if "/bot" not in final_webhook_url and not WEBHOOK_URL.endswith("/bot"):
+            # Si la URL base no termina en /bot y el path tampoco lo incluye, lo agregamos
+            # Esto es necesario porque en main.py montamos bot_app en /bot
+            final_webhook_url = WEBHOOK_URL.rstrip("/") + "/bot" + WEBHOOK_PATH
+        
         try:
-            await bot.set_webhook(url=WEBHOOK_URL + WEBHOOK_PATH)
-            logging.info(f"Webhook set to {WEBHOOK_URL + WEBHOOK_PATH}")
+            await bot.set_webhook(
+                url=final_webhook_url,
+                drop_pending_updates=True,
+                allowed_updates=["message", "callback_query", "chat_join_request"]
+            )
+            logging.info(f"Webhook set to {final_webhook_url}")
         except Exception as e:
             logging.warning(f"Failed to set webhook (will retry later): {e}")
     else:
