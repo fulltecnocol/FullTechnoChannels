@@ -222,6 +222,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "http://localhost:8080",
         "https://full-techno-channels--full-techno-channels.us-central1.hosted.app",
         "https://full-techno-channels.web.app",
         "https://full-techno-channels.firebaseapp.com",

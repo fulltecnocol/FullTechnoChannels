@@ -102,7 +102,7 @@ export default function LandingPage() {
                         <span className="text-xs font-black uppercase tracking-widest text-muted">Fase de Lanzamiento v2.0</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8 animate-fade-in">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] mb-8 animate-fade-in">
                         Gestiona tus Usuarios<br />
                         <span className="gradient-text">Como un Profesional</span>
                     </h1>

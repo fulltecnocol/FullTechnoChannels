@@ -140,17 +140,19 @@ function RegisterForm() {
                     <span className="bg-surface px-4">o regístrate con</span>
                 </div>
 
-                <div className="flex justify-center">
-                    <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={() => setError("Error al conectar con Google")}
-                        useOneTap
-                        theme="filled_black"
-                        shape="pill"
-                        locale="es"
-                        text="signup_with"
-                    />
-                </div>
+                {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError("Error al conectar con Google")}
+                            useOneTap
+                            theme="filled_black"
+                            shape="pill"
+                            locale="es"
+                            text="signup_with"
+                        />
+                    </div>
+                )}
             </div>
 
             <p className="text-center text-sm font-medium text-muted">
