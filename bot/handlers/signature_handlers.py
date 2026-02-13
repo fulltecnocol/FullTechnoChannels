@@ -9,9 +9,9 @@ import httpx
 import os
 
 from bot.states.signature_states import SignatureFlow
-from api.shared.database import AsyncSessionLocal
-from api.shared.models import User
-from api.models.signature import OwnerLegalInfo, SignedContract
+from shared.database import AsyncSessionLocal
+from shared.models import User
+from shared.signature_models import OwnerLegalInfo, SignedContract
 
 # Router específico para firma
 signature_router = Router()
@@ -396,7 +396,7 @@ async def handle_read_pdf(callback: types.CallbackQuery):
             # Intentar generar archivo
             try:
                 # Intento 1: PDF (WeasyPrint)
-                pdf_bytes = PDFContractService.generate_preview_pdf(legal_info_dict)
+                pdf_bytes = await PDFContractService.generate_preview_pdf_async(legal_info_dict)
                 file_data = pdf_bytes
                 filename = "Contrato_Mandato.pdf"
                 caption = "📄 **Contrato de Mandato** (PDF)\nRevisa los términos antes de firmar."
@@ -597,7 +597,7 @@ async def cmd_download_contract(message: types.Message):
             # 4. Generar Documento (PDF o HTML)
             try:
                 # Intento PDF
-                pdf_bytes, _ = PDFContractService.generate_signed_pdf(legal_dict, signature_data)
+                pdf_bytes, _ = await PDFContractService.generate_signed_pdf_async(legal_dict, signature_data)
                 file_data = pdf_bytes
                 filename = f"Contrato_Mandato_Firmado_{signed_contract.id}.pdf"
                 caption = (

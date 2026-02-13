@@ -401,7 +401,8 @@ async def handle_pay_callback(callback: types.CallbackQuery):
         user = await get_or_create_user(callback.from_user, session)
         
         # Llamar a la API interna para generar el link
-        api_url = os.getenv("API_URL", "http://localhost:8000")
+        port = os.getenv("PORT", "8080")
+        api_url = os.getenv("API_URL", f"http://127.0.0.1:{port}/api")
         async with httpx.AsyncClient() as client:
             resp = await client.post(f"{api_url}/payments/create-link", json={
                 "plan_id": plan_id,

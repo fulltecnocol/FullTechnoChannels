@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 import hashlib
 import os
 import logging
+import asyncio
 
 # Configurar Jinja2
 TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
@@ -83,9 +84,16 @@ class PDFContractService:
         return PDFContractService._prepare_template_data(legal_info, signature_data)
 
     @staticmethod
+    async def generate_contract_pdf_async(legal_info: dict, signature_data: dict = None) -> bytes:
+        """
+        Versión asíncrona de generación de PDF para no bloquear el event loop
+        """
+        return await asyncio.to_thread(PDFContractService.generate_contract_pdf, legal_info, signature_data)
+
+    @staticmethod
     def generate_contract_pdf(legal_info: dict, signature_data: dict = None) -> bytes:
         """
-        Genera PDF del contrato de mandato
+        Genera PDF del contrato de mandato (Síncrono)
         """
         html_content = PDFContractService._prepare_template_data(legal_info, signature_data)
         
@@ -93,20 +101,12 @@ class PDFContractService:
             # FIX PARA MACOS (Silicon/M1/M2/M3)
             # Cargar librerías manualmente si estamos en Darwin (macOS)
             import sys
-            import platform
             if sys.platform == 'darwin':
                 try:
                     from ctypes import CDLL
                     from ctypes.util import find_library
                     
-                    # Intentar cargar pango, cairo, glib desde Homebrew
-                    # Rutas comunes en Apple Silicon (/opt/homebrew) e Intel (/usr/local)
-                    paths = [
-                        '/opt/homebrew/lib', 
-                        '/usr/local/lib',
-                        '/usr/lib'
-                    ]
-                    
+                    paths = ['/opt/homebrew/lib', '/usr/local/lib', '/usr/lib']
                     libs = ['libpango-1.0.0.dylib', 'libpangoft2-1.0.0.dylib', 'libgobject-2.0.0.dylib', 'libglib-2.0.0.dylib', 'libfontconfig.1.dylib']
                     
                     for lib in libs:
@@ -118,10 +118,8 @@ class PDFContractService:
                                     CDLL(lib_path)
                                     found = True
                                     break
-                                except:
-                                    pass
+                                except: pass
                         if not found:
-                            # Intentar find_library si no está en rutas fijas
                             lib_name = lib.split('.')[0].replace('lib', '')
                             l = find_library(lib_name)
                             if l: CDLL(l)
@@ -141,44 +139,30 @@ class PDFContractService:
     
     @staticmethod
     def calculate_pdf_hash(pdf_bytes: bytes) -> str:
-        """
-        Calcula el hash SHA-256 de un PDF
-        
-        Args:
-            pdf_bytes: Bytes del PDF
-            
-        Returns:
-            str: Hash en formato 0x... (66 caracteres)
-        """
+        """Calcula el hash SHA-256 de un PDF"""
         hash_obj = hashlib.sha256(pdf_bytes)
         hash_hex = hash_obj.hexdigest()
         return f"0x{hash_hex}"
     
     @staticmethod
-    def generate_preview_pdf(legal_info: dict) -> bytes:
-        """
-        Genera un PDF de preview (sin firmar) para que el owner revise
-        
-        Args:
-            legal_info: Información legal del owner
-            
-        Returns:
-            bytes: PDF de preview
-        """
-        return PDFContractService.generate_contract_pdf(legal_info, signature_data=None)
+    async def generate_preview_pdf_async(legal_info: dict) -> bytes:
+        """Genera un PDF de preview (asíncrono)"""
+        return await PDFContractService.generate_contract_pdf_async(legal_info, signature_data=None)
     
     @staticmethod
+    async def generate_signed_pdf_async(legal_info: dict, signature_data: dict) -> tuple[bytes, str]:
+        """Genera el PDF final firmado (asíncrono)"""
+        pdf_bytes = await PDFContractService.generate_contract_pdf_async(legal_info, signature_data)
+        pdf_hash = PDFContractService.calculate_pdf_hash(pdf_bytes)
+        return pdf_bytes, pdf_hash
+
+    # Retrocompatibilidad
+    @staticmethod
+    def generate_preview_pdf(legal_info: dict) -> bytes:
+        return PDFContractService.generate_contract_pdf(legal_info, signature_data=None)
+
+    @staticmethod
     def generate_signed_pdf(legal_info: dict, signature_data: dict) -> tuple[bytes, str]:
-        """
-        Genera el PDF final firmado con todos los datos
-        
-        Args:
-            legal_info: Información legal del owner
-            signature_data: Datos de la firma
-            
-        Returns:
-            tuple: (pdf_bytes, hash)
-        """
         pdf_bytes = PDFContractService.generate_contract_pdf(legal_info, signature_data)
         pdf_hash = PDFContractService.calculate_pdf_hash(pdf_bytes)
         return pdf_bytes, pdf_hash

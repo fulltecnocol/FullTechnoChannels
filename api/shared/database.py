@@ -18,7 +18,16 @@ connect_args = {}
 if "postgresql" in DATABASE_URL:
     connect_args = {"ssl": "require"}
 
-engine = create_async_engine(DATABASE_URL, echo=True, connect_args=connect_args)
+# Configuración optimizada para alta concurrencia
+engine = create_async_engine(
+    DATABASE_URL, 
+    echo=False,  # Desactivado en producción para rendimiento
+    pool_size=10,  # Conexiones base
+    max_overflow=20,  # Conexiones extra bajo carga
+    pool_timeout=30,  # Segundos antes de error si no hay conexión libre
+    pool_recycle=1800,  # Reciclar conexión cada 30 min para evitar desconexiones de red
+    connect_args=connect_args
+)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 async def init_db():
