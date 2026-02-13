@@ -60,6 +60,10 @@ export const authApi = {
             referral_code: data.referral_code
         }),
     }),
+    googleAuth: (credential: string, referralCode?: string) => apiRequest<AuthResponse>("/auth/google", {
+        method: "POST",
+        body: JSON.stringify({ credential, referral_code: referralCode }),
+    }),
 };
 
 export const ownerApi = {

@@ -4,11 +4,15 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ShieldCheck, Mail, Lock, User, ArrowRight, Loader2, Zap, AlertCircle } from "lucide-react";
 import { authApi } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({ fullName: "", email: "", password: "" });
+    const searchParams = useSearchParams();
+    const referralCode = searchParams.get("ref") || "";
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,6 +24,20 @@ export default function RegisterPage() {
             window.location.href = "/login?registered=true";
         } catch (err: any) {
             setError(err.message || "Error al crear la cuenta");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        setLoading(true);
+        setError("");
+        try {
+            const data = await authApi.googleAuth(credentialResponse.credential, referralCode);
+            localStorage.setItem("token", data.access_token);
+            window.location.href = "/dashboard";
+        } catch (err: any) {
+            setError(err.message || "Error al registrarse con Google");
         } finally {
             setLoading(false);
         }
@@ -121,6 +139,23 @@ export default function RegisterPage() {
                             </button>
                         </div>
                     </form>
+
+                    <div className="relative my-6 text-center text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/5 -z-10" />
+                        <span className="bg-surface px-4">o regístrate con</span>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError("Error al conectar con Google")}
+                            useOneTap
+                            theme="filled_black"
+                            shape="pill"
+                            locale="es"
+                            text="signup_with"
+                        />
+                    </div>
                 </div>
 
                 <p className="text-center text-sm font-medium text-muted">
@@ -134,7 +169,7 @@ export default function RegisterPage() {
                     <ShieldCheck className="w-5 h-5" />
                     <span className="text-[10px] uppercase font-bold tracking-widest text-center">Protección SSL de Grado Bancario</span>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

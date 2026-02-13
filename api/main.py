@@ -16,6 +16,9 @@ from sqlalchemy.exc import IntegrityError
 import hashlib
 import httpx
 import logging
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 
 import sys
 import os
@@ -58,6 +61,10 @@ class UserRegister(BaseModel):
     email: str
     password: str
     full_name: str
+    referral_code: Optional[str] = None
+
+class GoogleAuthRequest(BaseModel):
+    credential: str  # This is the ID Token
     referral_code: Optional[str] = None
 
 class ChannelCreate(BaseModel):
@@ -279,6 +286,80 @@ async def register_owner(user_data: UserRegister, db: AsyncSessionLocal = Depend
     
     access_token = create_access_token(data={"sub": new_owner.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/auth/google", response_model=Token)
+async def google_auth(auth_data: GoogleAuthRequest, db: AsyncSessionLocal = Depends(get_db)):
+    """
+    Verifica el token de Google, vincula o crea un usuario y retorna un JWT.
+    """
+    try:
+        # Obtener el Client ID desde las variables de entorno
+        CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+        if not CLIENT_ID:
+            print("⚠️ WARNING: GOOGLE_CLIENT_ID not set. Basic verification fallback (NOT RECOMMENDED FOR PROD).")
+            # En modo sin CLIENT_ID, google-auth fallará si no se provee.
+            # Para facilitar el setup inicial, podríamos saltar la verificación SI estamos en dev,
+            # pero es mejor forzar la configuración.
+        
+        # Verificar el token con Google
+        idinfo = id_token.verify_oauth2_token(
+            auth_data.credential, 
+            google_requests.Request(), 
+            CLIENT_ID
+        )
+
+        # Extraer información del token
+        google_id = idinfo['sub']
+        email = idinfo['email']
+        name = idinfo.get('name', email.split('@')[0])
+        avatar = idinfo.get('picture')
+
+        # 1. Buscar por google_id
+        result = await db.execute(select(DBUser).where(DBUser.google_id == google_id))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            # 2. Buscar por email para vincular cuenta existente
+            result = await db.execute(select(DBUser).where(DBUser.email == email))
+            user = result.scalar_one_or_none()
+            
+            if user:
+                # Vincular
+                user.google_id = google_id
+                if not user.avatar_url:
+                    user.avatar_url = avatar
+            else:
+                # 3. Crear nuevo usuario (Owner)
+                referred_by_id = None
+                if auth_data.referral_code:
+                    ref_result = await db.execute(select(DBUser).where(DBUser.referral_code == auth_data.referral_code))
+                    referrer = ref_result.scalar_one_or_none()
+                    if referrer:
+                        referred_by_id = referrer.id
+
+                user = DBUser(
+                    email=email,
+                    full_name=name,
+                    google_id=google_id,
+                    avatar_url=avatar,
+                    is_owner=True,
+                    referred_by_id=referred_by_id
+                )
+                db.add(user)
+            
+            await db.commit()
+            await db.refresh(user)
+
+        # Generar token de TeleGate
+        access_token = create_access_token(data={"sub": user.email})
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    except ValueError as e:
+        print(f"❌ Google Token Validation Error: {e}")
+        raise HTTPException(status_code=400, detail="Token de Google inválido")
+    except Exception as e:
+        print(f"❌ Error in /auth/google: {e}")
+        raise HTTPException(status_code=500, detail="Error de autenticación social")
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessionLocal = Depends(get_db)):

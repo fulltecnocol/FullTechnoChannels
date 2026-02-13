@@ -20,6 +20,7 @@ class User(Base):
     # Auth para Dashboard (Owners)
     email = Column(String, unique=True, index=True, nullable=True)
     hashed_password = Column(String, nullable=True)
+    google_id = Column(String, unique=True, index=True, nullable=True)
     
     is_admin = Column(Boolean, default=False)  # Admin central de la plataforma
     is_owner = Column(Boolean, default=False)  # Si es dueño de canales

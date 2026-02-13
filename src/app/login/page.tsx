@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { authApi } from "@/lib/api";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
@@ -21,6 +22,20 @@ export default function LoginPage() {
             window.location.href = "/dashboard";
         } catch (err: any) {
             setError(err.message || "Email o contraseña incorrectos");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        setLoading(true);
+        setError("");
+        try {
+            const data = await authApi.googleAuth(credentialResponse.credential);
+            localStorage.setItem("token", data.access_token);
+            window.location.href = "/dashboard";
+        } catch (err: any) {
+            setError(err.message || "Error al autenticar con Google");
         } finally {
             setLoading(false);
         }
@@ -91,7 +106,6 @@ export default function LoginPage() {
                                 />
                             </div>
                         </div>
-
                         <button
                             type="submit"
                             disabled={loading}
@@ -107,6 +121,23 @@ export default function LoginPage() {
                             )}
                         </button>
                     </form>
+
+                    <div className="relative my-8 text-center text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/5 -z-10" />
+                        <span className="bg-surface px-4">o continuar con</span>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError("Error al conectar con Google")}
+                            useOneTap
+                            theme="filled_black"
+                            shape="pill"
+                            locale="es"
+                            text="continue_with"
+                        />
+                    </div>
                 </div>
 
                 <p className="text-center text-sm font-medium text-muted">
@@ -122,6 +153,6 @@ export default function LoginPage() {
                 <span className="w-1 h-1 bg-muted rounded-full" />
                 <span>Seguro & Encriptado</span>
             </footer>
-        </div>
+        </div >
     );
 }

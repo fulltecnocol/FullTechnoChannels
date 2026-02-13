@@ -20,3 +20,4 @@ aiosqlite
 asyncpg
 pydantic-settings
 httpx
+google-auth
