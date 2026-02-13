@@ -16,13 +16,11 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements from both services
-COPY api/requirements.txt api-requirements.txt
-COPY bot/requirements.txt bot-requirements.txt
+# Copy root requirements
+COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r api-requirements.txt
-RUN pip install --no-cache-dir -r bot-requirements.txt  
+RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir python-dotenv
 
 # Copy source code

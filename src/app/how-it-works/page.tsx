@@ -224,7 +224,7 @@ export default function HowItWorksPage() {
                         </div>
                         <h2 className="text-4xl lg:text-6xl font-black tracking-tighter">La Red de Poder</h2>
                         <p className="text-xl text-muted max-w-2xl mx-auto">
-                            Transformamos la competencia en colaboración. Invita a otros **Dueños de Canales** a TeleGate y obtén una participación de sus ganancias netas automáticamente hasta <span className="text-primary font-bold">10 niveles de profundidad</span>.
+                            Transformamos la competencia en colaboración. Invita a otros <span className="text-white font-bold">Dueños de Canales</span> a TeleGate y obtén una participación de sus ganancias netas automáticamente hasta <span className="text-primary font-bold">10 niveles de profundidad</span>.
                         </p>
                     </div>
 
@@ -235,14 +235,14 @@ export default function HowItWorksPage() {
                                 { level: 1, name: "Referido Directo", percent: "3.0%", bg: "bg-primary", width: "100%" },
                                 { level: 2, name: "Segunda Generación", percent: "1.0%", bg: "bg-primary/80", width: "90%" },
                                 { level: 3, name: "Tercera Generación", percent: "0.5%", bg: "bg-primary/60", width: "80%" },
-                                { level: "4-10", name: "Profundidad Infinita", percent: "0.1%", bg: "bg-primary/40", width: "70%" },
+                                { level: "4-10", name: "Red de Propietarios", percent: "0.1%", bg: "bg-primary/40", width: "70%" },
                             ].map((item, idx) => (
                                 <div key={idx} className="relative group">
                                     <div className="absolute inset-0 bg-primary/5 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <div className="relative premium-card p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                                         <div className="flex items-center gap-6 w-full">
                                             <div className={`w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center text-black font-black text-lg shadow-lg`}>
-                                                {typeof item.level === 'number' ? `L${item.level}` : '∞'}
+                                                {typeof item.level === 'number' ? `L${item.level}` : 'L10'}
                                             </div>
                                             <div className="flex-1">
                                                 <h4 className="font-bold text-white text-lg">{item.name}</h4>

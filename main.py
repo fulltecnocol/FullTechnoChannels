@@ -5,7 +5,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from api.main import app as api_app
 from bot.main import app as bot_app, on_startup
 
@@ -16,32 +17,27 @@ SERVICE_TYPE = os.getenv("SERVICE_TYPE", "unified").lower()
 # Create main application
 app = FastAPI(title=f"TeleGate {SERVICE_TYPE.upper()} Service")
 
-# Mount API
-if SERVICE_TYPE in ["unified", "api"]:
-    app.mount("/api", api_app)
-    # Also mount at root as fallback so endpoints like /register work 
-    # even if the client omits the /api prefix.
-    app.mount("/", api_app)
+# 1. Trusted Host Middleware (Security Hardening)
+# Broadened for Cloud Run internal health checks and domains
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["telegate.fulltechnohub.com", "membership-backend-dhtw77aq7a-uc.a.run.app", "*.a.run.app", "*.hosted.app", "*.web.app", "*.firebaseapp.com", "localhost", "127.0.0.1"]
+)
 
-# Mount Bot
-if SERVICE_TYPE in ["unified", "bot"]:
-    app.mount("/bot", bot_app)
-    @app.on_event("startup")
-    async def startup():
-        await on_startup()
+# 2. Custom Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Allow Google Auth frames and scripts
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
-@app.get("/")
-async def root():
-    return {
-        "service": "TeleGate",
-        "status": "running",
-        "endpoints": {
-            "api": "/api/docs",
-            "bot_webhook": f"/bot/webhook/{os.getenv('TELEGRAM_BOT_TOKEN', '[token]')}",
-            "health": "/health"
-        }
-    }
-
+# 3. Global Routes (Defined BEFORE mounts)
 @app.get("/health")
 async def health_check():
     """
@@ -73,7 +69,6 @@ async def health_check():
             "error": str(e)
         }
         logger.error("Health check: database unhealthy", error=str(e))
-        from fastapi import Response
         return Response(
             content=str(health_status),
             status_code=503,
@@ -83,6 +78,29 @@ async def health_check():
     # All checks passed
     return health_status
 
+@app.get("/")
+async def root_path():
+    return {
+        "service": "TeleGate",
+        "status": "running",
+        "endpoints": {
+            "api": "/api/docs",
+            "bot_webhook": "/bot/webhook/..."
+        }
+    }
+
+# 4. Mounts (Sub-apps)
+if SERVICE_TYPE in ["unified", "api"]:
+    app.mount("/api", api_app)
+    # Fallback mount - must be after specific routes
+    app.mount("/", api_app)
+
+# 5. Bot Mount
+if SERVICE_TYPE in ["unified", "bot"]:
+    app.mount("/bot", bot_app)
+    @app.on_event("startup")
+    async def startup():
+        await on_startup()
 
 if __name__ == "__main__":
     import uvicorn
