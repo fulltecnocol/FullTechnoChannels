@@ -1,0 +1,3 @@
+Deployment URLs:
+Backend: https://membership-backend-dhtw77aq7a-uc.a.run.app
+Frontend: https://full-techno-channels--full-techno-channels.us-central1.hosted.app
