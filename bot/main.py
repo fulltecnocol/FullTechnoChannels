@@ -16,7 +16,7 @@ from aiogram.types import ChatJoinRequest, ContentType, Update
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from shared.database import AsyncSessionLocal
-from shared.models import Plan, User as DBUser, Channel, Subscription, Promotion
+from shared.models import Plan, User as DBUser, Channel, Subscription, Promotion, RegistrationToken
 from sqlalchemy.future import select
 from sqlalchemy import and_
 from datetime import datetime, timedelta
@@ -287,6 +287,50 @@ async def handle_cancel_ticket(callback: types.CallbackQuery):
 
     await callback.message.edit_text("❌ Envío cancelado.")
 
+@router.message(Command("registro"))
+async def cmd_register(message: types.Message):
+    """
+    Genera un token de registro para vincular la cuenta de Telegram desde el inicio.
+    """
+    async with AsyncSessionLocal() as session:
+        # 1. Verificar si ya existe
+        user = await get_or_create_user(message.from_user, session)
+        if user.is_owner:
+             await message.reply(
+                "✅ **Ya estás registrado**\n\n"
+                "Tu cuenta de Telegram ya está vinculada a un usuario en TeleGate.",
+                parse_mode="Markdown"
+            )
+             return
+
+        # 2. Generar Token (Direct DB)
+        import random
+        token = str(random.randint(100000, 999999))
+        
+        new_token = RegistrationToken(
+            token=token,
+            telegram_id=message.from_user.id,
+            username=message.from_user.username,
+            full_name=message.from_user.full_name,
+            expires_at=datetime.utcnow() + timedelta(minutes=15)
+        )
+        session.add(new_token)
+        await session.commit()
+        
+        # 3. Enviar Instrucciones
+        # Detectar entorno para URL (Producción por defecto)
+        base_url = "https://telegate.fulltechnohub.com"
+        register_url = f"{base_url}/register?token={token}"
+        
+        await message.reply(
+            f"🔐 **Código de Registro: {token}**\n\n"
+            f"Para completar tu cuenta y vincular este Telegram, usa el siguiente enlace:\n\n"
+            f"👉 [COMPLETAR REGISTRO AQUÍ]({register_url})\n\n"
+            f"⚠️ _Este código expira en 15 minutos._",
+            parse_mode="Markdown",
+            disable_web_page_preview=True
+        )
+
 @router.message(Command("recuperar"))
 async def cmd_recover(message: types.Message):
     """
@@ -513,7 +557,8 @@ async def on_startup():
         types.BotCommand(command="me", description="Mi Perfil & Membresías"),
         types.BotCommand(command="ayuda", description="Centro de Ayuda"),
         types.BotCommand(command="soporte", description="Contactar Soporte"),
-        types.BotCommand(command="recuperar", description="Acceso al Dashboard")
+        types.BotCommand(command="recuperar", description="Acceso al Dashboard"),
+        types.BotCommand(command="registro", description="Crear Cuenta Nueva")
     ])
 
     if WEBHOOK_URL:

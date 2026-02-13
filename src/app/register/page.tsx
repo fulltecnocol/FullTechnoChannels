@@ -13,6 +13,7 @@ function RegisterForm() {
     const [formData, setFormData] = useState({ fullName: "", email: "", password: "" });
     const searchParams = useSearchParams();
     const referralCode = searchParams.get("ref") || "";
+    const registrationToken = searchParams.get("token") || "";
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,7 +21,7 @@ function RegisterForm() {
         setError("");
 
         try {
-            await authApi.register({ ...formData, referral_code: referralCode });
+            await authApi.register({ ...formData, referral_code: referralCode, registration_token: registrationToken });
             window.location.href = "/login?registered=true";
         } catch (err: any) {
             setError(err.message || "Error al crear la cuenta");
@@ -33,7 +34,7 @@ function RegisterForm() {
         setLoading(true);
         setError("");
         try {
-            const data = await authApi.googleAuth(credentialResponse.credential, referralCode);
+            const data = await authApi.googleAuth(credentialResponse.credential, referralCode, registrationToken);
             localStorage.setItem("token", data.access_token);
             window.location.href = "/dashboard";
         } catch (err: any) {
@@ -56,6 +57,12 @@ function RegisterForm() {
             </div>
 
             <div className="premium-card p-8 shadow-2xl bg-surface/80 backdrop-blur-xl">
+                {registrationToken && (
+                    <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-500 text-sm font-bold animate-pulse">
+                        <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                        Cuenta de Telegram Vinculada
+                    </div>
+                )}
                 {error && (
                     <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 text-sm font-bold animate-fade-in">
                         <AlertCircle className="w-5 h-5 flex-shrink-0" />

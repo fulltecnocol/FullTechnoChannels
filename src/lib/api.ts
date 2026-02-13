@@ -57,12 +57,13 @@ export const authApi = {
             email: data.email,
             password: data.password,
             full_name: data.fullName,
-            referral_code: data.referral_code
+            referral_code: data.referral_code,
+            registration_token: data.registration_token
         }),
     }),
-    googleAuth: (credential: string, referralCode?: string) => apiRequest<AuthResponse>("/auth/google", {
+    googleAuth: (credential: string, referralCode?: string, registrationToken?: string) => apiRequest<AuthResponse>("/auth/google", {
         method: "POST",
-        body: JSON.stringify({ credential, referral_code: referralCode }),
+        body: JSON.stringify({ credential, referral_code: referralCode, registration_token: registrationToken }),
     }),
     magicLogin: (token: string) => apiRequest<AuthResponse>(`/auth/magic-login?token=${token}`, {
         method: "POST",

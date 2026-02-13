@@ -25,7 +25,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared.database import init_db, get_db, AsyncSessionLocal
-from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion
+from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion, RegistrationToken
 from shared.accounting import distribute_payment_funds, get_affiliate_tier_info
 
 # Importar router de firma digital
@@ -62,10 +62,17 @@ class UserRegister(BaseModel):
     password: str
     full_name: str
     referral_code: Optional[str] = None
+    registration_token: Optional[str] = None
 
 class GoogleAuthRequest(BaseModel):
     credential: str  # This is the ID Token
     referral_code: Optional[str] = None
+    registration_token: Optional[str] = None
+
+class GenerateTokenRequest(BaseModel):
+    telegram_id: int
+    username: Optional[str] = None
+    full_name: Optional[str] = None
 
 class CreateMagicLinkRequest(BaseModel):
     telegram_id: int
@@ -265,6 +272,30 @@ async def api_health_check():
 
 # --- Endpoints de Autenticación ---
 
+@app.post("/auth/generate-registration-token")
+async def generate_registration_token(data: GenerateTokenRequest, db: AsyncSessionLocal = Depends(get_db)):
+    # 1. Check if Telegram ID already linked to a user
+    user_res = await db.execute(select(DBUser).where(DBUser.telegram_id == data.telegram_id))
+    if user_res.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Este usuario de Telegram ya está registrado.")
+
+    # 2. Generate Token (6 digits)
+    import random
+    token = str(random.randint(100000, 999999))
+    
+    # 3. Store
+    new_token = RegistrationToken(
+        token=token,
+        telegram_id=data.telegram_id,
+        username=data.username,
+        full_name=data.full_name,
+        expires_at=datetime.utcnow() + timedelta(minutes=15)
+    )
+    db.add(new_token)
+    await db.commit()
+    
+    return {"token": token}
+
 @app.post("/register", response_model=Token)
 async def register_owner(user_data: UserRegister, db: AsyncSessionLocal = Depends(get_db)):
     # Verificar si ya existe
@@ -279,12 +310,22 @@ async def register_owner(user_data: UserRegister, db: AsyncSessionLocal = Depend
         if referrer:
             referred_by_id = referrer.id
 
+    telegram_id = None
+    if user_data.registration_token:
+        token_res = await db.execute(select(RegistrationToken).where(and_(RegistrationToken.token == user_data.registration_token, RegistrationToken.expires_at > datetime.utcnow())))
+        token_obj = token_res.scalar_one_or_none()
+        if not token_obj:
+            raise HTTPException(status_code=400, detail="Token de registro inválido o expirado")
+        telegram_id = token_obj.telegram_id
+        await db.delete(token_obj) # Consume token
+
     new_owner = DBUser(
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=get_hashed_password(user_data.password),
         is_owner=True,
-        referred_by_id=referred_by_id
+        referred_by_id=referred_by_id,
+        telegram_id=telegram_id
     )
     db.add(new_owner)
     try:
@@ -346,13 +387,23 @@ async def google_auth(auth_data: GoogleAuthRequest, db: AsyncSessionLocal = Depe
                     if referrer:
                         referred_by_id = referrer.id
 
+                telegram_id = None
+                if auth_data.registration_token:
+                    token_res = await db.execute(select(RegistrationToken).where(and_(RegistrationToken.token == auth_data.registration_token, RegistrationToken.expires_at > datetime.utcnow())))
+                    token_obj = token_res.scalar_one_or_none()
+                    if token_obj:
+                        telegram_id = token_obj.telegram_id
+                        await db.delete(token_obj)
+
                 user = DBUser(
                     email=email,
                     full_name=name,
                     google_id=google_id,
                     avatar_url=avatar,
                     is_owner=True,
-                    referred_by_id=referred_by_id
+                    email_verified=True,
+                    referred_by_id=referred_by_id,
+                    telegram_id=telegram_id
                 )
                 db.add(user)
             

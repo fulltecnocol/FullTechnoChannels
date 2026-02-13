@@ -22,6 +22,10 @@ class User(Base):
     hashed_password = Column(String, nullable=True)
     google_id = Column(String, unique=True, index=True, nullable=True)
     
+    # Verificación de Email
+    email_verified = Column(Boolean, default=False)
+    verification_token = Column(String, nullable=True)
+    
     is_admin = Column(Boolean, default=False)  # Admin central de la plataforma
     is_owner = Column(Boolean, default=False)  # Si es creador de contenido
     
@@ -216,3 +220,12 @@ class TicketMessage(Base):
 
     ticket = relationship("SupportTicket", back_populates="messages")
     sender = relationship("User")
+
+class RegistrationToken(Base):
+    __tablename__ = "registration_tokens"
+    token = Column(String, primary_key=True, index=True)
+    telegram_id = Column(BigInteger, nullable=False)
+    username = Column(String, nullable=True)
+    full_name = Column(String, nullable=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
