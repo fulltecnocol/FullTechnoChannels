@@ -19,6 +19,7 @@ import { SupportSection } from "@/components/dashboard/SupportSection";
 import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
 import { AdminPaymentValidation } from "@/components/dashboard/AdminPaymentValidation";
 import { AffiliateSection } from "@/components/dashboard/AffiliateSection";
+import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function DashboardPage() {
   // Wizard state for new channel
   const [newChannelStep, setNewChannelStep] = useState(1);
   const [createdChannel, setCreatedChannel] = useState<any>(null);
+  const [deletingChannel, setDeletingChannel] = useState<any>(null);
 
   // Other specific states matching new components requirements
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
@@ -516,6 +518,19 @@ export default function DashboardPage() {
         createdChannel={createdChannel}
         copyToClipboard={copyToClipboard}
       />
+
+      {deletingChannel && (
+        <DeleteChannelModal
+          isOpen={!!deletingChannel}
+          onClose={() => setDeletingChannel(null)}
+          channelId={deletingChannel.id}
+          channelTitle={deletingChannel.title}
+          onSuccess={() => {
+            setDeletingChannel(null);
+            fetchData(true);
+          }}
+        />
+      )}
 
       {/* Branding Modal (Legacy - Keep local or extract later? Keeping local for now as it's simple enough) */}
       {editingBranding && (

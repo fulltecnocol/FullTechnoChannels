@@ -76,9 +76,16 @@ export const ownerApi = {
         method: "POST",
         body: JSON.stringify({ title }),
     }),
-    deleteChannel: (channelId: number) => apiRequest<void>(`/owner/channels/${channelId}`, {
+    deleteChannel: (channelId: number, confirm: boolean = false) => apiRequest<void>(`/owner/channels/${channelId}${confirm ? '?confirm=true' : ''}`, {
         method: "DELETE",
     }),
+    getDeleteChannelCost: (channelId: number) => apiRequest<{
+        active_subscribers: number;
+        refund_amount: number;
+        penalty_amount: number;
+        total_cost: number;
+        can_afford: boolean;
+    }>(`/owner/channels/${channelId}/delete-cost`),
     getWithdrawals: () => apiRequest<Withdrawal[]>("/owner/withdrawals"),
     requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/owner/withdrawals", {
         method: "POST",

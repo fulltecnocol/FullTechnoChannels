@@ -717,16 +717,10 @@ async def create_channel(channel_data: ChannelCreate, current_user: DBUser = Dep
     await db.refresh(new_channel)
     return new_channel
 
-@app.delete("/owner/channels/{channel_id}")
-async def delete_channel(channel_id: int, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
-    result = await db.execute(select(Channel).where(and_(Channel.id == channel_id, Channel.owner_id == current_user.id)))
-    channel = result.scalar_one_or_none()
-    
-    if not channel:
-        raise HTTPException(status_code=404, detail="Canal no encontrado")
-        
-    # Check if channel has active subscriptions
-    active_subs = await db.execute(
+@app.get("/owner/channels/{channel_id}/delete-cost")
+async def check_channel_delete_cost(channel_id: int, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    # Calculate cancellation cost
+    active_subs_result = await db.execute(
         select(Subscription).join(Plan).where(
             and_(
                 Plan.channel_id == channel_id,
@@ -735,9 +729,87 @@ async def delete_channel(channel_id: int, current_user: DBUser = Depends(get_cur
             )
         )
     )
-    if active_subs.first():
-        raise HTTPException(status_code=400, detail="No se puede eliminar un canal con suscriptores activos")
+    active_subs = active_subs_result.scalars().all()
+    
+    total_refund = 0.0
+    affected_users = len(active_subs)
+    
+    for sub in active_subs:
+        # Calculate pro-rated refund
+        remaining_days = (sub.end_date - datetime.utcnow()).days
+        if remaining_days > 0 and sub.plan.duration_days > 0:
+            daily_rate = sub.plan.price / sub.plan.duration_days
+            refund_amount = daily_rate * remaining_days
+            total_refund += refund_amount
 
+    penalty = total_refund * 0.20
+    total_cost = total_refund + penalty
+    
+    return {
+        "active_subscribers": affected_users,
+        "refund_amount": round(total_refund, 2),
+        "penalty_amount": round(penalty, 2),
+        "total_cost": round(total_cost, 2),
+        "can_afford": current_user.balance >= total_cost
+    }
+
+@app.delete("/owner/channels/{channel_id}")
+async def delete_channel(channel_id: int, confirm: bool = False, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    result = await db.execute(select(Channel).where(and_(Channel.id == channel_id, Channel.owner_id == current_user.id)))
+    channel = result.scalar_one_or_none()
+    
+    if not channel:
+        raise HTTPException(status_code=404, detail="Canal no encontrado")
+        
+    # Check active subs
+    active_subs_result = await db.execute(
+        select(Subscription).join(Plan).where(
+            and_(
+                Plan.channel_id == channel_id,
+                Subscription.is_active == True,
+                Subscription.end_date > datetime.utcnow()
+            )
+        )
+    )
+    active_subs = active_subs_result.scalars().all()
+    
+    if active_subs:
+        if not confirm:
+             # Just strict check if not confirmed
+             raise HTTPException(status_code=400, detail="HAS_ACTIVE_SUBS")
+        
+        # Calculate cost again to be safe
+        total_refund = 0.0
+        for sub in active_subs:
+            remaining_days = (sub.end_date - datetime.utcnow()).days
+            if remaining_days > 0 and sub.plan.duration_days > 0:
+                daily_rate = sub.plan.price / sub.plan.duration_days
+                total_refund += (daily_rate * remaining_days)
+        
+        penalty = total_refund * 0.20
+        total_cost = total_refund + penalty
+        
+        if current_user.balance < total_cost:
+            raise HTTPException(status_code=400, detail="Fondos insuficientes para cubrir penalización y reembolsos.")
+            
+        # Process Refunds
+        current_user.balance -= total_cost
+        
+        for sub in active_subs:
+            sub.is_active = False
+            # Calculate individual refund + 20% compensation
+            remaining_days = (sub.end_date - datetime.utcnow()).days
+            if remaining_days > 0 and sub.plan.duration_days > 0:
+                daily_rate = sub.plan.price / sub.plan.duration_days
+                base_refund = daily_rate * remaining_days
+                user_compensation = base_refund * 1.20 # Refund + 20%
+                
+                # Credit to subscriber balance
+                if sub.user:
+                    sub.user.balance += user_compensation
+                    
+                # Todo: Trigger Telegram Kick logic here if needed
+                
     await db.delete(channel)
     await db.commit()
     return {"status": "deleted", "id": channel_id}
