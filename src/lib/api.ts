@@ -64,6 +64,9 @@ export const authApi = {
         method: "POST",
         body: JSON.stringify({ credential, referral_code: referralCode }),
     }),
+    magicLogin: (token: string) => apiRequest<AuthResponse>(`/auth/magic-login?token=${token}`, {
+        method: "POST",
+    }),
 };
 
 export const ownerApi = {

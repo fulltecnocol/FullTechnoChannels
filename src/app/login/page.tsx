@@ -4,12 +4,32 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ShieldCheck, Mail, Lock, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { authApi } from "@/lib/api";
+import { AuthResponse } from "@/lib/types";
 import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({ email: "", password: "" });
+
+    // MAGIC LINK HANDLER
+    React.useEffect(() => {
+        const query = new URLSearchParams(window.location.search);
+        const magicToken = query.get("magic_token");
+
+        if (magicToken) {
+            setLoading(true);
+            authApi.magicLogin(magicToken)
+                .then((data: AuthResponse) => {
+                    localStorage.setItem("token", data.access_token);
+                    window.location.href = "/dashboard";
+                })
+                .catch((err: Error) => {
+                    setError("Enlace de acceso inválido o expirado.");
+                    setLoading(false);
+                });
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

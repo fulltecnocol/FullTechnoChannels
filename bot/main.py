@@ -285,6 +285,58 @@ async def handle_confirm_ticket(callback: types.CallbackQuery):
 async def handle_cancel_ticket(callback: types.CallbackQuery):
     await callback.message.edit_text("❌ Envío cancelado.")
 
+    await callback.message.edit_text("❌ Envío cancelado.")
+
+@router.message(Command("recuperar"))
+async def cmd_recover(message: types.Message):
+    """
+    Permite al usuario recuperar acceso a su Dashboard.
+    """
+    async with AsyncSessionLocal() as session:
+        # 1. Verificar si el usuario está registrado y vinculado
+        user = await get_or_create_user(message.from_user, session)
+        
+        if not user.is_owner:
+             await message.reply(
+                "❌ **Acceso Denegado**\n\n"
+                "Esta función es solo para **Creadores de Contenido** registrados en el Dashboard.",
+                parse_mode="Markdown"
+            )
+             return
+
+        # 2. Solicitar Token Mágico a la API
+        api_url = os.getenv("API_URL", "http://localhost:8000")
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.post(f"{api_url}/auth/magic-link-token", json={
+                    "telegram_id": message.from_user.id
+                })
+                
+                if resp.status_code == 200:
+                    data = resp.json()
+                    token = data["token"]
+                    # DOMINIO CORRECTO
+                    token = data["token"]
+                    # DOMINIO CORRECTO: Enlace Mágico para Producción
+                    magic_link_prod = f"https://telegate.fulltechnohub.com/login?magic_token={token}"
+                    
+                    await message.reply(
+                        f"🔐 **Enlace de Acceso Seguro**\n\n"
+                        f"Haz clic en el botón de abajo para entrar a tu Dashboard sin contraseña.\n"
+                        f"⚠️ _Este enlace expira en 5 minutos._",
+                        reply_markup=InlineKeyboardBuilder()
+                        .row(types.InlineKeyboardButton(text="🚀 Entrar al Dashboard", url=magic_link_prod))
+                        .as_markup(),
+                        parse_mode="Markdown"
+                    )
+                else:
+                    logging.error(f"Error API Magic Link: {resp.text}")
+                    await message.reply("❌ Hubo un error generando tu enlace. Intenta más tarde.")
+            
+            except Exception as e:
+                logging.error(f"Excepción API Magic Link: {e}")
+                await message.reply("❌ Error de conexión con el servidor.")
+
 @router.message(Command("ayuda"))
 async def cmd_help(message: types.Message):
     help_text = (
@@ -456,7 +508,10 @@ async def on_startup():
     await bot.set_my_commands([
         types.BotCommand(command="me", description="Mi Perfil & Membresías"),
         types.BotCommand(command="ayuda", description="Centro de Ayuda"),
-        types.BotCommand(command="soporte", description="Contactar Soporte")
+        types.BotCommand(command="me", description="Mi Perfil & Membresías"),
+        types.BotCommand(command="ayuda", description="Centro de Ayuda"),
+        types.BotCommand(command="soporte", description="Contactar Soporte"),
+        types.BotCommand(command="recuperar", description="Acceso al Dashboard")
     ])
 
     if WEBHOOK_URL:

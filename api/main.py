@@ -67,6 +67,9 @@ class GoogleAuthRequest(BaseModel):
     credential: str  # This is the ID Token
     referral_code: Optional[str] = None
 
+class CreateMagicLinkRequest(BaseModel):
+    telegram_id: int
+
 class ChannelCreate(BaseModel):
     title: str
 
@@ -171,6 +174,11 @@ def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def create_magic_link_token(user_email: str):
+    expire = datetime.utcnow() + timedelta(minutes=5)
+    to_encode = {"sub": user_email, "type": "magic_link", "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 async def get_current_owner(token: str = Depends(oauth2_scheme), db: AsyncSessionLocal = Depends(get_db)):
@@ -360,6 +368,55 @@ async def google_auth(auth_data: GoogleAuthRequest, db: AsyncSessionLocal = Depe
     except Exception as e:
         print(f"❌ Error in /auth/google: {e}")
         raise HTTPException(status_code=500, detail="Error de autenticación social")
+
+@app.post("/auth/magic-link-token")
+async def generate_magic_link_token(data: CreateMagicLinkRequest, db: AsyncSessionLocal = Depends(get_db)):
+    """
+    Called by the BOT to generate a short-lived token for a user.
+    """
+    # Verify user exists and has this Telegram ID
+    result = await db.execute(select(DBUser).where(DBUser.telegram_id == data.telegram_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+    if not user.is_owner:
+         raise HTTPException(status_code=403, detail="Solo para creadores de contenido")
+
+    token = create_magic_link_token(user.email)
+    return {"token": token}
+
+@app.post("/auth/magic-login", response_model=Token)
+async def magic_login(token: str, db: AsyncSessionLocal = Depends(get_db)):
+    """
+    Called by the FRONTEND to exchange a magic token for a session token.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Enlace inválido o expirado",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        token_type: str = payload.get("type")
+        
+        if email is None or token_type != "magic_link":
+            raise credentials_exception
+            
+    except JWTError:
+        raise credentials_exception
+        
+    # Check if user still exists
+    result = await db.execute(select(DBUser).where(DBUser.email == email))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise credentials_exception
+        
+    # Generate standard access token
+    access_token = create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessionLocal = Depends(get_db)):
