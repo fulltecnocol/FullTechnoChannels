@@ -581,7 +581,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-muted font-bold">Usos: {p.current_uses} / {p.max_uses || '∞'}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => copyToClipboard(`https://t.me/TuBotMembresiaBot?start=${p.code}`)} className="p-2 text-muted hover:text-primary"><Copy className="w-4 h-4" /></button>
+                        <button onClick={() => copyToClipboard(`https://t.me/FullT_GuardBot?start=${p.code}`)} className="p-2 text-muted hover:text-primary"><Copy className="w-4 h-4" /></button>
                         <button onClick={() => handleDeletePromo(p.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
