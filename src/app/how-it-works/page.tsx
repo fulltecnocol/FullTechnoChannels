@@ -233,9 +233,9 @@ export default function HowItWorksPage() {
                         <div className="lg:col-span-7 space-y-4">
                             {[
                                 { level: 1, name: "Referido Directo", percent: "3.0%", bg: "bg-primary", width: "100%" },
-                                { level: 2, name: "Segunda Generación", percent: "1.0%", bg: "bg-primary/80", width: "90%" },
-                                { level: 3, name: "Tercera Generación", percent: "0.5%", bg: "bg-primary/60", width: "80%" },
-                                { level: "4-10", name: "Red de Propietarios", percent: "0.1%", bg: "bg-primary/40", width: "70%" },
+                                { level: 2, name: "Generación II", percent: "1.0%", bg: "bg-primary/80", width: "90%" },
+                                { level: 3, name: "Generación III", percent: "0.5%", bg: "bg-primary/60", width: "80%" },
+                                { level: "4-10", name: "Círculo de Poder & Infinitum", percent: "0.1-0.3%", bg: "bg-primary/40", width: "70%" },
                             ].map((item, idx) => (
                                 <div key={idx} className="relative group">
                                     <div className="absolute inset-0 bg-primary/5 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
