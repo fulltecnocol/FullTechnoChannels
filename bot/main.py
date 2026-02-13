@@ -305,7 +305,8 @@ async def cmd_recover(message: types.Message):
              return
 
         # 2. Solicitar Token Mágico a la API
-        api_url = os.getenv("API_URL", "http://localhost:8000")
+        port = os.getenv("PORT", "8080")
+        api_url = os.getenv("API_URL", f"http://127.0.0.1:{port}/api")
         async with httpx.AsyncClient() as client:
             try:
                 resp = await client.post(f"{api_url}/auth/magic-link-token", json={

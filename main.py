@@ -89,15 +89,15 @@ async def root_path():
         }
     }
 
-# 4. Mounts (Sub-apps)
-if SERVICE_TYPE in ["unified", "api"]:
-    app.mount("/api", api_app)
-    # Fallback mount - must be after specific routes
-    app.mount("/", api_app)
-
-# 5. Bot Mount
+# 4. Bot Mount (Must be BEFORE the root fallback)
 if SERVICE_TYPE in ["unified", "bot"]:
     app.mount("/bot", bot_app)
+
+# 5. API Mounts
+if SERVICE_TYPE in ["unified", "api"]:
+    app.mount("/api", api_app)
+    # Root fallback last
+    app.mount("/", api_app)
     @app.on_event("startup")
     async def startup():
         await on_startup()

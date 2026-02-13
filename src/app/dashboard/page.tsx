@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [adminPayments, setAdminPayments] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("wompi");
 
   useEffect(() => {
     setMounted(true);
@@ -296,9 +297,16 @@ export default function DashboardPage() {
     { id: "crypto", name: "USDT / Crypto", description: "Pago en Stablecoins (Red TRC20).", active: false },
   ];
 
-  const [selectedMethod, setSelectedMethod] = useState("wompi");
 
-  if (!mounted) return null;
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+        <p className="text-muted font-bold animate-pulse">Iniciando Dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background" aria-label="Panel de Administración del Creador">
