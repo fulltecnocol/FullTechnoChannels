@@ -26,6 +26,10 @@ class User(Base):
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String, nullable=True)
     
+    # Nuevo: Estado firma legal
+    legal_verification_status = Column(String, default="pending") 
+    can_create_channels = Column(Boolean, default=False)
+    
     is_admin = Column(Boolean, default=False)  # Admin central de la plataforma
     is_owner = Column(Boolean, default=False)  # Si es creador de contenido
     

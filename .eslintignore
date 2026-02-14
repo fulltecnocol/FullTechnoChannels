@@ -1,0 +1,13 @@
+node_modules
+.next
+dashboard
+functions
+blockchain
+scripts
+tests
+public
+out
+build
+dist
+.agent
+*.log

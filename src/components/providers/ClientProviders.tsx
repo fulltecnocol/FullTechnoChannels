@@ -16,9 +16,10 @@ export function ClientProviders({
         setMounted(true);
     }, []);
 
-    // To prevent hydration mismatch, we render the same structure on server and client
-    // but we only activate the providers when we have the keys.
-    // Actually, GoogleOAuthProvider needs a clientId.
+    // To prevent hydration mismatch
+    if (!mounted) {
+        return null;
+    }
 
     if (!googleClientId) {
         return <>{children}</>;

@@ -1,6 +1,6 @@
 import {
     AuthResponse, SummaryData, Channel, Withdrawal, SupportTicket,
-    TicketDetailsResponse, ConfigItem, TicketMessage, AnalyticsData, Promotion, Payment,
+    TicketDetailsResponse, ConfigItem, AnalyticsData, Promotion, Payment,
     LegalInfo, LegalStatus, UserAdmin
 } from "./types";
 
@@ -35,42 +35,6 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestInit
     return response.json();
 }
 
-export const authApi = {
-    login: async (data: { email: string; password: string }): Promise<AuthResponse> => {
-        // FastAPI OAuth2PasswordRequestForm expects form data
-        const formData = new URLSearchParams();
-        formData.append("username", data.email);
-        formData.append("password", data.password);
-
-        console.log("LOGIN REQUEST:", { url: `${API_URL}/token`, username: data.email });
-
-        return fetch(`${API_URL}/token`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData,
-        }).then(async (res) => {
-            if (!res.ok) {
-                const text = await res.text();
-                console.error("LOGIN FAILED:", res.status, text);
-                throw new Error(`Login failed: ${res.status} ${text}`);
-            }
-            return res.json();
-        });
-    },
-    register: (data: any) => {
-        console.log("REGISTER REQUEST:", { url: `${API_URL}/register`, data });
-        return apiRequest<void>("/register", {
-            method: "POST",
-            body: JSON.stringify({
-                email: data.email,
-                password: data.password,
-                full_name: data.fullName,
-                referral_code: data.referral_code
-            }),
-        });
-    },
-};
-
 export const ownerApi = {
     getSummary: () => apiRequest<SummaryData>("/owner/dashboard/summary"),
     getChannels: () => apiRequest<Channel[]>("/owner/channels"),
@@ -78,6 +42,7 @@ export const ownerApi = {
         method: "POST",
         body: JSON.stringify({ title }),
     }),
+    deleteChannel: (id: number) => apiRequest<void>(`/owner/channels/${id}`, { method: "DELETE" }),
     getWithdrawals: () => apiRequest<Withdrawal[]>("/owner/withdrawals"),
     requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/owner/withdrawals", {
         method: "POST",
@@ -114,7 +79,52 @@ export const ownerApi = {
         method: "DELETE",
     }),
     getAnalytics: () => apiRequest<AnalyticsData>("/owner/analytics"),
+    getProfile: () => apiRequest<any>("/owner/profile"),
 };
+
+export const authApi = {
+    isAuthenticated: () => typeof window !== 'undefined' && !!localStorage.getItem("token"),
+    logout: () => {
+        if (typeof window !== 'undefined') localStorage.removeItem("token");
+        window.location.href = "/login";
+    },
+    me: () => ownerApi.getProfile(),
+    login: async (data: { email: string; password: string }): Promise<AuthResponse> => {
+        const formData = new URLSearchParams();
+        formData.append("username", data.email);
+        formData.append("password", data.password);
+        console.log("LOGIN REQUEST:", { url: `${API_URL}/token`, username: data.email });
+        return fetch(`${API_URL}/token`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData,
+        }).then(async (res) => {
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("LOGIN FAILED:", res.status, text);
+                throw new Error(`Login failed: ${res.status} ${text}`);
+            }
+            return res.json();
+        });
+    },
+    register: (data: any) => {
+        console.log("REGISTER REQUEST:", { url: `${API_URL}/register`, data });
+        return apiRequest<void>("/register", {
+            method: "POST",
+            body: JSON.stringify({
+                email: data.email,
+                password: data.password,
+                full_name: data.fullName,
+                referral_code: data.referral_code
+            }),
+        });
+    },
+};
+
+export const usersApi = ownerApi;
+export const walletApi = ownerApi;
+export const channelApi = ownerApi;
+export const supportApi = ownerApi;
 
 export const adminApi = {
     getConfig: () => apiRequest<ConfigItem[]>("/admin/config"),
@@ -133,8 +143,8 @@ export const adminApi = {
         method: "POST",
         body: JSON.stringify({ content }),
     }),
-    getPendingPayments: () => apiRequest<Payment[]>("/admin/payments/pending"),
-    verifyCryptoPayment: (id: number) => apiRequest<Payment>(`/admin/payments/${id}/verify-crypto`, {
+    getPayments: () => apiRequest<Payment[]>("/admin/payments/pending"),
+    verifyPayment: (id: number) => apiRequest<Payment>(`/admin/payments/${id}/verify-crypto`, {
         method: "POST",
     }),
     getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),

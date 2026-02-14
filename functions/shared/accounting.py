@@ -58,13 +58,38 @@ async def distribute_payment_funds(
         if not current_referrer_id:
             break
             
-        # Obtener porcentaje para este nivel
-        default_fees = {
-            1: 0.03, 2: 0.01, 3: 0.005, 4: 0.003, 5: 0.002,
-            6: 0.001, 7: 0.001, 8: 0.001, 9: 0.001, 10: 0.001
-        }
-        fee_key = f"affiliate_level_{level}_fee"
-        level_fee_percent = await get_config_value(db, fee_key, default_fees.get(level, 0.0))
+        # Obtener el usuario referido primero para saber su Rango
+        ref_result = await db.execute(select(User).where(User.id == current_referrer_id))
+        referrer_user = ref_result.scalar_one_or_none()
+        
+        if not referrer_user:
+            current_referrer_id = None
+            break
+
+        # Calcular Porcentaje según Nivel y Rango
+        level_fee_percent = 0.0
+        
+        if level == 1:
+            # Lógica Especial Nivel 1: Basada en Rangos (Bronce/Oro/Diamante)
+            # Reutilizamos la lógica de tiers para determinar el %
+            # Esto conecta los "Rangos Visuales" con las "Comisiones Reales"
+            tier_info = await get_affiliate_tier_info(db, current_referrer_id)
+            tier = tier_info.get("tier", "BRONCE")
+            
+            if tier == "DIAMANTE":
+                level_fee_percent = await get_config_value(db, "affiliate_level_1_fee_diamond", 0.08)
+            elif tier == "ORO":
+                level_fee_percent = await get_config_value(db, "affiliate_level_1_fee_gold", 0.05)
+            else:
+                level_fee_percent = await get_config_value(db, "affiliate_level_1_fee", 0.03)
+        else:
+            # Niveles 2-10: Porcentajes Estándar por Profundidad
+            default_fees = {
+                2: 0.01, 3: 0.005, 4: 0.003, 5: 0.002,
+                6: 0.001, 7: 0.001, 8: 0.001, 9: 0.001, 10: 0.001
+            }
+            fee_key = f"affiliate_level_{level}_fee"
+            level_fee_percent = await get_config_value(db, fee_key, default_fees.get(level, 0.0))
         
         level_amount = total_amount * level_fee_percent
         total_affiliate_distributed += level_amount
@@ -77,27 +102,20 @@ async def distribute_payment_funds(
             "amount": level_amount
         })
         
-        # Subir un nivel en la cadena
-        ref_result = await db.execute(select(User).where(User.id == current_referrer_id))
-        referrer_user = ref_result.scalar_one_or_none()
+        # Sumar al balance del afiliado inmediatamente
+        referrer_user.affiliate_balance += level_amount
         
-        if referrer_user:
-            # Sumar al balance del afiliado inmediatamente
-            referrer_user.affiliate_balance += level_amount
-            
-            # Notificar vía Telegram si tiene telegram_id vinculado
-            if referrer_user.telegram_id:
-                level_name = LEVEL_NAMES.get(level, f"Nivel {level}")
-                notif_msg = (
-                    f"💰 *¡Comisión de Red Recibida!*\n\n"
-                    f"Has ganado **${level_amount:.2f}** por una compra en tu **{level_name}**.\n"
-                    f"Tu balance de afiliado ha sido actualizado."
-                )
-                await send_telegram_notification(referrer_user.telegram_id, notif_msg)
-            
-            current_referrer_id = referrer_user.referred_by_id
-        else:
-            current_referrer_id = None
+        # Notificar vía Telegram si tiene telegram_id vinculado
+        if referrer_user.telegram_id:
+            level_name = LEVEL_NAMES.get(level, f"Nivel {level}")
+            notif_msg = (
+                f"💰 *¡Comisión de Red Recibida!*\n\n"
+                f"Has ganado **${level_amount:.2f}** por una compra en tu **{level_name}**.\n"
+                f"Tu balance de afiliado ha sido actualizado."
+            )
+            await send_telegram_notification(referrer_user.telegram_id, notif_msg)
+        
+        current_referrer_id = referrer_user.referred_by_id
 
     # Lo que le queda neto a la plataforma (Plataforma - Total Afiliados)
     platform_net_amount = total_commission_pool - total_affiliate_distributed

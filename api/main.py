@@ -172,6 +172,24 @@ class UserAdminResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class UserProfileResponse(BaseModel):
+    id: int
+    telegram_id: Optional[int]
+    username: Optional[str]
+    full_name: Optional[str]
+    email: Optional[str]
+    is_admin: bool
+    is_owner: bool
+    referral_code: Optional[str]
+    referred_by_id: Optional[int]
+    balance: float
+    affiliate_balance: float
+    pending_balance: float
+    avatar_url: Optional[str]
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
 # --- Utilidades de Auth ---
 def verify_password(plain_password, hashed_password):
     # bcrypt.checkpw expects bytes. ensure encoding.
@@ -734,6 +752,10 @@ async def get_owner_summary(current_user: DBUser = Depends(get_current_owner), d
         "is_admin": current_user.is_admin,
         "telegram_linked": current_user.telegram_id is not None
     }
+
+@app.get("/owner/profile", response_model=UserProfileResponse)
+async def get_profile(current_user: DBUser = Depends(get_current_owner)):
+    return current_user
 
 @app.put("/owner/profile")
 async def update_profile(data: ProfileUpdate, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
