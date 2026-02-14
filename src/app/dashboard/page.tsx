@@ -21,6 +21,7 @@ import { AdminPaymentValidation } from "@/components/dashboard/AdminPaymentValid
 import { AffiliateSection } from "@/components/dashboard/AffiliateSection";
 import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
 import { TaxHub } from "@/components/dashboard/TaxHub";
+import { AdminSystem } from "@/components/dashboard/AdminSystem";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -48,6 +49,12 @@ export default function DashboardPage() {
   // Other specific states matching new components requirements
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
+
+  // Admin states
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [configs, setConfigs] = useState<any[]>([]);
+  const [adminWithdrawals, setAdminWithdrawals] = useState<any[]>([]);
+  const [adminTickets, setAdminTickets] = useState<any[]>([]);
 
   // Recovery mode check (if needed)
   const isRecovery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('recovery') === 'true' : false;
@@ -115,6 +122,23 @@ export default function DashboardPage() {
     } catch (e) { console.error(e) }
   };
 
+  const loadAdminData = async () => {
+    try {
+      const [users, config, wd, tk] = await Promise.all([
+        adminApi.getUsers(),
+        adminApi.getConfig(),
+        adminApi.getWithdrawals(),
+        adminApi.getTickets(),
+      ]);
+      setAdminUsers(users);
+      setConfigs(config);
+      setAdminWithdrawals(wd);
+      setAdminTickets(tk);
+    } catch (e) {
+      console.error("Error loading admin data", e);
+    }
+  };
+
   // Needed for "Manage Promos" in ChannelList.tsx (Currently simpler logic there)
   // We need to implement handleLoadPromos as well
   const handleLoadPromos = async (channelId: string) => {
@@ -127,6 +151,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeTab === 'wallet') loadWithdrawals();
     if (activeTab === 'support') loadTickets();
+    if (activeTab === 'admin') loadAdminData();
   }, [activeTab]);
 
 
@@ -217,6 +242,29 @@ export default function DashboardPage() {
     } catch (e: any) {
       alert(e.message);
     }
+  };
+
+  // Admin System Handlers
+  const handleConfigUpdate = async (key: string, value: number) => {
+    try {
+      await adminApi.updateConfig(key, value);
+      const data = await adminApi.getConfig();
+      setConfigs(data);
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleProcessWithdrawal = async (id: number, status: string) => {
+    try {
+      await adminApi.processWithdrawal(id, status);
+      const data = await adminApi.getWithdrawals();
+      setAdminWithdrawals(data);
+      alert(`Retiro ${status === 'completed' ? 'aprobado' : 'rechazado'}`);
+    } catch (e: any) { alert(e.message); }
+  };
+
+  const handleOpenTicket = (id: number, isAdmin: boolean) => {
+    // Logic for opening ticket detail modal could be added here
+    alert(`Abriendo Ticket #${id} (Admin: ${isAdmin})`);
   };
 
   const handleSaveBranding = async () => {
@@ -484,6 +532,20 @@ export default function DashboardPage() {
             user={user}
             summary={summary}
             copyToClipboard={copyToClipboard}
+          />
+        )}
+
+        {activeTab === "admin" && summary?.is_admin && (
+          <AdminSystem
+            adminUsers={adminUsers}
+            configs={configs}
+            adminWithdrawals={adminWithdrawals}
+            adminTickets={adminTickets}
+            handleConfigUpdate={handleConfigUpdate}
+            handleProcessWithdrawal={handleProcessWithdrawal}
+            handleOpenTicket={handleOpenTicket}
+            setActiveTab={setActiveTab}
+            mounted={mounted}
           />
         )}
 
