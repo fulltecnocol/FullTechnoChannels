@@ -148,14 +148,18 @@ export function AdminSystem({
                             type="number" step="0.01"
                             value={localConfigs["platform_fee"] ?? 0.10}
                             onChange={(e) => handleLocalChange("platform_fee", e.target.value)}
-                            className="flex-1 p-3 bg-background rounded-xl border border-surface-border text-lg font-bold"
+                            className="flex-1 p-3 bg-background rounded-xl border border-surface-border text-lg font-bold min-w-0"
                         />
                         <button
                             onClick={() => triggerSave("platform_fee")}
                             disabled={isSaving === "platform_fee"}
-                            className="px-4 bg-primary text-primary-foreground rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                            className="px-6 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-tighter text-xs hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 whitespace-nowrap min-w-[100px] flex items-center justify-center gap-2"
                         >
-                            {isSaving === "platform_fee" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+                            {isSaving === "platform_fee" ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                <>
+                                    <ShieldCheck className="w-4 h-4" /> Guardar
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -221,14 +225,18 @@ export function AdminSystem({
                                 type="number" step={config.step}
                                 value={localConfigs[config.key] ?? 0}
                                 onChange={(e) => handleLocalChange(config.key, e.target.value)}
-                                className="flex-1 p-3 bg-background rounded-xl border border-surface-border text-lg font-bold"
+                                className="flex-1 p-3 bg-background rounded-xl border border-surface-border text-lg font-bold min-w-0"
                             />
                             <button
                                 onClick={() => triggerSave(config.key)}
                                 disabled={isSaving === config.key}
-                                className="px-4 bg-primary text-primary-foreground rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                className="px-6 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-tighter text-xs hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 whitespace-nowrap min-w-[100px] flex items-center justify-center gap-2"
                             >
-                                {isSaving === config.key ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+                                {isSaving === config.key ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                    <>
+                                        <ShieldCheck className="w-4 h-4" /> Guardar
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
