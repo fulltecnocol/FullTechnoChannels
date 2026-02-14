@@ -213,9 +213,9 @@ export default function LandingPage() {
 
                         <div className="space-y-6">
                             {[
-                                { title: "Nivel 1 (Directos)", value: `${((config.affiliate_level_1_fee || 0.10) * 100).toFixed(0)}% de cada suscripción`, icon: Users },
-                                { title: "Nivel 2 (Sub-afiliados)", value: `${((config.affiliate_level_2_fee || 0.05) * 100).toFixed(0)}% de cada suscripción`, icon: Network },
-                                { title: "Crecimiento Exponencial", value: "Tus ganancias no tienen techo.", icon: Zap },
+                                { title: "Nivel 1 (Directos)", value: `${((config.affiliate_level_1_fee || 0.03) * 100).toFixed(1)}% de cada suscripción`, icon: Users },
+                                { title: "Nivel 2 (Generación II)", value: `${((config.affiliate_level_2_fee || 0.01) * 100).toFixed(1)}% de cada suscripción`, icon: Network },
+                                { title: "Generaciones III-X", value: "Comisiones en profundidad hasta el nivel 10.", icon: Zap },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-6 p-6 rounded-2xl bg-surface border border-surface-border">
                                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">

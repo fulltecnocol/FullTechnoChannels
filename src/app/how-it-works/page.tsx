@@ -16,11 +16,30 @@ import {
     Globe,
     Lock,
     Menu,
-    X
+    X,
+    Loader2
 } from "lucide-react";
+import { publicApi } from "@/lib/api";
 
 export default function HowItWorksPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+    const [mounted, setMounted] = React.useState(false);
+    const [config, setConfig] = React.useState<Record<string, number>>({});
+
+    React.useEffect(() => {
+        setMounted(true);
+        publicApi.getConfig()
+            .then(setConfig)
+            .catch(console.error);
+    }, []);
+
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
@@ -259,37 +278,42 @@ export default function HowItWorksPage() {
                         {/* Interactive Levels Visualizer */}
                         <div className="lg:col-span-7 space-y-3">
                             {[
-                                { level: 1, name: "Directo", percent: "3.0%", bg: "bg-primary", width: "100%" },
-                                { level: 2, name: "Generación II", percent: "1.0%", bg: "bg-primary/90", width: "95%" },
-                                { level: 3, name: "Generación III", percent: "0.5%", bg: "bg-primary/80", width: "90%" },
-                                { level: 4, name: "Círculo Interno", percent: "0.3%", bg: "bg-primary/70", width: "85%" },
-                                { level: 5, name: "Liderazgo", percent: "0.2%", bg: "bg-primary/60", width: "80%" },
-                                { level: 6, name: "Elite", percent: "0.1%", bg: "bg-primary/50", width: "75%" },
-                                { level: 7, name: "Embajador", percent: "0.1%", bg: "bg-primary/40", width: "70%" },
-                                { level: 8, name: "Maestro", percent: "0.1%", bg: "bg-primary/30", width: "65%" },
-                                { level: 9, name: "Leyenda", percent: "0.1%", bg: "bg-primary/20", width: "60%" },
-                                { level: 10, name: "Infinitum", percent: "0.1%", bg: "bg-primary/10", width: "55%" },
-                            ].map((item, idx) => (
-                                <div key={idx} className="relative group">
-                                    <div className="absolute inset-0 bg-primary/5 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative premium-card p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                                        <div className="flex items-center gap-6 w-full">
-                                            <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center text-black font-black text-sm shadow-lg shrink-0 border border-white/10`}>
-                                                L{item.level}
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-white text-base">{item.name}</h4>
-                                                <div className="w-full h-1 bg-surface-border rounded-full mt-2 overflow-hidden hidden md:block">
-                                                    <div className={`h-full ${item.bg}`} style={{ width: item.width }} />
+                                { level: 1, name: "Directo", key: "affiliate_level_1_fee", fallback: "3.0%", bg: "bg-primary", width: "100%" },
+                                { level: 2, name: "Generación II", key: "affiliate_level_2_fee", fallback: "1.0%", bg: "bg-primary/90", width: "95%" },
+                                { level: 3, name: "Generación III", key: "affiliate_level_3_fee", fallback: "0.5%", bg: "bg-primary/80", width: "90%" },
+                                { level: 4, name: "Círculo Interno", key: "affiliate_level_4_fee", fallback: "0.3%", bg: "bg-primary/70", width: "85%" },
+                                { level: 5, name: "Liderazgo", key: "affiliate_level_5_fee", fallback: "0.2%", bg: "bg-primary/60", width: "80%" },
+                                { level: 6, name: "Elite", key: "affiliate_level_6_fee", fallback: "0.1%", bg: "bg-primary/50", width: "75%" },
+                                { level: 7, name: "Embajador", key: "affiliate_level_7_fee", fallback: "0.1%", bg: "bg-primary/40", width: "70%" },
+                                { level: 8, name: "Maestro", key: "affiliate_level_8_fee", fallback: "0.1%", bg: "bg-primary/30", width: "65%" },
+                                { level: 9, name: "Leyenda", key: "affiliate_level_9_fee", fallback: "0.1%", bg: "bg-primary/20", width: "60%" },
+                                { level: 10, name: "Infinitum", key: "affiliate_level_10_fee", fallback: "0.1%", bg: "bg-primary/10", width: "55%" },
+                            ].map((item, idx) => {
+                                const val = config[item.key];
+                                const percentText = val !== undefined ? `${(val * 100).toFixed(1)}%` : item.fallback;
+
+                                return (
+                                    <div key={idx} className="relative group">
+                                        <div className="absolute inset-0 bg-primary/5 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="relative premium-card p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                                            <div className="flex items-center gap-6 w-full">
+                                                <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center text-black font-black text-sm shadow-lg shrink-0 border border-white/10`}>
+                                                    L{item.level}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="font-bold text-white text-base">{item.name}</h4>
+                                                    <div className="w-full h-1 bg-surface-border rounded-full mt-2 overflow-hidden hidden md:block">
+                                                        <div className={`h-full ${item.bg}`} style={{ width: item.width }} />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <span className="text-2xl font-black text-white">{item.percent}</span>
+                                            <div className="text-right shrink-0">
+                                                <span className="text-2xl font-black text-white">{percentText}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Explanation Card */}
