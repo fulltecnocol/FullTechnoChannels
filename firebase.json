@@ -21,11 +21,17 @@
         "rewrites": [
             {
                 "source": "/api/**",
-                "function": "membership_backend"
+                "run": {
+                    "serviceId": "membership-backend",
+                    "region": "us-central1"
+                }
             },
             {
                 "source": "/bot/**",
-                "function": "membership_backend"
+                "run": {
+                    "serviceId": "membership-backend",
+                    "region": "us-central1"
+                }
             }
         ],
         "frameworksBackend": {
