@@ -142,7 +142,7 @@ function RegisterForm() {
                         </div>
                         <p className="px-1 mt-2">
                             <a
-                                href="https://t.me/FullT_GuardBot"
+                                href="https://t.me/FullT_GuardBot?start=registro"
                                 target="_blank"
                                 className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
                             >

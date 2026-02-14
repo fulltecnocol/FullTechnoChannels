@@ -85,6 +85,15 @@ async def process_code(message: types.Message, code: str, session):
             await message.reply(f"🎯 **¡Te has unido a la red TeleGate de {referrer.full_name}!**")
         return True
 
+    # 🟣 CASO E: Comandos directos desde Deep Linking
+    if code == "registro":
+        await cmd_register(message)
+        return True
+    
+    if code == "recuperar":
+        await cmd_recover(message)
+        return True
+
     # 🔵 CASO D: Registro de Suscriptor normal / Vinculación
     user = await get_or_create_user(message.from_user, session)
     

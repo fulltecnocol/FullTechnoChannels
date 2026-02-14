@@ -191,7 +191,7 @@ export default function LoginPage() {
                                     ¿Nuevo en TeleGate?
                                 </p>
                                 <a
-                                    href="https://t.me/FullT_GuardBot"
+                                    href="https://t.me/FullT_GuardBot?start=registro"
                                     target="_blank"
                                     className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#24A1DE]/10 hover:bg-[#24A1DE]/20 text-[#24A1DE] rounded-xl font-bold transition-all border border-[#24A1DE]/20 group w-full"
                                 >
