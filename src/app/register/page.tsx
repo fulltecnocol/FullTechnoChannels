@@ -10,10 +10,10 @@ import { GoogleLogin } from "@react-oauth/google";
 function RegisterForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [formData, setFormData] = useState({ fullName: "", email: "", password: "" });
     const searchParams = useSearchParams();
     const referralCode = searchParams.get("ref") || "";
-    const registrationToken = searchParams.get("token") || "";
+    const registrationTokenParam = searchParams.get("token") || "";
+    const [formData, setFormData] = useState({ fullName: "", email: "", password: "", registrationToken: registrationTokenParam });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +21,7 @@ function RegisterForm() {
         setError("");
 
         try {
-            await authApi.register({ ...formData, referral_code: referralCode, registration_token: registrationToken });
+            await authApi.register({ ...formData, referral_code: referralCode, registration_token: formData.registrationToken });
             window.location.href = "/login?registered=true";
         } catch (err: any) {
             setError(err.message || "Error al crear la cuenta");
@@ -34,7 +34,7 @@ function RegisterForm() {
         setLoading(true);
         setError("");
         try {
-            const data = await authApi.googleAuth(credentialResponse.credential, referralCode, registrationToken);
+            const data = await authApi.googleAuth(credentialResponse.credential, referralCode, formData.registrationToken);
             localStorage.setItem("token", data.access_token);
             window.location.href = "/dashboard";
         } catch (err: any) {
@@ -57,10 +57,10 @@ function RegisterForm() {
             </div>
 
             <div className="premium-card p-8 shadow-2xl bg-surface/80 backdrop-blur-xl">
-                {registrationToken && (
+                {formData.registrationToken && (
                     <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-500 text-sm font-bold animate-pulse">
                         <ShieldCheck className="w-5 h-5 flex-shrink-0" />
-                        Cuenta de Telegram Vinculada
+                        Código de Registro Listo
                     </div>
                 )}
                 {error && (
@@ -122,6 +122,34 @@ function RegisterForm() {
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="registrationToken" className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1">
+                            Código de Registro (Bot)
+                        </label>
+                        <div className="relative group">
+                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted transition-colors group-focus-within:text-primary" />
+                            <input
+                                id="registrationToken"
+                                type="text"
+                                required
+                                placeholder="Ingresa el código enviado por el Bot"
+                                className="w-full pl-12 pr-4 py-4 bg-background border border-surface-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                                value={formData.registrationToken}
+                                onChange={(e) => setFormData({ ...formData, registrationToken: e.target.value })}
+                            />
+                        </div>
+                        <p className="px-1 mt-2">
+                            <a
+                                href="https://t.me/FullT_GuardBot"
+                                target="_blank"
+                                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                            >
+                                <ArrowRight className="w-3 h-3" />
+                                ¿No tienes un código? Consíguelo aquí
+                            </a>
+                        </p>
                     </div>
 
                     <div className="pt-2">

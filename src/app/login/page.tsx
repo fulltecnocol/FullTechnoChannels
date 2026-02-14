@@ -172,7 +172,7 @@ export default function LoginPage() {
                         </div>
 
                         {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-                            <div className="flex justify-center">
+                            <div className="flex justify-center mb-8">
                                 <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
                                     onError={() => setError("Error al conectar con Google")}
@@ -184,6 +184,25 @@ export default function LoginPage() {
                                 />
                             </div>
                         )}
+
+                        <div className="pt-6 border-t border-white/5 space-y-4">
+                            <div className="text-center">
+                                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">
+                                    ¿Nuevo en TeleGate?
+                                </p>
+                                <a
+                                    href="https://t.me/FullT_GuardBot"
+                                    target="_blank"
+                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#24A1DE]/10 hover:bg-[#24A1DE]/20 text-[#24A1DE] rounded-xl font-bold transition-all border border-[#24A1DE]/20 group w-full"
+                                >
+                                    <ShieldCheck className="w-5 h-5" />
+                                    Obtener Código de Registro
+                                </a>
+                                <p className="text-[10px] text-muted-foreground mt-3 font-medium uppercase tracking-tight">
+                                    Necesitarás un código de nuestro bot para crear una cuenta
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <p className="text-center text-sm font-medium text-muted">
