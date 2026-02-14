@@ -20,12 +20,7 @@ from api.services.blockchain_service import get_blockchain_service
 
 router = APIRouter(prefix="/api/legal", tags=["Legal & Signatures"])
 
-# Esta función será importada desde api.main
-# Para evitar imports circulares, la definimos aquí como placeholder
-# y será reemplazada al montar el router
-def get_current_user():
-    """Placeholder - se reemplaza al montar el router desde main.py"""
-    pass
+from api.deps import get_current_user
 
 class LegalInfoCreate(BaseModel):
     """Schema para crear información legal"""

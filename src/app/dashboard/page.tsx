@@ -25,6 +25,7 @@ import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
 import { TaxHub } from "@/components/dashboard/TaxHub";
 import { AdminSystem } from "@/components/dashboard/AdminSystem";
 import { PlanManagementModal } from "@/components/dashboard/PlanManagementModal";
+import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
   const router = useRouter();
