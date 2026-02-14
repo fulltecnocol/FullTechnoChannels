@@ -116,6 +116,7 @@ async def process_code(message: types.Message, code: str, session):
 
 @router.message(F.text)
 async def handle_text_message(message: types.Message):
+    logging.info(f"Recibido mensaje de texto: {message.text}")
     if message.text.startswith("/"):
         return # Ignorar comandos ya manejados
         
@@ -123,6 +124,7 @@ async def handle_text_message(message: types.Message):
         # Intentar procesar el texto como un código
         processed = await process_code(message, message.text.strip(), session)
         if not processed:
+            logging.info(f"Texto no procesado como código: {message.text}")
             await message.reply("Si tienes un código de invitación o de vinculación, envíalo ahora. Si no, usa /ayuda para ver los comandos disponibles.")
 
 @router.callback_query(F.data.startswith("verify_"))
@@ -521,9 +523,16 @@ app = FastAPI()
 
 @app.post(WEBHOOK_PATH)
 async def bot_webhook(request: Request):
-    update = Update.model_validate(await request.json(), context={"bot": bot})
-    await dp.feed_update(bot, update)
-    return {"ok": True}
+    payload = await request.json()
+    logging.info(f"RECIBIDO WEBHOOK: {payload}")
+    try:
+        update = Update.model_validate(payload, context={"bot": bot})
+        logging.info(f"Update validado. ID={update.update_id}, Type={update.event_type}")
+        await dp.feed_update(bot, update)
+        return {"ok": True}
+    except Exception as e:
+        logging.error(f"Error procesando update: {e}")
+        return {"ok": False, "error": str(e)}
 
 @app.get("/health")
 async def bot_health_check():
@@ -573,12 +582,15 @@ async def on_startup():
     ])
 
     if WEBHOOK_URL:
-        # Si el bot está montado en /bot (como en main.py), el webhook debe reflejarlo
-        final_webhook_url = WEBHOOK_URL + WEBHOOK_PATH
-        if "/bot" not in final_webhook_url and not WEBHOOK_URL.endswith("/bot"):
-            # Si la URL base no termina en /bot y el path tampoco lo incluye, lo agregamos
-            # Esto es necesario porque en main.py montamos bot_app en /bot
-            final_webhook_url = WEBHOOK_URL.rstrip("/") + "/bot" + WEBHOOK_PATH
+        # Forzar el prefijo /bot si no está presente en la URL base
+        # El bot está montado en /bot en main.py
+        base_url = WEBHOOK_URL.rstrip("/")
+        if not base_url.endswith("/bot"):
+             final_webhook_url = f"{base_url}/bot{WEBHOOK_PATH}"
+        else:
+             final_webhook_url = f"{base_url}{WEBHOOK_PATH}"
+        
+        logging.info(f"Intentando configurar webhook en: {final_webhook_url}")
         
         try:
             await bot.set_webhook(
