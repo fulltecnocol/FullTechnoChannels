@@ -531,6 +531,7 @@ export default function DashboardPage() {
           <AffiliateSection
             user={user}
             summary={summary}
+            configs={configs}
             copyToClipboard={copyToClipboard}
           />
         )}

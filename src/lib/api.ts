@@ -70,6 +70,10 @@ export const authApi = {
     }),
 };
 
+export const publicApi = {
+    getConfig: () => apiRequest<Record<string, number>>("/public/config"),
+};
+
 export const ownerApi = {
     getSummary: () => apiRequest<SummaryData>("/owner/dashboard/summary"),
     getChannels: () => apiRequest<Channel[]>("/owner/channels"),

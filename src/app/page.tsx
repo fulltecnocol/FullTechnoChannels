@@ -22,13 +22,19 @@ import {
     Loader2
 } from "lucide-react";
 import { ProductShowcase } from "@/components/landing/ProductShowcase";
+import { publicApi } from "@/lib/api";
+
 
 export default function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
+    const [config, setConfig] = React.useState<Record<string, number>>({});
 
     React.useEffect(() => {
         setMounted(true);
+        publicApi.getConfig()
+            .then(setConfig)
+            .catch(console.error);
     }, []);
 
     if (!mounted) {
@@ -207,8 +213,8 @@ export default function LandingPage() {
 
                         <div className="space-y-6">
                             {[
-                                { title: "Nivel 1 (Directos)", value: "10% de cada suscripción", icon: Users },
-                                { title: "Nivel 2 (Sub-afiliados)", value: "5% de cada suscripción", icon: Network },
+                                { title: "Nivel 1 (Directos)", value: `${((config.affiliate_level_1_fee || 0.10) * 100).toFixed(0)}% de cada suscripción`, icon: Users },
+                                { title: "Nivel 2 (Sub-afiliados)", value: `${((config.affiliate_level_2_fee || 0.05) * 100).toFixed(0)}% de cada suscripción`, icon: Network },
                                 { title: "Crecimiento Exponencial", value: "Tus ganancias no tienen techo.", icon: Zap },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-6 p-6 rounded-2xl bg-surface border border-surface-border">

@@ -265,6 +265,16 @@ app.add_middleware(
 )
 
 # --- Health Check Endpoint ---
+@app.get("/public/config")
+async def get_public_config(db: AsyncSessionLocal = Depends(get_db)):
+    """
+    Endpoint público para que la landing page y otros componentes
+    puedan mostrar los porcentajes y umbrales actuales sin estar logueados.
+    """
+    result = await db.execute(select(SystemConfig))
+    configs = result.scalars().all()
+    return {c.key: c.value for c in configs}
+
 @app.get("/health")
 async def api_health_check():
     """API-specific health check with database validation"""

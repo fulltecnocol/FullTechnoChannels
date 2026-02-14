@@ -5,6 +5,9 @@
 
 set -e
 
+# Asegurar que gcloud esté en el PATH (específico para este entorno)
+export PATH=$PATH:/Users/felipegomez/google-cloud-sdk/bin
+
 PROJECT_ID="full-techno-channels"
 REGION="us-central1"
 SERVICE_NAME="membership-backend"
