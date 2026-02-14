@@ -8,7 +8,7 @@ load_dotenv(override=True)
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from api.main import app as api_app
-from bot.main import app as bot_app, on_startup
+from bot.main import app as bot_app, on_bot_startup
 
 # Selective service mounting based on SERVICE_TYPE env var
 # Options: unified (default), api, bot
@@ -100,7 +100,7 @@ if SERVICE_TYPE in ["unified", "api"]:
     app.mount("/", api_app)
     @app.on_event("startup")
     async def startup():
-        await on_startup()
+        await on_bot_startup()
 
 if __name__ == "__main__":
     import uvicorn
