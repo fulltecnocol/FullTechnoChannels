@@ -25,7 +25,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared.database import init_db, get_db, AsyncSessionLocal
-from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion, RegistrationToken, BusinessExpense
+from shared.models import User as DBUser, Subscription, Payment, Plan, Channel, Withdrawal, AffiliateEarning, SupportTicket, Promotion, RegistrationToken, BusinessExpense, SystemConfig, TicketMessage
 from shared.accounting import distribute_payment_funds, get_affiliate_tier_info
 
 # Importar router de firma digital

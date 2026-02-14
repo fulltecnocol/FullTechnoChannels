@@ -6,7 +6,7 @@ runConfig:
   memory: "512Mi"
 env:
   - variable: NEXT_PUBLIC_API_URL
-    value: "https://membership-backend-dhtw77aq7a-uc.a.run.app/api"
+    value: "/api"
   - variable: STRIPE_PUBLIC_KEY
     value: "your-stripe-public-key"
   - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
