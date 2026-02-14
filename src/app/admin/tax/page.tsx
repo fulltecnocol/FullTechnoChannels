@@ -5,14 +5,15 @@ import { useRouter } from "next/navigation";
 import {
     Calculator, Receipt, Calendar, ShieldCheck,
     Plus, Trash2, ArrowLeft, Loader2, DollarSign,
-    TrendingDown, TrendingUp, AlertTriangle
+    TrendingDown, TrendingUp, AlertTriangle, CheckCircle2
 } from "lucide-react";
-import { adminApi, ownerApi } from "@/lib/api";
+import { adminApi } from "@/lib/api";
+import { TaxSummary, Expense } from "@/lib/types";
 
 export default function AdminTaxPage() {
     const router = useRouter();
-    const [summary, setSummary] = useState<any>(null);
-    const [expenses, setExpenses] = useState<any[]>([]);
+    const [summary, setSummary] = useState<TaxSummary | null>(null);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [year, setYear] = useState(new Date().getFullYear());
     const [isAddOpen, setIsAddOpen] = useState(false);
@@ -31,9 +32,9 @@ export default function AdminTaxPage() {
             ]);
             setSummary(summaryData);
             setExpenses(expensesData);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error fetching tax data:", err);
-            if (err.message.includes("403")) router.push("/dashboard");
+            if (err instanceof Error && err.message.includes("403")) router.push("/dashboard");
         } finally {
             setLoading(false);
         }
@@ -304,7 +305,14 @@ export default function AdminTaxPage() {
     );
 }
 
-function ComplianceTask({ title, date, desc, status }: any) {
+interface ComplianceTaskProps {
+    title: string;
+    date: string;
+    desc: string;
+    status: 'pending' | 'completed';
+}
+
+function ComplianceTask({ title, date, desc, status }: ComplianceTaskProps) {
     return (
         <div className={`p-5 premium-card ${status === 'completed' ? 'opacity-60 grayscale' : 'ring-1 ring-primary/20'}`}>
             <div className="flex items-center justify-between mb-2">
@@ -325,4 +333,4 @@ function ComplianceTask({ title, date, desc, status }: any) {
     );
 }
 
-import { CheckCircle2 } from "lucide-react";
+

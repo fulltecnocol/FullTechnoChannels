@@ -1,19 +1,29 @@
-import { Wallet, History, AlertCircle } from 'lucide-react';
+import { Wallet, History } from 'lucide-react';
 import { useState } from 'react';
+import { Withdrawal } from '@/lib/types';
+
+interface SummaryData {
+    available_balance?: number;
+}
+
+interface WithdrawalOption {
+    id: string;
+    name: string;
+    description: string;
+    active: boolean;
+}
+
+interface StatusConfig {
+    [key: string]: string;
+}
 
 interface WithdrawalSectionProps {
-    summary: any;
-    withdrawals: any[];
-    withdrawalOptions:
-    {
-        id: string;
-        name: string;
-        description: string;
-        active: boolean;
-    }[];
+    summary: SummaryData | null;
+    withdrawals: Withdrawal[];
+    withdrawalOptions: WithdrawalOption[];
     onRequestWithdrawal: (amount: number, method: string, details: string) => Promise<void>;
-    statusLabels: any;
-    statusColors: any;
+    statusLabels: StatusConfig;
+    statusColors: StatusConfig;
 }
 
 export function WithdrawalSection({ summary, withdrawals, withdrawalOptions, onRequestWithdrawal, statusLabels, statusColors }: WithdrawalSectionProps) {
@@ -121,7 +131,7 @@ export function WithdrawalSection({ summary, withdrawals, withdrawalOptions, onR
                             <tbody className="divide-y divide-surface-border">
                                 {withdrawals.length > 0 ? withdrawals.map((w) => (
                                     <tr key={w.id} className="hover:bg-background/50 transition-colors">
-                                        <td className="p-4 font-bold text-muted">{new Date(w.request_date).toLocaleDateString()}</td>
+                                        <td className="p-4 font-bold text-muted">{w.request_date ? new Date(w.request_date).toLocaleDateString() : 'N/A'}</td>
                                         <td className="p-4 font-bold text-foreground capitalize">{w.method}</td>
                                         <td className="p-4 font-bold text-foreground">${w.amount.toFixed(2)}</td>
                                         <td className="p-4">
@@ -150,7 +160,7 @@ export function WithdrawalSection({ summary, withdrawals, withdrawalOptions, onR
                                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusColors[w.status] || "bg-gray-500/10 text-gray-500 border-gray-500/20"}`}>
                                             {statusLabels[w.status] || w.status}
                                         </span>
-                                        <span className="text-[10px] text-muted font-bold">{new Date(w.request_date).toLocaleDateString()}</span>
+                                        <span className="text-[10px] text-muted font-bold">{w.request_date ? new Date(w.request_date).toLocaleDateString() : 'N/A'}</span>
                                     </div>
                                     <p className="font-bold text-foreground capitalize text-sm">{w.method}</p>
                                 </div>

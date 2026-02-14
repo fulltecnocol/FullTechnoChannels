@@ -23,22 +23,27 @@ function RegisterForm() {
         try {
             await authApi.register({ ...formData, referral_code: referralCode, registration_token: formData.registrationToken });
             window.location.href = "/login?registered=true";
-        } catch (err: any) {
-            setError(err.message || "Error al crear la cuenta");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Error al crear la cuenta");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGoogleSuccess = async (credentialResponse: any) => {
+    const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
         setLoading(true);
         setError("");
+        if (!credentialResponse.credential) {
+            setError("Error al conectar con Google");
+            setLoading(false);
+            return;
+        }
         try {
             const data = await authApi.googleAuth(credentialResponse.credential, referralCode, formData.registrationToken);
             localStorage.setItem("token", data.access_token);
             window.location.href = "/dashboard";
-        } catch (err: any) {
-            setError(err.message || "Error al registrarse con Google");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Error al registrarse con Google");
         } finally {
             setLoading(false);
         }

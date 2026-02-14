@@ -6,7 +6,7 @@ interface CreateChannelModalProps {
     onClose: () => void;
     onSubmit: (title: string) => Promise<void>;
     step: number;
-    createdChannel: any;
+    createdChannel: { title?: string; validation_code?: string } | null;
     copyToClipboard: (text: string) => void;
 }
 
@@ -84,8 +84,8 @@ export function CreateChannelModal({ isOpen, onClose, onSubmit, step, createdCha
                                     Copia tu Código de Vinculación
                                 </p>
                                 <div className="flex items-center gap-2 p-5 bg-background border border-surface-border rounded-2xl font-mono text-xl font-bold group hover:border-primary/30 transition-all cursor-pointer"
-                                    onClick={() => copyToClipboard(createdChannel?.validation_code)}>
-                                    <span className="flex-1 tracking-wider text-primary">{createdChannel?.validation_code}</span>
+                                    onClick={() => createdChannel?.validation_code && copyToClipboard(createdChannel.validation_code)}>
+                                    <span className="flex-1 tracking-wider text-primary">{createdChannel?.validation_code || 'N/A'}</span>
                                     <div className="p-2 bg-primary/5 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-all">
                                         <Copy className="w-5 h-5" />
                                     </div>

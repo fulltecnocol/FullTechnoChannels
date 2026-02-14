@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ownerApi, adminApi, publicApi } from "@/lib/api";
-import { User, Channel, Plan, SummaryData, ConfigItem, Withdrawal, SupportTicket, Payment, UserAdmin } from "@/lib/types";
+import { User, Channel, Plan, SummaryData, ConfigItem, Withdrawal, SupportTicket, Payment, UserAdmin, Promotion } from "@/lib/types";
 
 
 // Import new components
@@ -29,37 +29,37 @@ import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [channels, setChannels] = useState<any[]>([]);
-  const [summary, setSummary] = useState<any>(null);
-  const [pendingPayments, setPendingPayments] = useState<any[]>([]); // Para el admin
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [pendingPayments, setPendingPayments] = useState<Payment[]>([]); // Para el admin
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SummaryData | null>(null);
   const [isViewingAsAdmin, setIsViewingAsAdmin] = useState(false);
 
   // States for modals and forms (manage via parents)
   const [isAddingChannel, setIsAddingChannel] = useState(false);
-  const [editingBranding, setEditingBranding] = useState<any>(null);
-  const [managingPromos, setManagingPromos] = useState<any>(null);
-  const [managingPlans, setManagingPlans] = useState<any>(null);
-  const [promotions, setPromotions] = useState<any[]>([]);
+  const [editingBranding, setEditingBranding] = useState<Channel | null>(null);
+  const [managingPromos, setManagingPromos] = useState<Channel | null>(null);
+  const [managingPlans, setManagingPlans] = useState<Channel | null>(null);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
 
   // Wizard state for new channel
   const [newChannelStep, setNewChannelStep] = useState(1);
-  const [createdChannel, setCreatedChannel] = useState<any>(null);
-  const [deletingChannel, setDeletingChannel] = useState<any>(null);
+  const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
+  const [deletingChannel, setDeletingChannel] = useState<Channel | null>(null);
 
   // Other specific states matching new components requirements
-  const [withdrawals, setWithdrawals] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
   // Admin states
   const [adminUsers, setAdminUsers] = useState<UserAdmin[]>([]);
   const [configs, setConfigs] = useState<ConfigItem[]>([]);
-  const [adminWithdrawals, setAdminWithdrawals] = useState<any[]>([]);
-  const [adminTickets, setAdminTickets] = useState<any[]>([]);
+  const [adminWithdrawals, setAdminWithdrawals] = useState<Withdrawal[]>([]);
+  const [adminTickets, setAdminTickets] = useState<SupportTicket[]>([]);
 
   // Recovery mode check (if needed)
   const isRecovery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('recovery') === 'true' : false;
@@ -162,9 +162,9 @@ export default function DashboardPage() {
 
   // Needed for "Manage Promos" in ChannelList.tsx (Currently simpler logic there)
   // We need to implement handleLoadPromos as well
-  const handleLoadPromos = async (channelId: string) => {
+  const handleLoadPromos = async (channelId: number) => {
     try {
-      const promos = await ownerApi.getPromotions(Number(channelId));
+      const promos = await ownerApi.getPromotions(channelId);
       setPromotions(promos);
     } catch (e) { console.error(e) }
   };
@@ -194,8 +194,8 @@ export default function DashboardPage() {
     alert("Copiado al portapapeles: " + text);
   };
 
-  const statusLabels: any = { pending: "Pendiente", approved: "Aprobado", rejected: "Rechazado", paid: "Pagado" };
-  const statusColors: any = { pending: "bg-amber-500/10 text-amber-500 border-amber-500/20", approved: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", rejected: "bg-red-500/10 text-red-500 border-red-500/20", paid: "bg-blue-500/10 text-blue-500 border-blue-500/20" };
+  const statusLabels: Record<string, string> = { pending: "Pendiente", approved: "Aprobado", rejected: "Rechazado", paid: "Pagado" };
+  const statusColors: Record<string, string> = { pending: "bg-amber-500/10 text-amber-500 border-amber-500/20", approved: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", rejected: "bg-red-500/10 text-red-500 border-red-500/20", paid: "bg-blue-500/10 text-blue-500 border-blue-500/20" };
 
   const withdrawalOptions = [
     { id: "stripe", name: "Stripe / Tarjeta", description: "Transferencia directa a cuenta vinculada.", active: true },
@@ -211,8 +211,8 @@ export default function DashboardPage() {
       setCreatedChannel(channel);
       setNewChannelStep(2);
       fetchData(true); // Background update
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error al crear canal');
     }
   };
 
@@ -221,20 +221,20 @@ export default function DashboardPage() {
       await ownerApi.updateProfile({ full_name: name, avatar_url: avatarUrl });
       alert("Perfil actualizado correctamente");
       fetchData(true);
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Error al actualizar perfil');
     }
   };
 
-  const handleUpdatePassword = async (oldPass: string, newPass: string, confirmTwice: string) => {
+  const handleUpdatePassword = async (_oldPass: string, _newPass: string, _confirmTwice: string) => {
     try {
       // Logic usually handled in API, assuming endpoint exists or handled via specialized call
       // current api might not support this directly in `updateProfile`, checking api...
       // If no explicit endpoint, we might skip implementation or assume it's part of updateProfile if supported.
       // For now, placeholder:
       alert("Cambio de contraseña simulado (API pendiente)");
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Error al actualizar contraseña');
     }
   };
 
@@ -244,24 +244,24 @@ export default function DashboardPage() {
       alert("Solicitud de retiro enviada");
       loadWithdrawals();
       fetchData(true); // Update balance
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Error al solicitar retiro');
     }
   };
 
-  const handleValidatePayment = async (paymentId: string, isValid: boolean) => {
+  const handleValidatePayment = async (paymentId: number, isValid: boolean) => {
     try {
       if (isValid) {
-        await adminApi.verifyCryptoPayment(parseInt(paymentId));
+        await adminApi.verifyCryptoPayment(paymentId);
         alert("Pago aprobado");
       } else {
         alert("Rechazo de pago no soporta API aún (simulado)");
-        // await adminApi.rejectPayment(parseInt(paymentId));
+        // await adminApi.rejectPayment(paymentId);
       }
       const pending = await adminApi.getPendingPayments();
       setPendingPayments(pending || []);
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Error al validar pago');
     }
   };
 
@@ -271,7 +271,7 @@ export default function DashboardPage() {
       await adminApi.updateConfig(key, value);
       const data = await adminApi.getConfig();
       setConfigs(data);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : 'Error al actualizar configuración'); }
   };
 
   const handleProcessWithdrawal = async (id: number, status: string) => {
@@ -280,7 +280,7 @@ export default function DashboardPage() {
       const data = await adminApi.getWithdrawals();
       setAdminWithdrawals(data);
       alert(`Retiro ${status === 'completed' ? 'aprobado' : 'rechazado'}`);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : 'Error al procesar retiro'); }
   };
 
   const handleOpenTicket = (id: number, isAdmin: boolean) => {
@@ -293,7 +293,7 @@ export default function DashboardPage() {
       await adminApi.deleteUser(id);
       setAdminUsers(prev => prev.filter(u => u.id !== id));
       alert("Usuario eliminado");
-    } catch (e: any) { alert(e.message); }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : 'Error al eliminar usuario'); }
   };
 
   const handleSaveBranding = async () => {
@@ -311,18 +311,20 @@ export default function DashboardPage() {
       alert("Branding actualizado");
       setEditingBranding(null);
       fetchData(true);
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Error al guardar branding');
     }
   };
 
   // Promo handlers
-  const handleCreatePromo = async (channelId: string, data: any) => {
+  const handleCreatePromo = async (channelId: string, data: { code: string; promo_type: 'discount' | 'trial'; value: number; max_uses?: number | null }) => {
     try {
       await ownerApi.createPromotion(Number(channelId), data);
       alert("Promoción creada");
-      handleLoadPromos(channelId);
-    } catch (e: any) { alert(e.message) }
+      handleLoadPromos(Number(channelId));
+    } catch (e: unknown) { 
+      alert(e instanceof Error ? e.message : 'Error al crear promoción'); 
+    }
   };
 
   const handleDeleteChannel = (channelId: number) => {
@@ -335,7 +337,7 @@ export default function DashboardPage() {
     try {
       await ownerApi.deletePromotion(Number(promoId));
       if (managingPromos) handleLoadPromos(managingPromos.id);
-    } catch (e: any) { alert(e.message) }
+    } catch (e: unknown) { alert(e instanceof Error ? e.message : 'Error al eliminar promoción') }
   };
 
 
@@ -544,7 +546,7 @@ export default function DashboardPage() {
         {activeTab === "support" && (
           <SupportSection
             tickets={tickets}
-            isAdmin={summary?.is_admin}
+             isAdmin={summary?.is_admin ?? false}
             onAdminViewTicket={(id) => alert(`Ver Ticket ${id} (Pendiente impl)`)}
           />
         )}
@@ -687,7 +689,7 @@ export default function DashboardPage() {
                       const value = parseFloat((document.getElementById('p_value') as HTMLInputElement).value);
                       const max = (document.getElementById('p_max') as HTMLInputElement).value;
                       if (!code || !value) return alert("Completa los campos");
-                      handleCreatePromo(managingPromos.id, { code, promo_type: type, value, max_uses: max ? parseInt(max) : null });
+                      handleCreatePromo(managingPromos.id.toString(), { code, promo_type: type as 'discount' | 'trial', value, max_uses: max ? parseInt(max) : null });
                     }}
                     className="w-full py-4 bg-amber-500 text-white rounded-xl font-bold hover:scale-[1.02] transition-all"
                   >
@@ -711,7 +713,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <button onClick={() => copyToClipboard(`https://t.me/FullT_GuardBot?start=${p.code}`)} className="p-2 text-muted hover:text-primary"><Copy className="w-4 h-4" /></button>
-                        <button onClick={() => handleDeletePromo(p.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDeletePromo(p.id.toString())} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
                   )) : (

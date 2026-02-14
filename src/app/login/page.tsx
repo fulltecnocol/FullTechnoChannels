@@ -36,7 +36,7 @@ export default function LoginPage() {
                             throw new Error("Token no recibido");
                         }
                     })
-                    .catch((err: any) => {
+                    .catch((err: unknown) => {
                         console.error("Magic login error:", err);
                         setError("Enlace de acceso inválido o expirado.");
                         setLoading(false);
@@ -56,22 +56,27 @@ export default function LoginPage() {
             const data = await authApi.login(formData);
             localStorage.setItem("token", data.access_token);
             window.location.href = "/dashboard";
-        } catch (err: any) {
-            setError(err.message || "Email o contraseña incorrectos");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Email o contraseña incorrectos");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGoogleSuccess = async (credentialResponse: any) => {
+    const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
         setLoading(true);
         setError("");
+        if (!credentialResponse.credential) {
+            setError("Error al autenticar con Google");
+            setLoading(false);
+            return;
+        }
         try {
             const data = await authApi.googleAuth(credentialResponse.credential);
             localStorage.setItem("token", data.access_token);
             window.location.href = "/dashboard";
-        } catch (err: any) {
-            setError(err.message || "Error al autenticar con Google");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Error al autenticar con Google");
         } finally {
             setLoading(false);
         }

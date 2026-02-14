@@ -1,7 +1,15 @@
 import { Users, Wallet, TrendingUp, LayoutGrid, Calculator } from 'lucide-react';
 
+interface SummaryData {
+    active_subscribers?: number;
+    available_balance?: number;
+    affiliate_balance?: number;
+    active_channels?: number;
+    is_admin?: boolean;
+}
+
 interface DashboardStatsProps {
-    summary: any;
+    summary: SummaryData | null;
     onTabChange?: (tab: string) => void;
 }
 

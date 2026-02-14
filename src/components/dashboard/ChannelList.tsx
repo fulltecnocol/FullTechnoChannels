@@ -1,12 +1,13 @@
 import { Users, Megaphone, ArrowRight, Settings, Trash2, DollarSign } from 'lucide-react';
+import { Channel, Plan } from '@/lib/types';
 
 interface ChannelListProps {
-    channels: any[];
-    onEditBranding: (channel: any) => void;
-    onManagePromos: (channel: any) => void;
-    onManagePlans: (channel: any) => void;
-    onViewSubscribers: (channelId: string) => void;
-    onLinkChannel: (channel: any) => void;
+    channels: Channel[];
+    onEditBranding: (channel: Channel) => void;
+    onManagePromos: (channel: Channel) => void;
+    onManagePlans: (channel: Channel) => void;
+    onViewSubscribers: (channelId: number) => void;
+    onLinkChannel: (channel: Channel) => void;
     onDeleteChannel: (channelId: number) => void;
     isLoading: boolean;
 }
@@ -47,9 +48,9 @@ export function ChannelList({ channels, onEditBranding, onManagePromos, onManage
                                 <span>
                                     {channel.plans && channel.plans.length > 0
                                         ? (() => {
-                                            const activePlans = channel.plans.filter((p: any) => p.is_active);
+                                            const activePlans = channel.plans.filter((p: Plan) => p.is_active);
                                             const minPrice = activePlans.length > 0
-                                                ? Math.min(...activePlans.map((p: any) => p.price))
+                                                ? Math.min(...activePlans.map((p: Plan) => p.price))
                                                 : channel.plans[0].price;
                                             return `Desde $${minPrice} USD`;
                                         })()
@@ -104,7 +105,7 @@ export function ChannelList({ channels, onEditBranding, onManagePromos, onManage
                             Ver Suscriptores <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                         <button
-                            onClick={() => onDeleteChannel(channel.id)}
+                            onClick={() => onDeleteChannel(Number(channel.id))}
                             className="p-2.5 text-muted hover:text-red-500 bg-surface hover:bg-red-500/10 rounded-xl transition-all"
                             title="Eliminar Canal"
                         >

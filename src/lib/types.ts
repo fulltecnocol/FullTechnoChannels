@@ -27,6 +27,9 @@ export interface Channel {
     expiration_message?: string;
     created_at: string;
     plans?: Plan[];
+    logo_url?: string;
+    subscriber_count?: number;
+    monthly_price?: number;
 }
 
 export interface Plan {
@@ -64,6 +67,8 @@ export interface Payment {
     affiliate_amount: number;
     affiliate_id?: number;
     created_at: string;
+    user_email?: string;
+    transaction_hash?: string;
 }
 
 export interface Withdrawal {
@@ -76,6 +81,7 @@ export interface Withdrawal {
     details?: string;
     is_express: boolean;
     created_at: string;
+    request_date?: string;
     payout_id?: number;
 }
 
@@ -189,4 +195,68 @@ export interface UserAdmin {
     is_owner: boolean;
     legal_verification_status: string;
     created_at: string;
+}
+
+export interface RegisterData {
+    email: string;
+    password: string;
+    fullName: string;
+    referral_code?: string;
+    registration_token?: string;
+}
+
+export interface PasswordUpdateData {
+    old_password: string;
+    new_password: string;
+    confirm_password: string;
+}
+
+export interface PromotionCreateData {
+    code: string;
+    promo_type: 'discount' | 'trial';
+    value: number;
+    max_uses?: number | null;
+}
+
+export interface PlanCreateData {
+    name: string;
+    description: string;
+    price: number;
+    duration_days: number;
+}
+
+export interface PlanUpdateData {
+    name?: string;
+    description?: string;
+    price?: number;
+    duration_days?: number;
+    is_active?: boolean;
+}
+
+export interface ExpenseCreateData {
+    description: string;
+    amount: number;
+    category: string;
+    date: string;
+}
+
+export interface Expense {
+    id: number;
+    description: string;
+    amount: number;
+    category: string;
+    date: string;
+}
+
+export interface TaxSummary {
+    gross_revenue: number;
+    total_expenses: number;
+    net_income: number;
+}
+
+export interface SupportTicketItem {
+    id: number;
+    subject: string;
+    status: 'open' | 'closed' | 'pending';
+    updated_at: string;
 }

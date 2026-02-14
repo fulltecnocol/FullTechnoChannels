@@ -1,9 +1,19 @@
 import { Zap, Copy, Trophy, Target, ArrowUpRight } from 'lucide-react';
-import { ConfigItem } from '@/lib/types';
+import { ConfigItem, SummaryData } from '@/lib/types';
+
+interface AffiliateUser {
+    referral_code?: string;
+}
+
+interface AffiliateSummary {
+    affiliate_tier?: string;
+    referral_count?: number;
+    affiliate_balance?: number;
+}
 
 interface AffiliateSectionProps {
-    user: any;
-    summary: any;
+    user: AffiliateUser | null;
+    summary: AffiliateSummary | null;
     configs: ConfigItem[];
     copyToClipboard: (text: string) => void;
 }

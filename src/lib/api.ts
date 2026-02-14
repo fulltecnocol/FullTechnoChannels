@@ -1,7 +1,8 @@
 import {
     AuthResponse, SummaryData, Channel, Plan, Withdrawal, SupportTicket,
-    TicketDetailsResponse, ConfigItem, TicketMessage, AnalyticsData, Promotion, Payment,
-    LegalInfo, LegalStatus, UserAdmin
+    TicketDetailsResponse, ConfigItem, AnalyticsData, Promotion, Payment,
+    LegalInfo, LegalStatus, UserAdmin, RegisterData, PasswordUpdateData,
+    PromotionCreateData, PlanCreateData, PlanUpdateData, ExpenseCreateData, Expense, TaxSummary
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -51,7 +52,7 @@ export const authApi = {
             return res.json();
         });
     },
-    register: (data: any) => apiRequest<void>("/register", {
+    register: (data: RegisterData) => apiRequest<void>("/register", {
         method: "POST",
         body: JSON.stringify({
             email: data.email,
@@ -114,12 +115,12 @@ export const ownerApi = {
         method: "PUT",
         body: JSON.stringify(data),
     }),
-    updatePassword: (data: any) => apiRequest<void>("/owner/password", {
+    updatePassword: (data: PasswordUpdateData) => apiRequest<void>("/owner/password", {
         method: "PUT",
         body: JSON.stringify(data),
     }),
     getPromotions: (channelId: number) => apiRequest<Promotion[]>(`/owner/channels/${channelId}/promotions`),
-    createPromotion: (channelId: number, data: any) => apiRequest<Promotion>(`/owner/channels/${channelId}/promotions`, {
+    createPromotion: (channelId: number, data: PromotionCreateData) => apiRequest<Promotion>(`/owner/channels/${channelId}/promotions`, {
         method: "POST",
         body: JSON.stringify(data),
     }),
@@ -128,15 +129,15 @@ export const ownerApi = {
     }),
     getAnalytics: () => apiRequest<AnalyticsData>("/owner/analytics"),
     getPlans: (channelId: number) => apiRequest<Plan[]>(`/owner/channels/${channelId}/plans`),
-    createPlan: (channelId: number, data: any) => apiRequest<Plan>(`/owner/channels/${channelId}/plans`, {
+    createPlan: (channelId: number, data: PlanCreateData) => apiRequest<Plan>(`/owner/channels/${channelId}/plans`, {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    updatePlan: (planId: number, data: any) => apiRequest<Plan>(`/owner/plans/${planId}`, {
+    updatePlan: (planId: number, data: PlanUpdateData) => apiRequest<Plan>(`/owner/plans/${planId}`, {
         method: "PATCH",
         body: JSON.stringify(data),
     }),
-    deletePlan: (planId: number) => apiRequest<void>(`/owner/plans/${planId}`, {
+    deletePlan: (planId: number) => apiRequest<{ status?: string }>(`/owner/plans/${planId}`, {
         method: "DELETE",
     }),
 };
@@ -167,9 +168,9 @@ export const adminApi = {
         method: "DELETE",
     }),
     getUserLegalInfo: (id: number) => apiRequest<LegalInfo>(`/admin/users/${id}/legal`),
-    getTaxSummary: (year?: number) => apiRequest(`/admin/tax/summary${year ? `?year=${year}` : ""}`),
-    getExpenses: (year?: number) => apiRequest<any[]>(`/admin/expenses${year ? `?year=${year}` : ""}`),
-    createExpense: (data: { description: string; amount: number; category: string; date: string }) => apiRequest("/admin/expenses", {
+    getTaxSummary: (year?: number) => apiRequest<TaxSummary>(`/admin/tax/summary${year ? `?year=${year}` : ""}`),
+    getExpenses: (year?: number) => apiRequest<Expense[]>(`/admin/expenses${year ? `?year=${year}` : ""}`),
+    createExpense: (data: ExpenseCreateData) => apiRequest("/admin/expenses", {
         method: "POST",
         body: JSON.stringify(data),
     }),
@@ -179,20 +180,18 @@ export const adminApi = {
 };
 
 export const legalApi = {
-    getStatus: () => apiRequest<LegalStatus>("/api/legal/status"),
-    submitInfo: (data: LegalInfo) => apiRequest<void>("/api/legal/info", {
+    getStatus: () => apiRequest<LegalStatus>("/legal/status"),
+    submitInfo: (data: LegalInfo) => apiRequest<void>("/legal/info", {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    requestSignature: () => apiRequest<{ message: string }>("/api/legal/request-signature", {
+    requestSignature: () => apiRequest<{ message: string }>("/legal/request-signature", {
         method: "POST",
     }),
-    verifySignature: (otp: string) => apiRequest<{ hash: string; pdf_url: string }>("/api/legal/verify-signature", {
+    verifySignature: (otp: string) => apiRequest<{ hash: string; pdf_url: string }>("/legal/verify-signature", {
         method: "POST",
         body: JSON.stringify({ otp }),
     }),
-    getPreviewUrl: () => `${API_URL}/api/legal/contract/preview`,
-    getDownloadUrl: () => `${API_URL}/api/legal/contract/download`,
+    getPreviewUrl: () => `${API_URL}/legal/contract/preview`,
+    getDownloadUrl: () => `${API_URL}/legal/contract/download`,
 };
-
-

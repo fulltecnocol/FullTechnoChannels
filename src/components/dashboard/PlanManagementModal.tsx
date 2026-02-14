@@ -79,7 +79,7 @@ export function PlanManagementModal({ isOpen, onClose, channel }: PlanManagement
         if (!confirm("¿Estás seguro de eliminar este plan?")) return;
 
         try {
-            const res: any = await ownerApi.deletePlan(planId);
+            const res = await ownerApi.deletePlan(planId) as { status?: string };
             if (res?.status === 'deactivated') {
                 alert("El plan tiene suscripciones activas, por lo que ha sido desactivado en lugar de eliminado.");
             }

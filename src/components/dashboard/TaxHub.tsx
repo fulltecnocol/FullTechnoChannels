@@ -7,10 +7,11 @@ import {
     TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, Loader2
 } from "lucide-react";
 import { adminApi } from "@/lib/api";
+import { TaxSummary, Expense } from "@/lib/types";
 
 export function TaxHub() {
-    const [summary, setSummary] = useState<any>(null);
-    const [expenses, setExpenses] = useState<any[]>([]);
+    const [summary, setSummary] = useState<TaxSummary | null>(null);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [year, setYear] = useState(new Date().getFullYear());
     const [isAddOpen, setIsAddOpen] = useState(false);
@@ -29,7 +30,7 @@ export function TaxHub() {
             ]);
             setSummary(summaryData);
             setExpenses(expensesData);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error fetching tax data:", err);
         } finally {
             setLoading(false);
@@ -293,7 +294,14 @@ export function TaxHub() {
     );
 }
 
-function ComplianceTask({ title, date, desc, status }: any) {
+interface ComplianceTaskProps {
+    title: string;
+    date: string;
+    desc: string;
+    status: 'pending' | 'completed';
+}
+
+function ComplianceTask({ title, date, desc, status }: ComplianceTaskProps) {
     return (
         <div className={`p-5 premium-card border-surface-border ${status === 'completed' ? 'opacity-60 grayscale' : 'ring-1 ring-primary/10'}`}>
             <div className="flex items-center justify-between mb-2">

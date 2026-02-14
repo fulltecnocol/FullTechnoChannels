@@ -57,8 +57,8 @@ export function LegalSignature() {
             await legalApi.submitInfo(info);
             fetchStatus();
             alert("Información legal guardada. Ahora puedes revisar el contrato.");
-        } catch (err: any) {
-            alert(err.message);
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Error al guardar la información');
         } finally {
             setSubmitting(false);
         }
@@ -70,8 +70,8 @@ export function LegalSignature() {
             const resp = await legalApi.requestSignature();
             setOtpSent(true);
             alert(resp.message);
-        } catch (err: any) {
-            alert(err.message);
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Error al solicitar la firma');
         } finally {
             setSubmitting(false);
         }
@@ -84,8 +84,8 @@ export function LegalSignature() {
             const resp = await legalApi.verifySignature(otp);
             fetchStatus();
             alert("¡Contrato firmado exitosamente en Blockchain!");
-        } catch (err: any) {
-            alert(err.message);
+        } catch (err: unknown) {
+            alert(err instanceof Error ? err.message : 'Error al verificar la firma');
         } finally {
             setVerifying(false);
         }

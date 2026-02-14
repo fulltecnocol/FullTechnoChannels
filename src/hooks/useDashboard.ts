@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { ownerApi, adminApi } from "@/lib/api";
 import { SummaryData, Channel, Withdrawal, SupportTicket, Payment, UserAdmin, ConfigItem } from "@/lib/types";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
-export function useDashboard(router: any) {
+export function useDashboard(router: AppRouterInstance) {
     const [channels, setChannels] = useState<Channel[]>([]);
     const [summary, setSummary] = useState<SummaryData | null>(null);
     const [pendingPayments, setPendingPayments] = useState<Payment[]>([]);
@@ -63,9 +64,9 @@ export function useDashboard(router: any) {
                     setPendingPayments(pending || []);
                 } catch (e) { console.error(e); }
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error fetching dashboard data:", err);
-            if (err.message.includes("401")) router.push("/login");
+            if (err instanceof Error && err.message.includes("401")) router.push("/login");
         } finally {
             if (!background) setLoading(false);
         }

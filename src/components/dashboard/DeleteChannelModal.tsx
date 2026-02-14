@@ -2,6 +2,14 @@ import { useState } from 'react';
 import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
 import { ownerApi } from '@/lib/api';
 
+interface DeleteCostData {
+    active_subscribers: number;
+    refund_amount: number;
+    penalty_amount: number;
+    total_cost: number;
+    can_afford: boolean;
+}
+
 interface DeleteChannelModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -13,7 +21,7 @@ interface DeleteChannelModalProps {
 export function DeleteChannelModal({ isOpen, onClose, channelId, channelTitle, onSuccess }: DeleteChannelModalProps) {
     const [step, setStep] = useState(1); // 1: Initial Warning, 2: Loading Cost, 3: Cost Confirmation
     const [loading, setLoading] = useState(false);
-    const [costData, setCostData] = useState<any>(null);
+    const [costData, setCostData] = useState<DeleteCostData | null>(null);
 
     if (!isOpen) return null;
 
@@ -24,22 +32,22 @@ export function DeleteChannelModal({ isOpen, onClose, channelId, channelTitle, o
             await ownerApi.deleteChannel(channelId);
             onSuccess();
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Check if error is HAS_ACTIVE_SUBS
             // Unfortunately apiRequest throws generic Error with message.
             // Backend sends detail="HAS_ACTIVE_SUBS"
-            if (error.message.includes("HAS_ACTIVE_SUBS")) {
+            if (error instanceof Error && error.message.includes("HAS_ACTIVE_SUBS")) {
                 // Fetch cost
                 try {
                     const data = await ownerApi.getDeleteChannelCost(channelId);
                     setCostData(data);
                     setStep(3);
-                } catch (e) {
+                } catch (_e) {
                     alert("Error al calcular costos de cancelación.");
                     onClose();
                 }
             } else {
-                alert(error.message);
+                alert(error instanceof Error ? error.message : 'Error desconocido');
                 onClose();
             }
         } finally {
@@ -53,8 +61,8 @@ export function DeleteChannelModal({ isOpen, onClose, channelId, channelTitle, o
             await ownerApi.deleteChannel(channelId, true);
             onSuccess();
             onClose();
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(error instanceof Error ? error.message : 'Error desconocido');
         } finally {
             setLoading(false);
         }

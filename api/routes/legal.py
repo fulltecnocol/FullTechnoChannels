@@ -18,7 +18,7 @@ from shared.signature_models import OwnerLegalInfo, SignatureCode, SignedContrac
 from api.services.pdf_service import PDFContractService
 from api.services.blockchain_service import get_blockchain_service
 
-router = APIRouter(prefix="/api/legal", tags=["Legal & Signatures"])
+router = APIRouter(prefix="/legal", tags=["Legal & Signatures"])
 
 from api.deps import get_current_user
 

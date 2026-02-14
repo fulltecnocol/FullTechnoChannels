@@ -1,8 +1,9 @@
 import { CreditCard, CheckCircle2, XCircle } from 'lucide-react';
+import { Payment } from '@/lib/types';
 
 interface AdminPaymentValidationProps {
-    pendingPayments: any[];
-    onValidatePayment: (paymentId: string, isValid: boolean) => Promise<void>;
+    pendingPayments: Payment[];
+    onValidatePayment: (paymentId: number, isValid: boolean) => Promise<void>;
 }
 
 export function AdminPaymentValidation({ pendingPayments, onValidatePayment }: AdminPaymentValidationProps) {
@@ -31,7 +32,7 @@ export function AdminPaymentValidation({ pendingPayments, onValidatePayment }: A
                         <tbody className="divide-y divide-surface-border">
                             {pendingPayments.length > 0 ? pendingPayments.map((payment) => (
                                 <tr key={payment.id} className="hover:bg-background/50 transition-colors">
-                                    <td className="p-4 font-mono text-xs text-muted">#{payment.id.slice(0, 6)}</td>
+                                    <td className="p-4 font-mono text-xs text-muted">#{payment.id.toString().slice(0, 6)}</td>
                                     <td className="p-4 font-bold">{payment.user_email}</td>
                                     <td className="p-4 font-black text-emerald-500">${payment.amount}</td>
                                     <td className="p-4 font-mono text-xs text-primary truncate max-w-[150px]" title={payment.transaction_hash}>

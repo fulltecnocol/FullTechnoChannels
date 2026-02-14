@@ -2,19 +2,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ownerApi } from "@/lib/api";
+import { Channel } from "@/lib/types";
 import { ArrowLeft, Users, Shield, Calendar } from "lucide-react";
 
 export default function ChannelDetailsPage() {
     const params = useParams();
     const router = useRouter();
-    const [channel, setChannel] = useState<any>(null);
+    const [channel, setChannel] = useState<Channel | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchChannel = async () => {
             try {
                 const channels = await ownerApi.getChannels();
-                const found = channels.find((c: any) => c.id.toString() === params.id);
+                const found = channels.find((c: Channel) => c.id.toString() === params.id);
                 if (found) setChannel(found);
                 else {
                     // Don't redirect immediately to allow debugging if needed, or handle gracefully

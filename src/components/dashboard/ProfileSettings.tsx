@@ -1,8 +1,14 @@
-import { Settings, User, Lock, Save, ShieldCheck } from 'lucide-react';
+import { User, Lock, Save, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
+interface UserProfile {
+    full_name?: string;
+    avatar_url?: string;
+    email?: string;
+}
+
 interface ProfileSettingsProps {
-    user: any;
+    user: UserProfile | null;
     isRecovery: boolean;
     onUpdateProfile: (name: string, avatarUrl: string) => Promise<void>;
     onUpdatePassword: (oldPass: string, newPass: string, confirmTwice: string) => Promise<void>;

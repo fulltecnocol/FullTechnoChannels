@@ -1,5 +1,5 @@
 
-import { Ticket, Palette, Copy, CheckCircle2 } from "lucide-react";
+import { Ticket, Palette, CheckCircle2 } from "lucide-react";
 
 export function MockChannelCard() {
     return (

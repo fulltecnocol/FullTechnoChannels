@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useSyncExternalStore } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export function ClientProviders({
     children,
@@ -10,11 +14,9 @@ export function ClientProviders({
     children: React.ReactNode;
     googleClientId?: string;
 }) {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    // Use useSyncExternalStore to avoid setState in effect warning
+    // while still preventing hydration mismatches
+    const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
     // To prevent hydration mismatch
     if (!mounted) {

@@ -1,5 +1,5 @@
 
-import { LayoutGrid, Users, Zap, LifeBuoy, Wallet, Settings } from "lucide-react";
+import { LayoutGrid, Users, Zap, Wallet, Settings } from "lucide-react";
 
 export function MockSidebar() {
     return (

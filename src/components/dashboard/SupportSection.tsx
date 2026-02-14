@@ -1,9 +1,10 @@
-import { LifeBuoy, AlertCircle, MessageSquare } from 'lucide-react';
+import { LifeBuoy, MessageSquare } from 'lucide-react';
+import { SupportTicketItem } from '@/lib/types';
 
 interface SupportSectionProps {
-    tickets: any[];
+    tickets: SupportTicketItem[];
     isAdmin: boolean;
-    onAdminViewTicket: (ticketId: string) => void;
+    onAdminViewTicket: (ticketId: number) => void;
     // TODO: Add onUserCreateTicket or similar if needed for users
 }
 
@@ -41,14 +42,14 @@ export function SupportSection({ tickets, isAdmin, onAdminViewTicket }: SupportS
                         <tbody className="divide-y divide-surface-border">
                             {tickets.length > 0 ? tickets.map((ticket) => (
                                 <tr key={ticket.id} className="hover:bg-background/50 transition-colors">
-                                    <td className="p-4 font-mono text-xs text-muted">#{ticket.id.slice(0, 8)}</td>
+                                    <td className="p-4 font-mono text-xs text-muted">#{ticket.id.toString().slice(0, 8)}</td>
                                     <td className="p-4 font-bold text-foreground">{ticket.subject}</td>
                                     <td className="p-4">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${ticket.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                            ticket.status === 'waiting_user' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                            ticket.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                                                 'bg-gray-500/10 text-gray-500 border-gray-500/20'
                                             }`}>
-                                            {ticket.status === 'open' ? 'Abierto' : ticket.status === 'closed' ? 'Cerrado' : 'Esperando Respuesta'}
+                                            {ticket.status === 'open' ? 'Abierto' : ticket.status === 'closed' ? 'Cerrado' : 'Pendiente'}
                                         </span>
                                     </td>
                                     <td className="p-4 text-muted font-medium">{new Date(ticket.updated_at).toLocaleDateString()}</td>
@@ -85,12 +86,12 @@ export function SupportSection({ tickets, isAdmin, onAdminViewTicket }: SupportS
                     {tickets.length > 0 ? tickets.map((ticket) => (
                         <div key={ticket.id} className="p-4 bg-background border border-surface-border rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs text-muted">#{ticket.id.slice(0, 8)}</span>
+                                <span className="font-mono text-xs text-muted">#{ticket.id.toString().slice(0, 8)}</span>
                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${ticket.status === 'open' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                    ticket.status === 'waiting_user' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                    ticket.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
                                         'bg-gray-500/10 text-gray-500 border-gray-500/20'
                                     }`}>
-                                    {ticket.status === 'open' ? 'Abierto' : ticket.status === 'closed' ? 'Cerrado' : 'Espera'}
+                                    {ticket.status === 'open' ? 'Abierto' : ticket.status === 'closed' ? 'Cerrado' : 'Pendiente'}
                                 </span>
                             </div>
 
