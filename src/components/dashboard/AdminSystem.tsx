@@ -1,11 +1,13 @@
-
-import { ShieldEllipsis, Users, LayoutGrid, Zap, History, ShieldCheck, Wallet, LifeBuoy, AlertTriangle } from 'lucide-react';
-import { UserAdmin, ConfigItem, Withdrawal, SupportTicket } from '@/lib/types';
+import { ShieldEllipsis, Users, LayoutGrid, Zap, History, ShieldCheck, Wallet, LifeBuoy, AlertTriangle, Trash2, Eye, X, FileText, ExternalLink, Loader2 } from 'lucide-react';
+import { UserAdmin, ConfigItem, Withdrawal, SupportTicket, LegalInfo } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import { adminApi } from '@/lib/api';
 
 interface AdminSystemProps {
     adminUsers: UserAdmin[];
     configs: ConfigItem[];
     handleConfigUpdate: (key: string, value: number) => void;
+    handleDeleteUser: (id: number) => void;
     adminWithdrawals: Withdrawal[];
     handleProcessWithdrawal: (id: number, status: string) => void;
     adminTickets: SupportTicket[];
@@ -15,9 +17,49 @@ interface AdminSystemProps {
 }
 
 export function AdminSystem({
-    adminUsers, configs, handleConfigUpdate, adminWithdrawals, handleProcessWithdrawal,
+    adminUsers, configs, handleConfigUpdate, handleDeleteUser, adminWithdrawals, handleProcessWithdrawal,
     adminTickets, handleOpenTicket, setActiveTab, mounted
 }: AdminSystemProps) {
+    const [localConfigs, setLocalConfigs] = useState<Record<string, number>>({});
+    const [isSaving, setIsSaving] = useState<string | null>(null);
+    const [selectedLegal, setSelectedLegal] = useState<LegalInfo | null>(null);
+    const [isLegalLoading, setIsLegalLoading] = useState(false);
+
+    useEffect(() => {
+        const initialConfigs: Record<string, number> = {};
+        configs.forEach(c => {
+            initialConfigs[c.key] = c.value;
+        });
+        setLocalConfigs(initialConfigs);
+    }, [configs]);
+
+    const handleLocalChange = (key: string, value: string) => {
+        const num = parseFloat(value);
+        if (!isNaN(num)) {
+            setLocalConfigs(prev => ({ ...prev, [key]: num }));
+        }
+    };
+
+    const triggerSave = async (key: string) => {
+        setIsSaving(key);
+        try {
+            await handleConfigUpdate(key, localConfigs[key]);
+        } finally {
+            setIsSaving(null);
+        }
+    };
+
+    const viewLegal = async (userId: number) => {
+        setIsLegalLoading(true);
+        try {
+            const info = await adminApi.getUserLegalInfo(userId);
+            setSelectedLegal(info);
+        } catch (err) {
+            alert("Error al cargar información legal");
+        } finally {
+            setIsLegalLoading(false);
+        }
+    };
     return (
         <div className="space-y-10 animate-fade-in">
             <header>
@@ -40,6 +82,7 @@ export function AdminSystem({
                                 <th className="p-5">ID</th>
                                 <th className="p-5">Firma Legal</th>
                                 <th className="p-5">Fecha Registro</th>
+                                <th className="p-5">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-surface-border">
@@ -64,6 +107,28 @@ export function AdminSystem({
                                     <td className="p-5">
                                         <p className="text-xs font-medium text-muted">{mounted ? new Date(u.created_at).toLocaleDateString() : '...'}</p>
                                     </td>
+                                    <td className="p-5">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => viewLegal(u.id)}
+                                                className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all"
+                                                title="Ver Documentos Legales"
+                                            >
+                                                {isLegalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm("¿Estás seguro de eliminar este propietario? Esta acción es irreversible.")) {
+                                                        handleDeleteUser(u.id);
+                                                    }
+                                                }}
+                                                className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-all"
+                                                title="Eliminar Usuario"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -78,12 +143,21 @@ export function AdminSystem({
                         <LayoutGrid className="w-5 h-5" /> Comisión Plataforma
                     </div>
                     <p className="text-xs text-muted">El porcentaje total que se retiene de cada pago (ej: 0.10 para 10%).</p>
-                    <input
-                        type="number" step="0.01"
-                        defaultValue={configs.find(c => c.key === "platform_fee")?.value || 0.10}
-                        className="w-full p-3 bg-background rounded-xl border border-surface-border text-lg font-bold"
-                        onBlur={(e) => handleConfigUpdate("platform_fee", parseFloat(e.target.value))}
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            type="number" step="0.01"
+                            value={localConfigs["platform_fee"] ?? 0.10}
+                            onChange={(e) => handleLocalChange("platform_fee", e.target.value)}
+                            className="flex-1 p-3 bg-background rounded-xl border border-surface-border text-lg font-bold"
+                        />
+                        <button
+                            onClick={() => triggerSave("platform_fee")}
+                            disabled={isSaving === "platform_fee"}
+                            className="px-4 bg-primary text-primary-foreground rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                        >
+                            {isSaving === "platform_fee" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Configuración Multinivel (10 Niveles) */}
@@ -109,12 +183,21 @@ export function AdminSystem({
                         ].map((level) => (
                             <div key={level.lv} className="space-y-2 p-4 bg-background rounded-xl border border-surface-border">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-muted">{level.n}</label>
-                                <input
-                                    type="number" step="0.001"
-                                    defaultValue={configs.find(c => c.key === `affiliate_level_${level.lv}_fee`)?.value || (level.lv === 1 ? 0.03 : 0.001)}
-                                    className="w-full p-2 bg-surface-border/30 rounded-lg text-sm font-bold focus:ring-1 ring-primary outline-none"
-                                    onBlur={(e) => handleConfigUpdate(`affiliate_level_${level.lv}_fee`, parseFloat(e.target.value))}
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number" step="0.001"
+                                        value={localConfigs[`affiliate_level_${level.lv}_fee`] ?? (level.lv === 1 ? 0.03 : 0.001)}
+                                        onChange={(e) => handleLocalChange(`affiliate_level_${level.lv}_fee`, e.target.value)}
+                                        className="flex-1 p-2 bg-surface-border/30 rounded-lg text-sm font-bold focus:ring-1 ring-primary outline-none"
+                                    />
+                                    <button
+                                        onClick={() => triggerSave(`affiliate_level_${level.lv}_fee`)}
+                                        disabled={isSaving === `affiliate_level_${level.lv}_fee`}
+                                        className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all disabled:opacity-50"
+                                    >
+                                        {isSaving === `affiliate_level_${level.lv}_fee` ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -133,12 +216,21 @@ export function AdminSystem({
                             <History className="w-5 h-5" /> {config.label}
                         </div>
                         <p className="text-xs text-muted">{config.desc}</p>
-                        <input
-                            type="number" step={config.step}
-                            defaultValue={configs.find(c => c.key === config.key)?.value || 0}
-                            className="w-full p-3 bg-background rounded-xl border border-surface-border text-lg font-bold"
-                            onBlur={(e) => handleConfigUpdate(config.key, parseFloat(e.target.value))}
-                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="number" step={config.step}
+                                value={localConfigs[config.key] ?? 0}
+                                onChange={(e) => handleLocalChange(config.key, e.target.value)}
+                                className="flex-1 p-3 bg-background rounded-xl border border-surface-border text-lg font-bold"
+                            />
+                            <button
+                                onClick={() => triggerSave(config.key)}
+                                disabled={isSaving === config.key}
+                                className="px-4 bg-primary text-primary-foreground rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                            >
+                                {isSaving === config.key ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -231,6 +323,101 @@ export function AdminSystem({
                     )}
                 </div>
             </div>
+            {/* Modal de Información Legal */}
+            {selectedLegal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="premium-card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-in zoom-in-95 relative">
+                        <button
+                            onClick={() => setSelectedLegal(null)}
+                            className="absolute top-4 right-4 p-2 hover:bg-surface-border rounded-full transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+
+                        <header className="mb-8">
+                            <h3 className="text-2xl font-black flex items-center gap-2 text-primary">
+                                <FileText className="w-8 h-8" /> Expediente Legal de Propietario
+                            </h3>
+                            <p className="text-muted font-medium">Información corporativa y documentos cargados.</p>
+                        </header>
+
+                        {!selectedLegal.has_legal ? (
+                            <div className="p-10 text-center bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                                <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                                <p className="font-bold text-amber-500">Este usuario aún no ha completado su perfil legal.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-muted tracking-widest">Nombre Legal / Razón Social</label>
+                                        <p className="font-bold text-lg">{selectedLegal.person_type === 'natural' ? selectedLegal.full_legal_name : selectedLegal.business_name}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-muted tracking-widest">Identificación / NIT</label>
+                                        <p className="font-bold text-lg">{selectedLegal.person_type === 'natural' ? `${selectedLegal.id_type} ${selectedLegal.id_number}` : selectedLegal.nit}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-muted tracking-widest">Contacto</label>
+                                        <p className="font-bold">{selectedLegal.phone}</p>
+                                        <p className="text-sm text-muted">{selectedLegal.address}, {selectedLegal.city}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-muted tracking-widest">Información Bancaria</label>
+                                        <p className="font-bold">{selectedLegal.bank_name}</p>
+                                        <p className="text-sm text-muted">{selectedLegal.account_type?.toUpperCase()} #{selectedLegal.account_number}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="font-black text-sm uppercase tracking-widest text-primary border-b border-surface-border pb-2">Documentación Anexa</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {selectedLegal.rut_url && (
+                                            <a href={selectedLegal.rut_url} target="_blank" className="flex items-center justify-between p-4 bg-background border border-surface-border rounded-xl hover:bg-surface-border transition-colors group">
+                                                <div className="flex items-center gap-3">
+                                                    <FileText className="w-5 h-5 text-primary" />
+                                                    <span className="text-sm font-bold">Registro RUT</span>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-muted group-hover:text-primary transition-colors" />
+                                            </a>
+                                        )}
+                                        {selectedLegal.bank_cert_url && (
+                                            <a href={selectedLegal.bank_cert_url} target="_blank" className="flex items-center justify-between p-4 bg-background border border-surface-border rounded-xl hover:bg-surface-border transition-colors group">
+                                                <div className="flex items-center gap-3">
+                                                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                                                    <span className="text-sm font-bold">Certificación Bancaria</span>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-muted group-hover:text-primary transition-colors" />
+                                            </a>
+                                        )}
+                                        {selectedLegal.chamber_commerce_url && (
+                                            <a href={selectedLegal.chamber_commerce_url} target="_blank" className="flex items-center justify-between p-4 bg-background border border-surface-border rounded-xl hover:bg-surface-border transition-colors group">
+                                                <div className="flex items-center gap-3">
+                                                    <Zap className="w-5 h-5 text-amber-500" />
+                                                    <span className="text-sm font-bold">Cámara de Comercio</span>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-muted group-hover:text-primary transition-colors" />
+                                            </a>
+                                        )}
+                                        {selectedLegal.contract_pdf_url && (
+                                            <a href={selectedLegal.contract_pdf_url} target="_blank" className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors group">
+                                                <div className="flex items-center gap-3">
+                                                    <ShieldCheck className="w-5 h-5 text-primary" />
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-bold">Contrato Firmado</span>
+                                                        <span className="text-[10px] text-muted">Firmado el {new Date(selectedLegal.signed_at!).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink className="w-4 h-4 text-muted group-hover:text-primary transition-colors" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

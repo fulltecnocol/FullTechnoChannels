@@ -580,6 +580,51 @@ async def get_all_users(current_user: DBUser = Depends(get_current_admin), db: A
     result = await db.execute(select(DBUser).where(DBUser.is_owner == True).order_by(DBUser.created_at.desc()))
     return result.scalars().all()
 
+@app.delete("/admin/users/{user_id}")
+async def delete_admin_user(user_id: int, current_user: DBUser = Depends(get_current_admin), db: AsyncSessionLocal = Depends(get_db)):
+    result = await db.execute(select(DBUser).where(DBUser.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    await db.delete(user)
+    await db.commit()
+    return {"status": "deleted"}
+
+@app.get("/admin/users/{user_id}/legal")
+async def get_user_legal_data(user_id: int, current_user: DBUser = Depends(get_current_admin), db: AsyncSessionLocal = Depends(get_db)):
+    from shared.signature_models import OwnerLegalInfo
+    result = await db.execute(select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == user_id))
+    legal = result.scalar_one_or_none()
+    
+    if not legal:
+        return {"has_legal": False}
+        
+    return {
+        "has_legal": True,
+        "person_type": legal.person_type,
+        "full_legal_name": legal.full_legal_name,
+        "id_type": legal.id_type,
+        "id_number": legal.id_number,
+        "business_name": legal.business_name,
+        "nit": legal.nit,
+        "legal_rep_name": legal.legal_rep_name,
+        "legal_rep_id": legal.legal_rep_id,
+        "address": legal.address,
+        "city": legal.city,
+        "department": legal.department,
+        "phone": legal.phone,
+        "bank_name": legal.bank_name,
+        "account_type": legal.account_type,
+        "account_number": legal.account_number,
+        "account_holder_name": legal.account_holder_name,
+        "rut_url": legal.rut_url,
+        "bank_cert_url": legal.bank_cert_url,
+        "chamber_commerce_url": legal.chamber_commerce_url,
+        "contract_pdf_url": legal.contract_pdf_url,
+        "signed_at": legal.contract_signed_at
+    }
+
 @app.get("/admin/withdrawals")
 async def get_all_withdrawals(current_user: DBUser = Depends(get_current_admin), db: AsyncSessionLocal = Depends(get_db)):
     result = await db.execute(select(Withdrawal).order_by(Withdrawal.created_at.desc()))

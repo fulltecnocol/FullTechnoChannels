@@ -150,14 +150,28 @@ export interface TicketDetailsResponse {
 }
 
 export interface LegalInfo {
+    has_legal: boolean;
     person_type: 'natural' | 'juridica';
-    full_name: string;
-    document_id: string;
-    address: string;
-    phone: string;
-    company_name?: string;
-    tax_id?: string;
-    legal_representative?: string;
+    full_legal_name?: string;
+    id_type?: string;
+    id_number?: string;
+    business_name?: string;
+    nit?: string;
+    legal_rep_name?: string;
+    legal_rep_id?: string;
+    address?: string;
+    city?: string;
+    department?: string;
+    phone?: string;
+    bank_name?: string;
+    account_type?: string;
+    account_number?: string;
+    account_holder_name?: string;
+    rut_url?: string;
+    bank_cert_url?: string;
+    chamber_commerce_url?: string;
+    contract_pdf_url?: string;
+    signed_at?: string;
 }
 
 export interface LegalStatus {

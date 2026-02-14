@@ -151,6 +151,10 @@ export const adminApi = {
         method: "POST",
     }),
     getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),
+    deleteUser: (id: number) => apiRequest<void>(`/admin/users/${id}`, {
+        method: "DELETE",
+    }),
+    getUserLegalInfo: (id: number) => apiRequest<LegalInfo>(`/admin/users/${id}/legal`),
     getTaxSummary: (year?: number) => apiRequest(`/admin/tax/summary${year ? `?year=${year}` : ""}`),
     getExpenses: (year?: number) => apiRequest<any[]>(`/admin/expenses${year ? `?year=${year}` : ""}`),
     createExpense: (data: { description: string; amount: number; category: string; date: string }) => apiRequest("/admin/expenses", {

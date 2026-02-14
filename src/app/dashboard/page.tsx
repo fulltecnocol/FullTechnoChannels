@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Users, Wallet, TrendingUp, LayoutGrid, Settings, LogOut,
-  Menu, X, PlusCircle, Ticket, Zap, LifeBuoy, ShieldEllipsis, CreditCard,
-  Copy, Trash2, CheckCircle2, AlertCircle, ArrowRight, Loader2, Calculator, ShieldCheck
-} from 'lucide-react';
+  Shield, Zap, Wallet, Users, LayoutGrid, LifeBuoy, TrendingUp, DollarSign, Globe, CheckCircle2,
+  Copy, Bot, ShieldCheck, History, AlertTriangle, ShieldEllipsis, Loader2, X, Settings,
+  CreditCard, Calculator, LogOut, Menu, PlusCircle, Ticket, Trash2, AlertCircle, ArrowRight
+} from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ownerApi, adminApi } from "@/lib/api";
+import { ownerApi, adminApi, publicApi } from "@/lib/api";
+import { User, Channel, Plan, SummaryData, ConfigItem, Withdrawal, SupportTicket, Payment, UserAdmin } from "@/lib/types";
+
 
 // Import new components
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
@@ -51,8 +53,8 @@ export default function DashboardPage() {
   const [tickets, setTickets] = useState<any[]>([]);
 
   // Admin states
-  const [adminUsers, setAdminUsers] = useState<any[]>([]);
-  const [configs, setConfigs] = useState<any[]>([]);
+  const [adminUsers, setAdminUsers] = useState<UserAdmin[]>([]);
+  const [configs, setConfigs] = useState<ConfigItem[]>([]);
   const [adminWithdrawals, setAdminWithdrawals] = useState<any[]>([]);
   const [adminTickets, setAdminTickets] = useState<any[]>([]);
 
@@ -66,6 +68,7 @@ export default function DashboardPage() {
       router.push("/login");
     } else {
       fetchData();
+      loadPublicConfig();
     }
 
     if (isRecovery) setActiveTab('settings');
@@ -120,6 +123,21 @@ export default function DashboardPage() {
       const data = await ownerApi.getTickets();
       setTickets(data);
     } catch (e) { console.error(e) }
+  };
+
+  const loadPublicConfig = async () => {
+    try {
+      const publicConf = await publicApi.getConfig();
+      // Transform Record<string, number> to ConfigItem[]
+      const transformed: ConfigItem[] = Object.entries(publicConf).map(([key, value], index) => ({
+        id: index,
+        key,
+        value
+      }));
+      setConfigs(transformed);
+    } catch (e) {
+      console.error("Error loading public config", e);
+    }
   };
 
   const loadAdminData = async () => {
@@ -265,6 +283,14 @@ export default function DashboardPage() {
   const handleOpenTicket = (id: number, isAdmin: boolean) => {
     // Logic for opening ticket detail modal could be added here
     alert(`Abriendo Ticket #${id} (Admin: ${isAdmin})`);
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    try {
+      await adminApi.deleteUser(id);
+      setAdminUsers(prev => prev.filter(u => u.id !== id));
+      alert("Usuario eliminado");
+    } catch (e: any) { alert(e.message); }
   };
 
   const handleSaveBranding = async () => {
@@ -543,6 +569,7 @@ export default function DashboardPage() {
             adminWithdrawals={adminWithdrawals}
             adminTickets={adminTickets}
             handleConfigUpdate={handleConfigUpdate}
+            handleDeleteUser={handleDeleteUser}
             handleProcessWithdrawal={handleProcessWithdrawal}
             handleOpenTicket={handleOpenTicket}
             setActiveTab={setActiveTab}
