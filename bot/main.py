@@ -29,8 +29,8 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 WEBHOOK_PATH = f"/webhook/{API_TOKEN}"
 
 router = Router()
-bot: Bot = None
-dp: Dispatcher = None
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher()
 
 # --- Lógica de Negocio (Mantenida) ---
 
@@ -566,16 +566,14 @@ async def bot_health_check():
 
 
 @app.on_event("startup")
-async def on_startup():
-    global bot, dp
-    bot = Bot(token=API_TOKEN)
-    dp = Dispatcher()
-    
-    # Importar y registrar rutas
+async def on_bot_startup():
+    # Registrar routers
     from bot.handlers.signature_handlers import signature_router
-    dp.include_router(signature_router)
+    if signature_router not in dp.sub_routers:
+        dp.include_router(signature_router)
     
-    dp.include_router(router)
+    if router not in dp.sub_routers:
+        dp.include_router(router)
     
 
     
@@ -614,15 +612,14 @@ async def on_startup():
         logging.info("Starting in POLLING mode")
 
 async def run_polling():
-    global bot, dp
-    bot = Bot(token=API_TOKEN)
-    dp = Dispatcher()
-    
-    # Importar y registrar rutas
+    # Registrar routers
     from bot.handlers.signature_handlers import signature_router
-    dp.include_router(signature_router)
+    if signature_router not in dp.sub_routers:
+        dp.include_router(signature_router)
     
-    dp.include_router(router)
+    if router not in dp.sub_routers:
+        dp.include_router(router)
+
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
