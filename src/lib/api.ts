@@ -1,5 +1,5 @@
 import {
-    AuthResponse, SummaryData, Channel, Withdrawal, SupportTicket,
+    AuthResponse, SummaryData, Channel, Plan, Withdrawal, SupportTicket,
     TicketDetailsResponse, ConfigItem, TicketMessage, AnalyticsData, Promotion, Payment,
     LegalInfo, LegalStatus, UserAdmin
 } from "./types";
@@ -127,6 +127,18 @@ export const ownerApi = {
         method: "DELETE",
     }),
     getAnalytics: () => apiRequest<AnalyticsData>("/owner/analytics"),
+    getPlans: (channelId: number) => apiRequest<Plan[]>(`/owner/channels/${channelId}/plans`),
+    createPlan: (channelId: number, data: any) => apiRequest<Plan>(`/owner/channels/${channelId}/plans`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    updatePlan: (planId: number, data: any) => apiRequest<Plan>(`/owner/plans/${planId}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+    }),
+    deletePlan: (planId: number) => apiRequest<void>(`/owner/plans/${planId}`, {
+        method: "DELETE",
+    }),
 };
 
 export const adminApi = {

@@ -1,16 +1,17 @@
-import { Users, Megaphone, ArrowRight, Settings, Trash2 } from 'lucide-react';
+import { Users, Megaphone, ArrowRight, Settings, Trash2, DollarSign } from 'lucide-react';
 
 interface ChannelListProps {
     channels: any[];
     onEditBranding: (channel: any) => void;
     onManagePromos: (channel: any) => void;
+    onManagePlans: (channel: any) => void;
     onViewSubscribers: (channelId: string) => void;
     onLinkChannel: (channel: any) => void;
     onDeleteChannel: (channelId: number) => void;
     isLoading: boolean;
 }
 
-export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSubscribers, onLinkChannel, onDeleteChannel, isLoading }: ChannelListProps) {
+export function ChannelList({ channels, onEditBranding, onManagePromos, onManagePlans, onViewSubscribers, onLinkChannel, onDeleteChannel, isLoading }: ChannelListProps) {
     if (isLoading) {
         return <div className="p-10 text-center text-muted animate-pulse">Cargando canales...</div>;
     }
@@ -43,7 +44,17 @@ export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSu
                             <div className="flex items-center gap-4 mt-1 text-xs font-bold text-muted">
                                 <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {channel.subscriber_count || 0} Subs</span>
                                 <span className="w-1 h-1 rounded-full bg-surface-border" />
-                                <span>${channel.monthly_price} / mes</span>
+                                <span>
+                                    {channel.plans && channel.plans.length > 0
+                                        ? (() => {
+                                            const activePlans = channel.plans.filter((p: any) => p.is_active);
+                                            const minPrice = activePlans.length > 0
+                                                ? Math.min(...activePlans.map((p: any) => p.price))
+                                                : channel.plans[0].price;
+                                            return `Desde $${minPrice} USD`;
+                                        })()
+                                        : "Sin precio"}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -71,6 +82,13 @@ export function ChannelList({ channels, onEditBranding, onManagePromos, onViewSu
                             title="Gestionar Ofertas"
                         >
                             <Megaphone className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => onManagePlans(channel)}
+                            className="p-2.5 text-muted hover:text-primary bg-surface hover:bg-surface-border rounded-xl transition-all"
+                            title="Gestionar Precios"
+                        >
+                            <DollarSign className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => onEditBranding(channel)}

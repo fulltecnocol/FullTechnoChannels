@@ -83,6 +83,29 @@ class TaxExpenseRequest(BaseModel):
     category: str
     date: str # ISO format
 
+class PlanCreate(BaseModel):
+    name: str
+    description: str = ""
+    price: float
+    duration_days: int
+
+class PlanUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    duration_days: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class PlanResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    price: float
+    duration_days: int
+    is_active: bool
+    class Config:
+        from_attributes = True
+
 class ChannelCreate(BaseModel):
     title: str
 
@@ -852,8 +875,9 @@ async def update_password(
 
 @app.get("/owner/channels")
 async def get_owner_channels(current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    from sqlalchemy.orm import selectinload
     result = await db.execute(
-        select(Channel).where(Channel.owner_id == current_user.id)
+        select(Channel).where(Channel.owner_id == current_user.id).options(selectinload(Channel.plans))
     )
     channels = result.scalars().all()
     return channels
@@ -873,6 +897,20 @@ async def create_channel(channel_data: ChannelCreate, current_user: DBUser = Dep
     db.add(new_channel)
     await db.commit()
     await db.refresh(new_channel)
+
+    # Crear un plan mensual por defecto para que el canal tenga precio inicial
+    default_plan = Plan(
+        channel_id=new_channel.id,
+        name="Mensual",
+        description="Acceso por 30 días",
+        price=10.0,
+        duration_days=30,
+        is_active=True
+    )
+    db.add(default_plan)
+    await db.commit()
+    await db.refresh(new_channel) # Volver a cargar con el plan
+
     return new_channel
 
 @app.get("/owner/channels/{channel_id}/delete-cost")
@@ -971,6 +1009,74 @@ async def delete_channel(channel_id: int, confirm: bool = False, current_user: D
     await db.delete(channel)
     await db.commit()
     return {"status": "deleted", "id": channel_id}
+
+@app.get("/owner/channels/{channel_id}/plans", response_model=List[PlanResponse])
+async def get_channel_plans(channel_id: int, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    chan_check = await db.execute(select(Channel).where(and_(Channel.id == channel_id, Channel.owner_id == current_user.id)))
+    if not chan_check.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Canal no encontrado")
+        
+    result = await db.execute(select(Plan).where(Plan.channel_id == channel_id))
+    return result.scalars().all()
+
+@app.post("/owner/channels/{channel_id}/plans", response_model=PlanResponse)
+async def create_channel_plan(channel_id: int, data: PlanCreate, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    chan_check = await db.execute(select(Channel).where(and_(Channel.id == channel_id, Channel.owner_id == current_user.id)))
+    if not chan_check.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Canal no encontrado")
+
+    new_plan = Plan(
+        channel_id=channel_id,
+        name=data.name,
+        description=data.description,
+        price=data.price,
+        duration_days=data.duration_days,
+        is_active=True
+    )
+    db.add(new_plan)
+    await db.commit()
+    await db.refresh(new_plan)
+    return new_plan
+
+@app.patch("/owner/plans/{plan_id}", response_model=PlanResponse)
+async def update_plan(plan_id: int, data: PlanUpdate, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    result = await db.execute(
+        select(Plan).join(Channel).where(
+            and_(Plan.id == plan_id, Channel.owner_id == current_user.id)
+        )
+    )
+    plan = result.scalar_one_or_none()
+    if not plan: raise HTTPException(status_code=404, detail="Plan no encontrado")
+        
+    if data.name is not None: plan.name = data.name
+    if data.description is not None: plan.description = data.description
+    if data.price is not None: plan.price = data.price
+    if data.duration_days is not None: plan.duration_days = data.duration_days
+    if data.is_active is not None: plan.is_active = data.is_active
+    
+    await db.commit()
+    await db.refresh(plan)
+    return plan
+
+@app.delete("/owner/plans/{plan_id}")
+async def delete_plan(plan_id: int, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):
+    result = await db.execute(
+        select(Plan).join(Channel).where(
+            and_(Plan.id == plan_id, Channel.owner_id == current_user.id)
+        )
+    )
+    plan = result.scalar_one_or_none()
+    if not plan: raise HTTPException(status_code=404, detail="Plan no encontrado")
+        
+    subs_result = await db.execute(select(Subscription).where(and_(Subscription.plan_id == plan_id, Subscription.is_active == True)))
+    if subs_result.scalars().first():
+        plan.is_active = False
+        await db.commit()
+        return {"status": "deactivated", "message": "Plan desactivado por tener suscripciones activas."}
+
+    await db.delete(plan)
+    await db.commit()
+    return {"status": "deleted"}
 
 @app.post("/owner/channels/{channel_id}/branding")
 async def update_channel_branding(channel_id: int, data: BrandingUpdate, current_user: DBUser = Depends(get_current_owner), db: AsyncSessionLocal = Depends(get_db)):

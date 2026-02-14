@@ -24,6 +24,7 @@ import { AffiliateSection } from "@/components/dashboard/AffiliateSection";
 import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
 import { TaxHub } from "@/components/dashboard/TaxHub";
 import { AdminSystem } from "@/components/dashboard/AdminSystem";
+import { PlanManagementModal } from "@/components/dashboard/PlanManagementModal";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function DashboardPage() {
   const [isAddingChannel, setIsAddingChannel] = useState(false);
   const [editingBranding, setEditingBranding] = useState<any>(null);
   const [managingPromos, setManagingPromos] = useState<any>(null);
+  const [managingPlans, setManagingPlans] = useState<any>(null);
   const [promotions, setPromotions] = useState<any[]>([]);
 
   // Wizard state for new channel
@@ -489,6 +491,7 @@ export default function DashboardPage() {
                   setManagingPromos(ch);
                   handleLoadPromos(ch.id);
                 }}
+                onManagePlans={setManagingPlans}
                 onLinkChannel={(channel) => {
                   setCreatedChannel(channel);
                   setNewChannelStep(2);
@@ -515,6 +518,7 @@ export default function DashboardPage() {
               setManagingPromos(ch);
               handleLoadPromos(ch.id);
             }}
+            onManagePlans={setManagingPlans}
             onLinkChannel={(channel) => {
               setCreatedChannel(channel);
               setNewChannelStep(2);
@@ -718,6 +722,11 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+      <PlanManagementModal
+        isOpen={!!managingPlans}
+        onClose={() => setManagingPlans(null)}
+        channel={managingPlans}
+      />
     </div>
   );
 }

@@ -26,6 +26,7 @@ export interface Channel {
     welcome_message?: string;
     expiration_message?: string;
     created_at: string;
+    plans?: Plan[];
 }
 
 export interface Plan {
