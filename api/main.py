@@ -323,6 +323,15 @@ async def register_owner(user_data: UserRegister, db: AsyncSessionLocal = Depend
         if not token_obj:
             raise HTTPException(status_code=400, detail="Token de registro inválido o expirado")
         telegram_id = token_obj.telegram_id
+        
+        # Check if Telegram ID already linked to another user
+        tg_check = await db.execute(select(DBUser).where(DBUser.telegram_id == telegram_id))
+        if tg_check.scalar_one_or_none():
+             raise HTTPException(
+                 status_code=400, 
+                 detail="Esta cuenta de Telegram ya está vinculada a un usuario. Por favor, inicia sesión o usa otra cuenta de Telegram."
+             )
+             
         await db.delete(token_obj) # Consume token
 
     new_owner = DBUser(
@@ -336,9 +345,15 @@ async def register_owner(user_data: UserRegister, db: AsyncSessionLocal = Depend
     db.add(new_owner)
     try:
         await db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         await db.rollback()
-        raise HTTPException(status_code=400, detail="Este email ya está registrado")
+        error_msg = str(e.orig)
+        if "users_email_key" in error_msg or "email" in error_msg:
+             raise HTTPException(status_code=400, detail="Este email ya está registrado")
+        elif "users_telegram_id_key" in error_msg or "telegram_id" in error_msg:
+             raise HTTPException(status_code=400, detail="Esta cuenta de Telegram ya está registrada con otro usuario")
+        else:
+             raise HTTPException(status_code=400, detail="Error de integridad: Esta cuenta ya existe o algunos datos están duplicados")
     
     access_token = create_access_token(data={"sub": new_owner.email})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -399,6 +414,15 @@ async def google_auth(auth_data: GoogleAuthRequest, db: AsyncSessionLocal = Depe
                     token_obj = token_res.scalar_one_or_none()
                     if token_obj:
                         telegram_id = token_obj.telegram_id
+                        
+                        # Check if Telegram ID already linked
+                        tg_check = await db.execute(select(DBUser).where(DBUser.telegram_id == telegram_id))
+                        if tg_check.scalar_one_or_none():
+                             raise HTTPException(
+                                 status_code=400, 
+                                 detail="Esta cuenta de Telegram ya está vinculada a otro usuario."
+                             )
+                             
                         await db.delete(token_obj)
 
                 user = DBUser(
