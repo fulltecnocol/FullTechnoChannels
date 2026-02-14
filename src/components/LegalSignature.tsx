@@ -39,16 +39,17 @@ export function LegalSignature() {
         const formData = new FormData(e.currentTarget);
         const info: LegalInfo = {
             person_type: personType,
-            full_name: formData.get("full_name") as string,
-            document_id: formData.get("document_id") as string,
+            full_legal_name: formData.get("full_name") as string,
+            id_number: formData.get("document_id") as string,
+            id_type: "CC", // Default to CC for Colombian context, or adjust as needed
             address: formData.get("address") as string,
             phone: formData.get("phone") as string,
         };
 
         if (personType === 'juridica') {
-            info.company_name = formData.get("company_name") as string;
-            info.tax_id = formData.get("tax_id") as string;
-            info.legal_representative = formData.get("legal_representative") as string;
+            info.business_name = formData.get("company_name") as string;
+            info.nit = formData.get("tax_id") as string;
+            info.legal_rep_name = formData.get("legal_representative") as string;
         }
 
         try {

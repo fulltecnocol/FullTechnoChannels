@@ -150,7 +150,7 @@ export interface TicketDetailsResponse {
 }
 
 export interface LegalInfo {
-    has_legal: boolean;
+    has_legal?: boolean;
     person_type: 'natural' | 'juridica';
     full_legal_name?: string;
     id_type?: string;
