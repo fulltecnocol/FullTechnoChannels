@@ -12,6 +12,7 @@ router = APIRouter(prefix="/calls", tags=["calls"])
 
 # --- SCHEMAS ---
 class CallConfigIn(BaseModel):
+    channel_id: Optional[int] = None
     price: float
     duration_minutes: int
     description: Optional[str] = None
@@ -40,21 +41,25 @@ class CallConfigOut(CallConfigIn):
 
 @router.get("/config", response_model=CallConfigOut)
 async def get_call_config(
+    channel_id: Optional[int] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSessionLocal = Depends(get_db)
 ):
     """Get the current user's call service configuration"""
-    result = await db.execute(
-        select(CallService)
-        .where(CallService.owner_id == current_user.id)
-        .options(selectinload(CallService.slots))
-    )
-    service = result.scalar_one_or_none()
+    query = select(CallService).where(CallService.owner_id == current_user.id)
+    
+    if channel_id:
+        query = query.where(CallService.channel_id == channel_id)
+
+    # If no channel_id, we might get multiple. Return first for now.
+    result = await db.execute(query.options(selectinload(CallService.slots)))
+    service = result.scalars().first()
     
     if not service:
         # Return empty default config if not set
         return CallConfigOut(
-            id=0, 
+            id=0,
+            channel_id=channel_id,
             price=0, 
             duration_minutes=30, 
             description="", 
@@ -62,8 +67,6 @@ async def get_call_config(
             slots=[]
         )
     
-    # Filter only future slots for display if needed, but for owner we show all? 
-    # Let's show all for now.
     return service
 
 @router.post("/config", response_model=CallConfigOut)
@@ -73,19 +76,23 @@ async def update_call_config(
     db: AsyncSessionLocal = Depends(get_db)
 ):
     """Update or create call service configuration"""
-    result = await db.execute(
-        select(CallService).where(CallService.owner_id == current_user.id)
-    )
-    service = result.scalar_one_or_none()
+    query = select(CallService).where(CallService.owner_id == current_user.id)
+    if config.channel_id:
+        query = query.where(CallService.channel_id == config.channel_id)
+
+    result = await db.execute(query)
+    service = result.scalars().first()
     
     if service:
         service.price = config.price
         service.duration_minutes = config.duration_minutes
         service.description = config.description
         service.is_active = config.is_active
+        # service.channel_id = config.channel_id # usually fixed
     else:
         service = CallService(
             owner_id=current_user.id,
+            channel_id=config.channel_id,
             price=config.price,
             duration_minutes=config.duration_minutes,
             description=config.description,
@@ -160,6 +167,7 @@ async def delete_slot(
 # --- RECURRING ENDPOINT ---
 
 class GenerateSlotsIn(BaseModel):
+    channel_id: Optional[int] = None
     days_of_week: List[int]  # 0=Mon, 6=Sun
     start_time: str  # HH:MM
     end_time: str    # HH:MM
@@ -174,12 +182,15 @@ async def generate_slots(
 ):
     """Generate slots for a date range based on recurring rules"""
     # 1. Get Service
-    result = await db.execute(
-        select(CallService).where(CallService.owner_id == current_user.id)
-    )
-    service = result.scalar_one_or_none()
+    query = select(CallService).where(CallService.owner_id == current_user.id)
+    if data.channel_id:
+        query = query.where(CallService.channel_id == data.channel_id)
+
+    result = await db.execute(query)
+    service = result.scalars().first()
+    
     if not service:
-        raise HTTPException(status_code=400, detail="Must configure service first")
+        raise HTTPException(status_code=400, detail="Must configure service first for this channel")
     
     duration = service.duration_minutes
     if duration < 5:

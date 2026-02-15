@@ -15,6 +15,11 @@ interface Dictionary {
     [key: string]: any;
 }
 
+interface Channel {
+    id: number;
+    title: string;
+}
+
 export default function CallsManagement() {
     const { user, token, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
@@ -25,6 +30,9 @@ export default function CallsManagement() {
         is_active: false,
         slots: [],
     });
+
+    const [channels, setChannels] = useState<Channel[]>([]);
+    const [selectedChannelId, setSelectedChannelId] = useState<string>("");
 
     // New Slot State
     const [newSlotDate, setNewSlotDate] = useState("");
@@ -47,28 +55,48 @@ export default function CallsManagement() {
         { id: 6, label: "Dom" },
     ];
 
-    const fetchConfig = async () => {
+    const fetchChannels = async () => {
         try {
             if (!token) return;
-            const data = await apiRequest<Dictionary>('/calls/config');
+            const data = await apiRequest<Channel[]>('/channels/my-channels');
+            setChannels(data);
+            if (data.length > 0 && !selectedChannelId) {
+                setSelectedChannelId(data[0].id.toString());
+            } else if (data.length === 0) {
+                setLoading(false); // Stop loading if no channels
+            }
+        } catch (e) {
+            console.error("Error fetching channels", e);
+            setLoading(false);
+        }
+    };
+
+    const fetchConfig = async () => {
+        try {
+            if (!token || !selectedChannelId) return;
+            setLoading(true);
+            const data = await apiRequest<Dictionary>(`/calls/config?channel_id=${selectedChannelId}`);
             setConfig(data);
         } catch (error) {
             console.error(error);
-            // toast.error("Error cargando configuración"); // apiRequest throws, caught here
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (!authLoading) {
-            if (token) {
-                fetchConfig();
-            } else {
-                setLoading(false); // Stop loading if no token available
-            }
+        if (!authLoading && token) {
+            fetchChannels();
+        } else if (!token && !authLoading) {
+            setLoading(false);
         }
     }, [token, authLoading]);
+
+    useEffect(() => {
+        if (selectedChannelId) {
+            fetchConfig();
+        }
+    }, [selectedChannelId]);
 
     const handleSaveConfig = async () => {
         try {
@@ -82,7 +110,8 @@ export default function CallsManagement() {
                     price: parseFloat(config.price),
                     duration_minutes: parseInt(config.duration_minutes),
                     description: config.description,
-                    is_active: config.is_active
+                    is_active: config.is_active,
+                    channel_id: selectedChannelId ? parseInt(selectedChannelId) : null
                 }),
             });
 
@@ -137,7 +166,8 @@ export default function CallsManagement() {
         } catch (e) {
             toast.error("Error eliminando slot");
         }
-    }
+    };
+
     const handleGenerateSlots = async () => {
         if (!recurStartDate || !recurEndDate || recurringDays.length === 0) {
             toast.error("Completa los campos de recurrencia");
@@ -152,14 +182,14 @@ export default function CallsManagement() {
                     start_time: recurStart,
                     end_time: recurEnd,
                     start_date: new Date(recurStartDate).toISOString(),
-                    end_date: new Date(recurEndDate).toISOString()
+                    end_date: new Date(recurEndDate).toISOString(),
+                    channel_id: selectedChannelId ? parseInt(selectedChannelId) : null
                 })
             });
 
             if (res) {
                 toast.success("Horarios generados correctamente");
                 fetchConfig();
-                // Reset fields? Maybe keep them for convenience
             }
         } catch (e) {
             toast.error("Error generando horarios (Verifica solapamientos o datos)");
@@ -185,6 +215,20 @@ export default function CallsManagement() {
                         Venta de Llamadas Privadas
                     </h2>
                     <p className="text-gray-400">Configura tus sesiones 1 a 1 con suscriptores.</p>
+                </div>
+
+                <div className="w-48">
+                    <Label className="text-xs mb-1 block text-gray-400">Canal Seleccionado</Label>
+                    <select
+                        className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white"
+                        value={selectedChannelId}
+                        onChange={(e) => setSelectedChannelId(e.target.value)}
+                    >
+                        {channels.length === 0 && <option value="">Cargando canales...</option>}
+                        {channels.map(c => (
+                            <option key={c.id} value={c.id}>{c.title}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 

@@ -287,12 +287,14 @@ class CallService(Base):
     __tablename__ = "call_services"
     id = Column(Integer, primary_key=True, index=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
+    channel_id = Column(Integer, ForeignKey("channels.id"), nullable=True)  # New field
     price = Column(Float)
     duration_minutes = Column(Integer)
     description = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
 
     owner = relationship("User", backref="call_service")
+    channel = relationship("Channel")  # Relationship to Channel
     slots = relationship("CallSlot", back_populates="service")
 
 
