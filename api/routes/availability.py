@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from shared.database import get_db, AsyncSessionLocal
 from shared.models import User, CallService, AvailabilityRange, CallBooking
-from api.routes.auth import get_current_user
+from api.deps import get_current_user
 
 router = APIRouter(prefix="/availability", tags=["Availability"])
 
@@ -120,7 +120,7 @@ async def get_dynamic_slots(
     # Use shared logic
     from shared.services.availability_service import get_available_slots
     
-    slots = await get_available_slots(db, service.id, from_date, to_date)
+    slots = await get_available_slots(db, service_id, from_date, to_date)
     
     # Format for API response
     return [
