@@ -7,7 +7,7 @@ import { es } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { CustomCalendar } from "@/components/ui/CustomCalendar"
 import {
     Popover,
     PopoverContent,
@@ -37,12 +37,11 @@ export function DatePicker({ date, setDate, className, placeholder = "Selecciona
                     {date ? format(date, "PPP", { locale: es }) : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                    mode="single"
+            <PopoverContent className="w-auto p-0 bg-neutral-900 border-amber-500/20">
+                <CustomCalendar
                     selected={date}
                     onSelect={setDate}
-                    initialFocus
+                    className="rounded-md border-0"
                 />
             </PopoverContent>
         </Popover>

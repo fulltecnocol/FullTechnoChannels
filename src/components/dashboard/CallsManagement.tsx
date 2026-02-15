@@ -271,7 +271,7 @@ export default function CallsManagement() {
                         />
                     </div>
 
-                    <Button onClick={handleSaveConfig} className="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20">
+                    <Button onClick={handleSaveConfig} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-amber-500/20">
                         Guardar Cambios
                     </Button>
                 </Card>
