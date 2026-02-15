@@ -297,17 +297,22 @@ export default function CallsManagement() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* LEFT: Calendar & Stats */}
                         <div className="lg:col-span-5 space-y-6">
-                            <div className="bg-gray-950/50 p-4 rounded-xl border border-gray-800 shadow-inner">
+                            <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 shadow-xl backdrop-blur-sm">
                                 <Calendar
                                     mode="single"
                                     selected={newSlotDate}
                                     onSelect={setNewSlotDate}
-                                    className="w-full"
+                                    className="w-full pointer-events-auto"
                                     modifiers={{
                                         hasSlots: config.slots?.map((s: any) => new Date(s.start_time)) || []
                                     }}
                                     modifiersStyles={{
-                                        hasSlots: { fontWeight: 'bold', color: '#818cf8', textDecoration: 'underline' }
+                                        hasSlots: {
+                                            position: 'relative',
+                                        }
+                                    }}
+                                    modifiersClassNames={{
+                                        hasSlots: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-indigo-400 after:rounded-full after:shadow-[0_0_8px_rgba(129,140,248,0.8)] font-bold text-white bg-slate-800/80"
                                     }}
                                 />
                             </div>

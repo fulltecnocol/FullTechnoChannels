@@ -124,6 +124,53 @@ async def handle_channels_callback(callback: types.CallbackQuery):
 @router.callback_query(F.data.startswith("channel_view_"))
 async def view_channel_plans(callback: types.CallbackQuery):
     channel_id = int(callback.data.split("_")[2])
-    # Logic to show plans for the channel (moved/adapted from original main.py if it exists there, 
-    # otherwise we can keep it simple for now)
-    await callback.answer("Función de ver planes en desarrollo en refactorización.")
+    
+    async with AsyncSessionLocal() as session:
+        # Get Channel Info
+        channel = await session.get(Channel, channel_id)
+        if not channel:
+            await callback.answer("❌ Canal no encontrado.")
+            return
+
+        # Get Plans
+        result = await session.execute(
+            select(Plan).where(Plan.channel_id == channel_id, Plan.is_active == True)
+        )
+        plans = result.scalars().all()
+
+        if not plans:
+            await callback.message.edit_text(
+                f"📺 **{channel.title}**\n\n"
+                f"🚫 No hay planes de suscripción disponibles en este momento.",
+                reply_markup=InlineKeyboardBuilder().button(text="🔙 Volver", callback_data="channels").as_markup(),
+                parse_mode="Markdown"
+            )
+            return
+
+        text = (
+            f"📺 **{channel.title}**\n"
+            f"_{channel.description or 'Sin descripción'}_ \n\n"
+            f"👇 **Elige un Plan de Suscripción:**"
+        )
+
+        builder = InlineKeyboardBuilder()
+        for plan in plans:
+            # Emulamos link de pago o acción
+            builder.row(types.InlineKeyboardButton(
+                text=f"{plan.name} - ${plan.price} USD", 
+                callback_data=f"select_plan_{plan.id}"
+            ))
+        
+        builder.row(types.InlineKeyboardButton(text="🔙 Volver", callback_data="channels"))
+
+        await callback.message.edit_text(
+            text,
+            reply_markup=builder.as_markup(),
+            parse_mode="Markdown"
+        )
+
+@router.callback_query(F.data.startswith("select_plan_"))
+async def select_plan_callback(callback: types.CallbackQuery):
+    # For now, just a placeholder for payment integration
+    plan_id = int(callback.data.split("_")[2])
+    await callback.answer(f"✅ Has seleccionado el plan ID: {plan_id}. Integración de pagos pendiente.")

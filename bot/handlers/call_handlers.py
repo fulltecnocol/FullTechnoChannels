@@ -93,23 +93,47 @@ async def show_slots(callback: types.CallbackQuery):
         )
 
 @router.callback_query(F.data.startswith("book_slot_"))
-async def init_booking(callback: types.CallbackQuery):
+async def ask_payment(callback: types.CallbackQuery):
     slot_id = int(callback.data.split("_")[2])
-    
-    # Aquí iría la integración de pagos real.
-    # Para MVP: Simulamos que genera un link de pago o instrucción.
-    
-    # Marcamos como "Reservado/Pendiente" o pedimos confirmar?
-    # Vamos a SIMULAR el pago exitoso directo para probar el flujo Jitsi.
     
     async with AsyncSessionLocal() as session:
         slot = await session.get(CallSlot, slot_id)
         if not slot or slot.is_booked:
-            await callback.answer("🚫 Ese horario ya fue ocupado.", show_alert=True)
+            await callback.answer("🚫 Ese horario ya no está disponible.", show_alert=True)
             return
         
-        # --- MOCK PAYMENT ---
-        # En prod: Enviar Invoice de Telegram Payments o Link Stripe
+        # Get Service Info for Price
+        service = await session.get(CallService, slot.service_id)
+        
+        builder = InlineKeyboardBuilder()
+        # Mock Payment Button
+        builder.button(text=f"💳 Pagar ${service.price} USD", callback_data=f"pay_slot_{slot_id}")
+        builder.button(text="🔙 Cancelar", callback_data="cancel_booking")
+        builder.adjust(1)
+        
+        await callback.message.edit_text(
+            f"🛒 **Confirmar Reserva**\n\n"
+            f"📞 **Servicio**: {service.description}\n"
+            f"🗓 **Fecha**: {slot.start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
+            f"⏱ **Duración**: {service.duration_minutes} min\n"
+            f"💵 **Total a Pagar**: `${service.price} USD`\n\n"
+            f"Selecciona una opción para continuar:",
+            reply_markup=builder.as_markup(),
+            parse_mode="Markdown"
+        )
+
+@router.callback_query(F.data.startswith("pay_slot_"))
+async def finalize_booking(callback: types.CallbackQuery):
+    slot_id = int(callback.data.split("_")[2])
+    
+    # Aquí iría la integración real de Stripe/Telegram Payments.
+    # Por ahora, simulamos que el pago fue exitoso.
+    
+    async with AsyncSessionLocal() as session:
+        slot = await session.get(CallSlot, slot_id)
+        if not slot or slot.is_booked:
+            await callback.answer("🚫 Error: El horario expiró o ya fue tomado.", show_alert=True)
+            return
         
         # Generar Link Jitsi
         import uuid
@@ -129,9 +153,13 @@ async def init_booking(callback: types.CallbackQuery):
         await session.commit()
         
         await callback.message.edit_text(
-            f"✅ **¡Reserva Confirmada!**\n\n"
+            f"✅ **¡Pago Exitoso y Reserva Confirmada!**\n\n"
             f"🗓 Fecha: {slot.start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
-            f"🔗 **Tu Enlace de Acceso:**\n{jitsi_link}\n\n"
-            f"Guarda este mensaje.",
+            f"🔗 **Tu Enlace de Acceso:**\n`{jitsi_link}`\n\n"
+            f"Te recomendamos guardar este enlace y añadir la fecha a tu calendario.",
             parse_mode="Markdown"
         )
+
+@router.callback_query(F.data == "cancel_booking")
+async def cancel_booking(callback: types.CallbackQuery):
+    await callback.message.edit_text("❌ Reserva cancelada.")
