@@ -185,6 +185,29 @@ export default function CallsManagement() {
         }
     };
 
+    const handleBlockSlot = async (startTime: string, endTime: string) => {
+        if (!selectedServiceId) return;
+        if (!confirm("¿Seguro que quieres bloquear este horario? Los usuarios no podrán agendar a esta hora.")) return;
+
+        try {
+            await apiRequest('/availability/block', {
+                method: "POST",
+                body: JSON.stringify({
+                    service_id: selectedServiceId,
+                    start_time: startTime,
+                    end_time: endTime
+                })
+            });
+            toast.success("Horario bloqueado");
+            // Refresh preview
+            if (newSlotDate) {
+                fetchDynamicSlots(selectedServiceId, newSlotDate);
+            }
+        } catch (e) {
+            toast.error("Error al bloquear horario");
+        }
+    };
+
     useEffect(() => {
         if (selectedServiceId) {
             fetchDynamicSlots(selectedServiceId, newSlotDate || new Date());
@@ -386,9 +409,19 @@ export default function CallsManagement() {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <span className="text-xs text-green-500/80 bg-green-500/10 px-2 py-0.5 rounded">
-                                                            Disponible
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-green-500/80 bg-green-500/10 px-2 py-0.5 rounded">
+                                                                Disponible
+                                                            </span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-900/20"
+                                                                onClick={() => handleBlockSlot(slot.start_time, slot.end_time)}
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 ))
                                         ) : (

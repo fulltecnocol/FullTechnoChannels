@@ -104,6 +104,40 @@ async def get_availability(
     return result.scalars().all()
 
 
+class BlockSlotIn(BaseModel):
+    service_id: int
+    start_time: datetime
+    end_time: datetime
+
+@router.post("/block")
+async def block_availability(
+    data: BlockSlotIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSessionLocal = Depends(get_db)
+):
+    """
+    Blocks a specific time range by creating a CallBooking with status 'blocked'.
+    """
+    # Verify service ownership
+    result = await db.execute(
+        select(CallService).where(CallService.id == data.service_id, CallService.owner_id == current_user.id)
+    )
+    service = result.scalar_one_or_none()
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    # Create blocked booking
+    booking = CallBooking(
+        service_id=data.service_id,
+        start_time=data.start_time,
+        end_time=data.end_time,
+        status="blocked"
+    )
+    db.add(booking)
+    await db.commit()
+    return {"status": "blocked", "start_time": data.start_time}
+
+
 @router.get("/slots")
 async def get_dynamic_slots(
     service_id: int,
