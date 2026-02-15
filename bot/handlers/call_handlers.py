@@ -32,13 +32,25 @@ async def cmd_llamada(message_or_callback: types.Message | types.CallbackQuery):
         # Opción A: El bot está vinculado a UN solo dueño (Single Tenant Logic actual parecida).
         # Opción B: El usuario selecciona de qué canal quiere la llamada.
         
-        # Para simplificar MVP: Asumimos que buscamos CUALQUIER servicio activo (o el primero).
+        # Para simplificar MVP: Asumimos que buscamos CUALQUIER servicio activo.
         result = await session.execute(select(CallService).where(CallService.is_active == True))
-        service = result.scalars().first()
+        services = result.scalars().all()
         
-        if not service:
+        if not services:
             await message.answer("🚫 Actualmente no hay disponibilidad de llamadas privadas.")
             return
+
+        # Si hay multiples servicios, mostrar selector
+        if len(services) > 1:
+            builder = InlineKeyboardBuilder()
+            for svc in services:
+                 builder.button(text=f"{svc.description} ({svc.duration_minutes}m) - ${svc.price}", callback_data=f"select_svc_{svc.id}")
+            builder.adjust(1)
+            await message.answer("📞 **Selecciona el tipo de llamada:**", reply_markup=builder.as_markup())
+            return
+
+        # Si solo hay uno, mostrar detalles directo
+        service = services[0]
 
         # Mostrar Info
         builder = InlineKeyboardBuilder()
@@ -54,33 +66,61 @@ async def cmd_llamada(message_or_callback: types.Message | types.CallbackQuery):
             parse_mode="Markdown"
         )
 
+@router.callback_query(F.data.startswith("select_svc_"))
+async def select_service_details(callback: types.CallbackQuery):
+    service_id = int(callback.data.split("_")[2])
+    
+    async with AsyncSessionLocal() as session:
+        service = await session.get(CallService, service_id)
+        if not service:
+             await callback.answer("Servicio no encontrado", show_alert=True)
+             return
+
+        builder = InlineKeyboardBuilder()
+        builder.button(text="📅 Ver Horarios Disponibles", callback_data=f"view_slots_{service.id}")
+        builder.button(text="🔙 Volver", callback_data="book_call_menu")
+        builder.adjust(1)
+        
+        await callback.message.edit_text(
+            f"📞 **{service.description}**\n\n"
+            f"⏱ Duración: {service.duration_minutes} min\n"
+            f"💲 Inversión: ${service.price} USD\n\n"
+            f"👇 Toca abajo para ver disponibilidad:",
+            reply_markup=builder.as_markup(),
+            parse_mode="Markdown"
+        )
+
 @router.callback_query(F.data.startswith("view_slots_"))
 async def show_slots(callback: types.CallbackQuery):
     service_id = int(callback.data.split("_")[2])
     
     async with AsyncSessionLocal() as session:
-        # Buscar slots futuros y libres
-        result = await session.execute(
-            select(CallSlot)
-            .where(
-                CallSlot.service_id == service_id,
-                CallSlot.is_booked == False,
-                CallSlot.start_time > datetime.utcnow()
-            )
-            .order_by(CallSlot.start_time)
-            .limit(10)
-        )
-        slots = result.scalars().all()
+        # Calculate dynamic slots for next 14 days
+        from datetime import timedelta
+        now = datetime.utcnow()
+        from_date = now.strftime("%Y-%m-%d")
+        to_date = (now + timedelta(days=14)).strftime("%Y-%m-%d")
         
-        if not slots:
-            await callback.message.edit_text("🚫 No hay horarios disponibles por el momento.", reply_markup=None)
+        from shared.services.availability_service import get_available_slots
+        slots = await get_available_slots(session, service_id, from_date, to_date)
+        
+        # Filter only future slots (double check execution time)
+        future_slots = [s for s in slots if s["start_time"] > now]
+        # Sort and limit
+        future_slots.sort(key=lambda x: x["start_time"])
+        display_slots = future_slots[:10]
+        
+        if not display_slots:
+            await callback.message.edit_text("🚫 No hay horarios disponibles en los próximos 14 días.", reply_markup=None)
             return
 
         builder = InlineKeyboardBuilder()
-        for slot in slots:
+        for slot in display_slots:
             # Format: "Lun 15 - 10:00"
-            date_str = slot.start_time.strftime("%d/%m %H:%M")
-            builder.button(text=date_str, callback_data=f"book_slot_{slot.id}")
+            date_str = slot["start_time"].strftime("%d/%m %H:%M")
+            # Encoder timestamp: YYYYMMDDHHMM
+            ts_str = slot["start_time"].strftime("%Y%m%d%H%M")
+            builder.button(text=date_str, callback_data=f"book_slot_{service_id}_{ts_str}")
         
         builder.adjust(2) # 2 columnas
         builder.button(text="🔙 Cancelar", callback_data="cancel_booking")
@@ -97,27 +137,45 @@ async def show_slots(callback: types.CallbackQuery):
 
 @router.callback_query(F.data.startswith("book_slot_"))
 async def ask_payment(callback: types.CallbackQuery):
-    slot_id = int(callback.data.split("_")[2])
+    # Data: book_slot_{service_id}_{timestamp}
+    parts = callback.data.split("_")
+    service_id = int(parts[2])
+    ts_str = parts[3]
+    
+    # Parse timestamp
+    start_time = datetime.strptime(ts_str, "%Y%m%d%H%M")
     
     async with AsyncSessionLocal() as session:
-        slot = await session.get(CallSlot, slot_id)
-        if not slot or slot.is_booked:
-            await callback.answer("🚫 Ese horario ya no está disponible.", show_alert=True)
-            return
-        
+        from shared.models import CallBooking
+        # Check against CallBooking (Capacity)
+        # Note: We should technically checking AvailabilityRange equality too, but overlapping check is enough for safety.
+        # Check if already booked
+        existing = await session.execute(
+            select(CallBooking).where(
+                and_(
+                    CallBooking.service_id == service_id,
+                    CallBooking.status != "cancelled",
+                    CallBooking.start_time == start_time
+                )
+            )
+        )
+        if existing.scalar_one_or_none():
+             await callback.answer("🚫 Ese horario ya ha sido ocupado.", show_alert=True)
+             return
+
         # Get Service Info for Price
-        service = await session.get(CallService, slot.service_id)
+        service = await session.get(CallService, service_id)
         
         builder = InlineKeyboardBuilder()
-        # Mock Payment Button
-        builder.button(text=f"💳 Pagar ${service.price} USD", callback_data=f"pay_slot_{slot_id}")
+        # Mock Payment Button - pass service_id and timestamp
+        builder.button(text=f"💳 Pagar ${service.price} USD", callback_data=f"pay_slot_{service_id}_{ts_str}")
         builder.button(text="🔙 Cancelar", callback_data="cancel_booking")
         builder.adjust(1)
         
         await callback.message.edit_text(
             f"🛒 **Confirmar Reserva**\n\n"
             f"📞 **Servicio**: {service.description}\n"
-            f"🗓 **Fecha**: {slot.start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
+            f"🗓 **Fecha**: {start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
             f"⏱ **Duración**: {service.duration_minutes} min\n"
             f"💵 **Total a Pagar**: `${service.price} USD`\n\n"
             f"Selecciona una opción para continuar:",
@@ -127,37 +185,66 @@ async def ask_payment(callback: types.CallbackQuery):
 
 @router.callback_query(F.data.startswith("pay_slot_"))
 async def finalize_booking(callback: types.CallbackQuery):
-    slot_id = int(callback.data.split("_")[2])
+    parts = callback.data.split("_")
+    service_id = int(parts[2])
+    ts_str = parts[3]
+    start_time = datetime.strptime(ts_str, "%Y%m%d%H%M")
     
     # Aquí iría la integración real de Stripe/Telegram Payments.
     # Por ahora, simulamos que el pago fue exitoso.
     
     async with AsyncSessionLocal() as session:
-        slot = await session.get(CallSlot, slot_id)
-        if not slot or slot.is_booked:
-            await callback.answer("🚫 Error: El horario expiró o ya fue tomado.", show_alert=True)
-            return
+        service = await session.get(CallService, service_id)
+        if not service:
+             await callback.answer("Error: Servicio no encontrado.", show_alert=True)
+             return
+
+        # Double Check Overlap / Availability
+        from shared.models import CallBooking
+        existing = await session.execute(
+            select(CallBooking).where(
+                and_(
+                    CallBooking.service_id == service_id,
+                    CallBooking.status != "cancelled",
+                    CallBooking.start_time == start_time
+                )
+            )
+        )
+        if existing.scalar_one_or_none():
+             await callback.answer("🚫 Lo sentimos, alguien ganó el horario hace un momento.", show_alert=True)
+             return
         
         # Generar Link Jitsi
         import uuid
         room_id = f"TeleGate-{uuid.uuid4()}"
         jitsi_link = f"https://meet.jit.si/{room_id}"
         
-        slot.is_booked = True
-        slot.booked_by_id = None # Tendríamos que buscar el User por Telegram ID
-        slot.jitsi_link = jitsi_link
+        # Calculate End Time
+        from datetime import timedelta
+        end_time = start_time + timedelta(minutes=service.duration_minutes)
+
+        # Create Booking
+        booking = CallBooking(
+            service_id=service_id,
+            start_time=start_time,
+            end_time=end_time,
+            status="confirmed",
+            meeting_link=jitsi_link,
+            booker_id=None # Default
+        )
         
         # Vincular usuario si existe
         user_res = await session.execute(select(User).where(User.telegram_id == callback.from_user.id))
         user = user_res.scalar_one_or_none()
         if user:
-            slot.booked_by_id = user.id
+            booking.booker_id = user.id
             
+        session.add(booking)
         await session.commit()
         
         await callback.message.edit_text(
             f"✅ **¡Pago Exitoso y Reserva Confirmada!**\n\n"
-            f"🗓 Fecha: {slot.start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
+            f"🗓 Fecha: {start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
             f"🔗 **Tu Enlace de Acceso:**\n`{jitsi_link}`\n\n"
             f"Te recomendamos guardar este enlace y añadir la fecha a tu calendario.",
             parse_mode="Markdown"

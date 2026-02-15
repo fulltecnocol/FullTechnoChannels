@@ -11,26 +11,30 @@ from datetime import datetime
 router = APIRouter(prefix="/calls", tags=["calls"])
 
 # --- SCHEMAS ---
-class CallConfigIn(BaseModel):
+# --- SCHEMAS ---
+class CallServiceSchema(BaseModel):
     channel_id: Optional[int] = None
     price: float
     duration_minutes: int
-    description: Optional[str] = None
+    description: str # Mandatorio ahora si es el nombre
     is_active: bool = True
 
 class CallSlotIn(BaseModel):
     start_time: datetime
+    service_id: int # REQUIRED NOW
 
 class CallSlotOut(BaseModel):
     id: int
+    service_id: int
     start_time: datetime
     is_booked: bool
     jitsi_link: Optional[str] = None
+    booked_by_name: Optional[str] = None # Helper for UI
 
     class Config:
         from_attributes = True
 
-class CallConfigOut(CallConfigIn):
+class CallServiceOut(CallServiceSchema):
     id: int
     slots: List[CallSlotOut] = []
 
@@ -39,70 +43,87 @@ class CallConfigOut(CallConfigIn):
 
 # --- ENDPOINTS ---
 
-@router.get("/config", response_model=CallConfigOut)
-async def get_call_config(
+@router.get("/services", response_model=List[CallServiceOut])
+async def get_services(
     channel_id: Optional[int] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSessionLocal = Depends(get_db)
 ):
-    """Get the current user's call service configuration"""
+    """Get all call services for the user/channel"""
     query = select(CallService).where(CallService.owner_id == current_user.id)
     
     if channel_id:
         query = query.where(CallService.channel_id == channel_id)
 
-    # If no channel_id, we might get multiple. Return first for now.
     result = await db.execute(query.options(selectinload(CallService.slots)))
-    service = result.scalars().first()
-    
-    if not service:
-        # Return empty default config if not set
-        return CallConfigOut(
-            id=0,
-            channel_id=channel_id,
-            price=0, 
-            duration_minutes=30, 
-            description="", 
-            is_active=False,
-            slots=[]
-        )
-    
-    return service
+    return result.scalars().all()
 
-@router.post("/config", response_model=CallConfigOut)
-async def update_call_config(
-    config: CallConfigIn,
+@router.post("/services", response_model=CallServiceOut)
+async def create_service(
+    service_in: CallServiceSchema,
     current_user: User = Depends(get_current_user),
     db: AsyncSessionLocal = Depends(get_db)
 ):
-    """Update or create call service configuration"""
-    query = select(CallService).where(CallService.owner_id == current_user.id)
-    if config.channel_id:
-        query = query.where(CallService.channel_id == config.channel_id)
-
-    result = await db.execute(query)
-    service = result.scalars().first()
-    
-    if service:
-        service.price = config.price
-        service.duration_minutes = config.duration_minutes
-        service.description = config.description
-        service.is_active = config.is_active
-        # service.channel_id = config.channel_id # usually fixed
-    else:
-        service = CallService(
-            owner_id=current_user.id,
-            channel_id=config.channel_id,
-            price=config.price,
-            duration_minutes=config.duration_minutes,
-            description=config.description,
-            is_active=config.is_active
-        )
-        db.add(service)
-    
+    """Create a new call service"""
+    service = CallService(
+        owner_id=current_user.id,
+        channel_id=service_in.channel_id,
+        price=service_in.price,
+        duration_minutes=service_in.duration_minutes,
+        description=service_in.description,
+        is_active=service_in.is_active
+    )
+    db.add(service)
     await db.commit()
     await db.refresh(service)
     return service
+
+@router.put("/services/{service_id}", response_model=CallServiceOut)
+async def update_service(
+    service_id: int,
+    service_in: CallServiceSchema,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSessionLocal = Depends(get_db)
+):
+    """Update a service"""
+    result = await db.execute(select(CallService).where(CallService.id == service_id, CallService.owner_id == current_user.id))
+    service = result.scalar_one_or_none()
+    
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    service.price = service_in.price
+    service.duration_minutes = service_in.duration_minutes
+    service.description = service_in.description
+    service.is_active = service_in.is_active
+    # channel_id usually doesn't change, but ok
+
+    await db.commit()
+    await db.refresh(service)
+    return service
+
+@router.delete("/services/{service_id}")
+async def delete_service(
+    service_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSessionLocal = Depends(get_db)
+):
+    """Delete a service"""
+    result = await db.execute(select(CallService).where(CallService.id == service_id, CallService.owner_id == current_user.id))
+    service = result.scalar_one_or_none()
+    
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    await db.delete(service)
+    await db.commit()
+    return {"status": "deleted"}
+
+# Backward compatibility (optional) -> Redirect to First Service or Empty
+@router.get("/config")
+async def get_config_deprecated():
+    raise HTTPException(status_code=410, detail="Use /services endpoints")
+
 
 @router.post("/slots", response_model=List[CallSlotOut])
 async def add_slots(
@@ -111,18 +132,19 @@ async def add_slots(
     db: AsyncSessionLocal = Depends(get_db)
 ):
     """Add availability slots"""
-    # 1. Get Service
-    result = await db.execute(
-        select(CallService).where(CallService.owner_id == current_user.id)
-    )
-    service = result.scalar_one_or_none()
-    if not service:
-        raise HTTPException(status_code=400, detail="Must configure service first")
-
     new_slots = []
+    
+    # Pre-fetch services to validate ownership efficiently
+    service_ids = list(set([s.service_id for s in slots]))
+    services_res = await db.execute(select(CallService).where(CallService.id.in_(service_ids), CallService.owner_id == current_user.id))
+    valid_services = {s.id for s in services_res.scalars().all()}
+
     for slot_in in slots:
+        if slot_in.service_id not in valid_services:
+            raise HTTPException(status_code=400, detail=f"Invalid service ID: {slot_in.service_id}")
+
         slot = CallSlot(
-            service_id=service.id,
+            service_id=slot_in.service_id,
             start_time=slot_in.start_time,
             is_booked=False
         )
@@ -167,7 +189,7 @@ async def delete_slot(
 # --- RECURRING ENDPOINT ---
 
 class GenerateSlotsIn(BaseModel):
-    channel_id: Optional[int] = None
+    service_id: int # REQUIRED
     days_of_week: List[int]  # 0=Mon, 6=Sun
     start_time: str  # HH:MM
     end_time: str    # HH:MM
@@ -182,15 +204,11 @@ async def generate_slots(
 ):
     """Generate slots for a date range based on recurring rules"""
     # 1. Get Service
-    query = select(CallService).where(CallService.owner_id == current_user.id)
-    if data.channel_id:
-        query = query.where(CallService.channel_id == data.channel_id)
-
-    result = await db.execute(query)
-    service = result.scalars().first()
+    result = await db.execute(select(CallService).where(CallService.id == data.service_id, CallService.owner_id == current_user.id))
+    service = result.scalar_one_or_none()
     
     if not service:
-        raise HTTPException(status_code=400, detail="Must configure service first for this channel")
+        raise HTTPException(status_code=404, detail="Service not found")
     
     duration = service.duration_minutes
     if duration < 5:
@@ -219,6 +237,7 @@ async def generate_slots(
             slot_start = datetime.combine(current_date, datetime.min.time()).replace(hour=start_h, minute=start_m)
             day_end = datetime.combine(current_date, datetime.min.time()).replace(hour=end_h, minute=end_m)
             
+            # Use strict comparison for start_time to avoid infinite loops if duration is 0 (handled above)
             current_slot = slot_start
             while current_slot + timedelta(minutes=duration) <= day_end:
                 # Create slot

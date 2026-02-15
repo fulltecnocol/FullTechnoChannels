@@ -9,7 +9,7 @@ from sqlalchemy.future import select
 from sqlalchemy import and_
 
 # Import modular routers
-from api.routes import auth, owner, admin, legal, calls, public
+from api.routes import auth, owner, admin, legal, calls, public, availability
 
 # Import schemas and logic
 from shared.database import get_db, AsyncSessionLocal
@@ -50,6 +50,7 @@ app.include_router(admin.router)
 app.include_router(legal.router)
 app.include_router(calls.router)
 app.include_router(public.router)
+app.include_router(availability.router)
 
 
 @app.get("/")

@@ -107,20 +107,27 @@ export function CustomCalendar({
                         const isDayToday = isToday(day);
                         const hasSlot = highlightingCheck(day, highlightedDates);
 
+                        // Validation: Disable past days
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0); // Start of day
+                        const isPast = day < today;
+
                         // Base Text Color
                         let textColor = "text-neutral-300";
                         if (!isCurrentMonth) textColor = "text-neutral-600";
-                        if (isSelected) textColor = "text-black font-bold";
+                        if (isPast) textColor = "text-neutral-700 opacity-30 cursor-not-allowed"; // Disabled style
+                        else if (isSelected) textColor = "text-black font-bold";
                         else if (isDayToday) textColor = "text-amber-400";
 
                         return (
                             <div key={day.toString()} className="flex justify-center relative">
                                 <button
-                                    onClick={() => handleDayClick(day)}
+                                    onClick={() => !isPast && handleDayClick(day)}
+                                    disabled={isPast}
                                     className={cn(
                                         "h-10 w-10 rounded-full flex items-center justify-center text-sm transition-all relative z-10",
                                         textColor,
-                                        !isSelected && "hover:bg-amber-500/10 hover:text-amber-200",
+                                        !isPast && !isSelected && "hover:bg-amber-500/10 hover:text-amber-200",
                                         isSelected && "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-lg shadow-amber-500/20 scale-105",
                                         isDayToday && !isSelected && "bg-neutral-800/50 border border-amber-500/30"
                                     )}
@@ -131,11 +138,9 @@ export function CustomCalendar({
                                 </button>
 
                                 {/* Visual Indicator for Slots (The Gold Dot) */}
-                                {hasSlot && !isSelected && (
+                                {hasSlot && !isSelected && !isPast && (
                                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.8)] z-20 pointer-events-none" />
                                 )}
-                                {/* Inverted dot for selected state if needed, but usually text is enough. 
-                    Let's hide the dot if selected to keep it clean, or make it white. */}
                                 {hasSlot && isSelected && (
                                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black/50 rounded-full z-20 pointer-events-none" />
                                 )}
