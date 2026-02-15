@@ -708,12 +708,12 @@ async def on_bot_startup():
     if signature_router not in dp.sub_routers:
         dp.include_router(signature_router)
 
-    if router not in dp.sub_routers:
-        dp.include_router(router)
-
     from bot.handlers import call_handlers
     if call_handlers.router not in dp.sub_routers:
         dp.include_router(call_handlers.router)
+
+    if router not in dp.sub_routers:
+        dp.include_router(router)
 
     # Configurar Menú de Comandos
     await bot.set_my_commands(
@@ -769,6 +769,15 @@ async def run_polling():
 
     logging.info("Deleting webhook to start polling...")
     await bot.delete_webhook(drop_pending_updates=True)
+    
+    # Ensure routers are registered for polling too
+    from bot.handlers import call_handlers
+    if call_handlers.router not in dp.sub_routers:
+        dp.include_router(call_handlers.router)
+        
+    if router not in dp.sub_routers:
+        dp.include_router(router)
+        
     await dp.start_polling(bot)
 
 
@@ -776,12 +785,12 @@ async def run_polling():
 # Validar mensajes de texto al final para no bloquear comandos
 @router.message(F.text)
 async def handle_text_message(message: types.Message):
-    # Log only non-command text messages to distinguish from commands
-    if not message.text.startswith("/"):
-        logging.info(f"Recibido mensaje de texto: {message.text}")
-
+    # Ignorar comandos (que empiezan por /) para no procesarlos como texto/códigos
     if message.text.startswith("/"):
-        return  # Ignorar comandos ya manejados
+        return
+
+    # Log text message
+    logging.info(f"Recibido mensaje de texto: {message.text}")
 
     async with AsyncSessionLocal() as session:
         # Intentar procesar el texto como un código
