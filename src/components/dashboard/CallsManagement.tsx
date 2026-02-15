@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Video } from "lucide-react";
+import { Loader2, Plus, Trash2, Video, Calendar as CalendarIcon } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format } from "date-fns";
 
 interface Dictionary {
     [key: string]: any;
@@ -35,15 +37,15 @@ export default function CallsManagement() {
     const [selectedChannelId, setSelectedChannelId] = useState<string>("");
 
     // New Slot State
-    const [newSlotDate, setNewSlotDate] = useState("");
+    const [newSlotDate, setNewSlotDate] = useState<Date | undefined>(undefined);
     const [newSlotTime, setNewSlotTime] = useState("");
 
     // Recurring State
     const [recurringDays, setRecurringDays] = useState<number[]>([]);
     const [recurStart, setRecurStart] = useState("09:00");
     const [recurEnd, setRecurEnd] = useState("17:00");
-    const [recurStartDate, setRecurStartDate] = useState("");
-    const [recurEndDate, setRecurEndDate] = useState("");
+    const [recurStartDate, setRecurStartDate] = useState<Date | undefined>(undefined);
+    const [recurEndDate, setRecurEndDate] = useState<Date | undefined>(undefined);
 
     const daysMap = [
         { id: 0, label: "Lun" },
@@ -130,7 +132,9 @@ export default function CallsManagement() {
         if (!newSlotDate || !newSlotTime) return;
 
         // Combine date and time to ISO string
-        const start_time = new Date(`${newSlotDate}T${newSlotTime}:00`).toISOString();
+        if (!newSlotDate) return;
+        const dateStr = format(newSlotDate, "yyyy-MM-dd");
+        const start_time = new Date(`${dateStr}T${newSlotTime}:00`).toISOString();
 
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calls/slots`, {
@@ -144,7 +148,7 @@ export default function CallsManagement() {
 
             if (res.ok) {
                 toast.success("Horario agregado");
-                setNewSlotDate("");
+                setNewSlotDate(undefined);
                 setNewSlotTime("");
                 fetchConfig();
             }
@@ -181,8 +185,8 @@ export default function CallsManagement() {
                     days_of_week: recurringDays,
                     start_time: recurStart,
                     end_time: recurEnd,
-                    start_date: new Date(recurStartDate).toISOString(),
-                    end_date: new Date(recurEndDate).toISOString(),
+                    start_date: recurStartDate?.toISOString(),
+                    end_date: recurEndDate?.toISOString(),
                     channel_id: selectedChannelId ? parseInt(selectedChannelId) : null
                 })
             });
@@ -285,11 +289,11 @@ export default function CallsManagement() {
                     <p className="text-sm text-gray-400">Agrega bloques de tiempo disponibles.</p>
 
                     <div className="flex gap-2">
-                        <Input
-                            type="date"
-                            value={newSlotDate}
-                            onChange={(e) => setNewSlotDate(e.target.value)}
+                        <DatePicker
+                            date={newSlotDate}
+                            setDate={setNewSlotDate}
                             className="flex-1"
+                            placeholder="Fecha de la sesión"
                         />
                         <Input
                             type="time"
@@ -324,11 +328,19 @@ export default function CallsManagement() {
                             <div className="flex gap-2">
                                 <div className="space-y-1 flex-1">
                                     <Label className="text-xs">Desde</Label>
-                                    <Input type="date" value={recurStartDate} onChange={e => setRecurStartDate(e.target.value)} className="text-xs" />
+                                    <DatePicker
+                                        date={recurStartDate}
+                                        setDate={setRecurStartDate}
+                                        className="h-9 text-xs"
+                                    />
                                 </div>
                                 <div className="space-y-1 flex-1">
                                     <Label className="text-xs">Hasta</Label>
-                                    <Input type="date" value={recurEndDate} onChange={e => setRecurEndDate(e.target.value)} className="text-xs" />
+                                    <DatePicker
+                                        date={recurEndDate}
+                                        setDate={setRecurEndDate}
+                                        className="h-9 text-xs"
+                                    />
                                 </div>
                             </div>
                             <Button onClick={handleGenerateSlots} className="w-full bg-indigo-900/50 hover:bg-indigo-900 border border-indigo-500/30 text-indigo-200 text-xs">
