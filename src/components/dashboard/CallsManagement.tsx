@@ -15,7 +15,7 @@ interface Dictionary {
 }
 
 export default function CallsManagement() {
-    const { user, token } = useAuth();
+    const { user, token, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
     const [config, setConfig] = useState<Dictionary>({
         price: 0,
@@ -31,12 +31,15 @@ export default function CallsManagement() {
 
     const fetchConfig = async () => {
         try {
+            if (!token) return;
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calls/config`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
                 const data = await res.json();
                 setConfig(data);
+            } else {
+                console.error("Error fetching config:", res.status, res.statusText);
             }
         } catch (error) {
             console.error(error);
@@ -47,8 +50,14 @@ export default function CallsManagement() {
     };
 
     useEffect(() => {
-        if (token) fetchConfig();
-    }, [token]);
+        if (!authLoading) {
+            if (token) {
+                fetchConfig();
+            } else {
+                setLoading(false); // Stop loading if no token available
+            }
+        }
+    }, [token, authLoading]);
 
     const handleSaveConfig = async () => {
         try {
