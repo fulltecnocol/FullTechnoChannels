@@ -150,13 +150,15 @@ export default function CallsManagement() {
         }
     };
 
-    const handleDeleteSlot = async (id: number) => {
+    const handleDeleteSlot = async (id: number, skipFetch = false) => {
         try {
             await apiRequest(`/calls/slots/${id}`, {
                 method: "DELETE"
             });
-            toast.success("Horario eliminado");
-            fetchConfig();
+            if (!skipFetch) {
+                toast.success("Horario eliminado");
+                fetchConfig();
+            }
         } catch (e) {
             toast.error("Error eliminando slot");
         }
@@ -368,8 +370,14 @@ export default function CallsManagement() {
                                                 format(new Date(s.start_time), 'yyyy-MM-dd') === format(newSlotDate, 'yyyy-MM-dd')
                                             );
                                             if (slotsToDelete?.length > 0 && confirm(`¿Eliminar los ${slotsToDelete.length} bloques de este día?`)) {
-                                                for (const s of slotsToDelete) {
-                                                    await handleDeleteSlot(s.id);
+                                                setLoading(true); // Single loading state for the whole process
+                                                try {
+                                                    for (const s of slotsToDelete) {
+                                                        await handleDeleteSlot(s.id, true);
+                                                    }
+                                                    toast.success(`${slotsToDelete.length} bloques eliminados`);
+                                                } finally {
+                                                    fetchConfig();
                                                 }
                                             }
                                         }}

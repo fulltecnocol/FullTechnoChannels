@@ -201,16 +201,26 @@ export default function HowItWorksPage() {
                                         <span className="font-black text-white text-xs">$100.00 USD (Ejemplo)</span>
                                     </div>
                                     <div className="flex h-12 rounded-lg overflow-hidden w-full shadow-lg">
-                                        <div className="w-[70%] sm:w-[80%] bg-gradient-to-r from-primary to-accent-gold flex items-center justify-center relative overflow-hidden group">
+                                        <div
+                                            className="bg-gradient-to-r from-primary to-accent-gold flex items-center justify-center relative overflow-hidden group"
+                                            style={{ width: `${(1 - (config.platform_fee || 0.20)) * 100}%` }}
+                                        >
                                             <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                                            <span className="text-[10px] sm:text-xs md:text-sm font-black text-black z-10">80% PARA TI</span>
+                                            <span className="text-[10px] sm:text-xs md:text-sm font-black text-white z-10">
+                                                {((1 - (config.platform_fee || 0.20)) * 100).toFixed(0)}% PARA TI
+                                            </span>
                                         </div>
-                                        <div className="w-[30%] sm:w-[20%] bg-zinc-800 flex items-center justify-center border-l border-white/10">
-                                            <span className="text-[8px] sm:text-xs font-black text-white/50">20% ECO</span>
+                                        <div
+                                            className="bg-zinc-800 flex items-center justify-center border-l border-white/10"
+                                            style={{ width: `${(config.platform_fee || 0.20) * 100}%` }}
+                                        >
+                                            <span className="text-[8px] sm:text-xs font-black text-white/50">
+                                                {(config.platform_fee || 0.20) * 100}% ECO
+                                            </span>
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-muted mt-3 text-center">
-                                        * El 20% del Ecosystem cubre: Tarifas de pasarela, infraestructura de servidores, mantenimiento del bot y la <span className="text-primary font-bold">Red de Afiliados</span>.
+                                        * El {(config.platform_fee || 0.20) * 100}% del Ecosystem cubre: Tarifas de pasarela, infraestructura de servidores, mantenimiento del bot y la <span className="text-primary font-bold">Red de Afiliados</span>.
                                     </p>
                                 </div>
 
