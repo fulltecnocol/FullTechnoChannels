@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+
 class UserAdminResponse(BaseModel):
     id: int
     full_name: Optional[str]
@@ -10,8 +11,10 @@ class UserAdminResponse(BaseModel):
     is_owner: bool
     legal_verification_status: str
     created_at: datetime
+
     class Config:
         from_attributes = True
+
 
 class UserProfileResponse(BaseModel):
     id: int
@@ -28,12 +31,15 @@ class UserProfileResponse(BaseModel):
     pending_balance: float
     avatar_url: Optional[str]
     created_at: datetime
+
     class Config:
         from_attributes = True
+
 
 class ProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     avatar_url: Optional[str] = None
+
 
 class DashboardSummary(BaseModel):
     id: int
@@ -51,6 +57,7 @@ class DashboardSummary(BaseModel):
     is_admin: bool
     telegram_linked: bool
 
+
 class UserAdmin(BaseModel):
     id: int
     full_name: Optional[str]
@@ -59,5 +66,6 @@ class UserAdmin(BaseModel):
     is_owner: bool
     legal_verification_status: str
     created_at: datetime
+
     class Config:
         from_attributes = True

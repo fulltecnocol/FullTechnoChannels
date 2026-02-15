@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Shield, Zap, Wallet, Users, LayoutGrid, LifeBuoy, TrendingUp, DollarSign, Globe, CheckCircle2,
   Copy, Bot, ShieldCheck, History, AlertTriangle, ShieldEllipsis, Loader2, X, Settings,
-  CreditCard, Calculator, LogOut, Menu, PlusCircle, Ticket, Trash2, AlertCircle, ArrowRight
+  CreditCard, Calculator, LogOut, Menu, PlusCircle, Ticket, Trash2, AlertCircle, ArrowRight, Video
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ownerApi, adminApi, publicApi } from "@/lib/api";
@@ -25,6 +25,7 @@ import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
 import { TaxHub } from "@/components/dashboard/TaxHub";
 import { AdminSystem } from "@/components/dashboard/AdminSystem";
 import { PlanManagementModal } from "@/components/dashboard/PlanManagementModal";
+import CallsManagement from "@/components/dashboard/CallsManagement";
 import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
@@ -322,8 +323,8 @@ export default function DashboardPage() {
       await ownerApi.createPromotion(Number(channelId), data);
       alert("Promoción creada");
       handleLoadPromos(Number(channelId));
-    } catch (e: unknown) { 
-      alert(e instanceof Error ? e.message : 'Error al crear promoción'); 
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Error al crear promoción');
     }
   };
 
@@ -378,6 +379,7 @@ export default function DashboardPage() {
           {[
             { id: "overview", label: "Vista General", icon: LayoutGrid },
             { id: "channels", label: "Mis Canales", icon: Users },
+            { id: "calls", label: "Llamadas Privadas", icon: Video },
             { id: "affiliates", label: "Afiliados", icon: Zap },
             { id: "support", label: "Soporte", icon: LifeBuoy },
             { id: "wallet", label: "Billetera", icon: Wallet },
@@ -546,7 +548,7 @@ export default function DashboardPage() {
         {activeTab === "support" && (
           <SupportSection
             tickets={tickets}
-             isAdmin={summary?.is_admin ?? false}
+            isAdmin={summary?.is_admin ?? false}
             onAdminViewTicket={(id) => alert(`Ver Ticket ${id} (Pendiente impl)`)}
           />
         )}
@@ -582,6 +584,10 @@ export default function DashboardPage() {
             setActiveTab={setActiveTab}
             mounted={mounted}
           />
+        )}
+
+        {activeTab === "calls" && (
+          <CallsManagement />
         )}
 
         {activeTab === "admin_payments" && summary?.is_admin && (

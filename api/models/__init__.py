@@ -8,19 +8,15 @@ from shared.models import (
     Channel,
     Plan,
     Subscription,
-    Payment, 
+    Payment,
     AffiliateEarning,
     Withdrawal,
     Promotion,
     SupportTicket,
-    TicketMessage
+    TicketMessage,
 )
 
-from shared.signature_models import (
-    OwnerLegalInfo,
-    SignatureCode,
-    SignedContract
-)
+from shared.signature_models import OwnerLegalInfo, SignatureCode, SignedContract
 
 __all__ = [
     "Base",

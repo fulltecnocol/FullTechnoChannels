@@ -12,6 +12,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 día
 # Contexto para hashing de contraseñas (Preferible usar passlib para flexibilidad)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class AuthService:
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -22,16 +23,18 @@ class AuthService:
         return pwd_context.hash(password)
 
     @staticmethod
-    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    def create_access_token(
+        data: dict, expires_delta: Optional[timedelta] = None
+    ) -> str:
         if not SECRET_KEY:
             raise RuntimeError("JWT_SECRET_KEY environment variable is not set")
-        
+
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        
+
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
@@ -40,7 +43,9 @@ class AuthService:
     def create_magic_link_token(user_email: str) -> str:
         expire = datetime.utcnow() + timedelta(minutes=5)
         to_encode = {"sub": user_email, "type": "magic_link", "exp": expire}
-        return AuthService.create_access_token(to_encode, expires_delta=timedelta(minutes=5))
+        return AuthService.create_access_token(
+            to_encode, expires_delta=timedelta(minutes=5)
+        )
 
     @staticmethod
     def decode_token(token: str) -> Optional[dict]:

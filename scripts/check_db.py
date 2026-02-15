@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
@@ -9,6 +10,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
 
 async def check_connection():
     logging.info("⏳ Intentando conectar a la base de datos...")
@@ -27,6 +29,7 @@ async def check_connection():
                 logging.error("❌ Falló la consulta de prueba.")
     except Exception as e:
         logging.error(f"❌ Error crítico de conexión: {str(e)}")
+
 
 if __name__ == "__main__":
     asyncio.run(check_connection())

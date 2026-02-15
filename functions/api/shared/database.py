@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+
 load_dotenv(override=True)
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -19,13 +20,18 @@ if "postgresql" in DATABASE_URL:
     connect_args = {"ssl": "require"}
 
 engine = create_async_engine(DATABASE_URL, echo=True, connect_args=connect_args)
-AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+AsyncSessionLocal = async_sessionmaker(
+    engine, expire_on_commit=False, class_=AsyncSession
+)
+
 
 async def init_db():
     from .models import Base
+
     async with engine.begin() as conn:
         # En el MVP creamos tablas directamente
         await conn.run_sync(Base.metadata.create_all)
+
 
 async def get_db():
     async with AsyncSessionLocal() as session:

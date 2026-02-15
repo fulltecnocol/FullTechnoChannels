@@ -1,0 +1,14 @@
+.git
+.gitignore
+venv/
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.local
+out/
+.next/
+coverage/
+test-results/

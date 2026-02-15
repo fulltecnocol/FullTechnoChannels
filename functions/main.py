@@ -1,4 +1,3 @@
-
 import os
 import sys
 
@@ -33,6 +32,7 @@ main_app.mount("/bot", bot_app)
 
 # Convert ASGI app to WSGI for Cloud Functions compatibility
 wsgi_app = ASGIMiddleware(main_app)
+
 
 @functions_framework.http
 def membership_backend(request):
