@@ -87,9 +87,12 @@ async def show_slots(callback: types.CallbackQuery):
         
         await callback.message.edit_text(
             "📅 **Selecciona un horario:**\n\n"
-            "Los horarios están en UTC (Hora Universal).",
+            "🕒 Las horas se muestran en **UTC (Tiempo Universal)**.\n"
+            "💡 [Consulta tu hora local aquí](https://www.worldtimebuddy.com/?pl=1&lid=100&h=100)\n\n"
+            "👇 Toca un bloque para reservar:",
             reply_markup=builder.as_markup(),
-            parse_mode="Markdown"
+            parse_mode="Markdown",
+            disable_web_page_preview=True
         )
 
 @router.callback_query(F.data.startswith("book_slot_"))

@@ -206,11 +206,11 @@ export default function CallsManagement() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <Video className="w-6 h-6 text-purple-500" />
+                    <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+                        <Video className="w-6 h-6 text-amber-500" />
                         Venta de Llamadas Privadas
                     </h2>
-                    <p className="text-gray-400">Configura tus sesiones 1 a 1 con suscriptores.</p>
+                    <p className="text-neutral-400">Configura tus sesiones 1 a 1 con suscriptores.</p>
                 </div>
 
                 <div className="w-48">
@@ -271,7 +271,7 @@ export default function CallsManagement() {
                         />
                     </div>
 
-                    <Button onClick={handleSaveConfig} className="w-full bg-purple-600 hover:bg-purple-700">
+                    <Button onClick={handleSaveConfig} className="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold shadow-lg shadow-amber-500/20">
                         Guardar Cambios
                     </Button>
                 </Card>
@@ -280,16 +280,21 @@ export default function CallsManagement() {
                 <Card className="p-6 bg-gray-900 border-gray-800 md:col-span-2">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="font-semibold text-lg flex items-center gap-2">
-                                <CalendarIcon className="w-5 h-5 text-indigo-400" />
+                            <h3 className="font-semibold text-lg flex items-center gap-2 text-white">
+                                <CalendarIcon className="w-5 h-5 text-amber-500" />
                                 Gestión de Disponibilidad
                             </h3>
-                            <p className="text-sm text-gray-400">Selecciona un día en el calendario para gestionar sus horas.</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <p className="text-sm text-neutral-400">Zona Horaria Detectada:</p>
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-mono text-amber-400">
+                                    {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                                </span>
+                            </div>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="text-right">
-                                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Disponibles</p>
-                                <p className="text-xl font-mono text-indigo-400">{config.slots?.filter((s: any) => !s.is_booked).length || 0}</p>
+                                <p className="text-xs text-neutral-500 uppercase font-bold tracking-wider">Total Disponibles</p>
+                                <p className="text-xl font-mono text-amber-400">{config.slots?.filter((s: any) => !s.is_booked).length || 0}</p>
                             </div>
                         </div>
                     </div>
@@ -297,7 +302,7 @@ export default function CallsManagement() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* LEFT: Calendar & Stats */}
                         <div className="lg:col-span-5 space-y-6">
-                            <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 shadow-xl backdrop-blur-sm">
+                            <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800 shadow-xl backdrop-blur-sm">
                                 <Calendar
                                     mode="single"
                                     selected={newSlotDate}
@@ -312,7 +317,7 @@ export default function CallsManagement() {
                                         }
                                     }}
                                     modifiersClassNames={{
-                                        hasSlots: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-indigo-400 after:rounded-full after:shadow-[0_0_8px_rgba(129,140,248,0.8)] font-bold text-white bg-slate-800/80"
+                                        hasSlots: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-amber-500 after:rounded-full after:shadow-[0_0_8px_rgba(245,158,11,0.8)] font-bold text-white bg-neutral-800/80"
                                     }}
                                 />
                             </div>
