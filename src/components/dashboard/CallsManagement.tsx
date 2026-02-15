@@ -60,15 +60,18 @@ export default function CallsManagement() {
     const fetchChannels = async () => {
         try {
             if (!token) return;
-            const data = await apiRequest<Channel[]>('/channels/my-channels');
+            setLoading(true);
+            const data = await apiRequest<Channel[]>('/owner/channels');
             setChannels(data);
-            if (data.length > 0 && !selectedChannelId) {
-                setSelectedChannelId(data[0].id.toString());
-            } else if (data.length === 0) {
-                setLoading(false); // Stop loading if no channels
+            if (data.length > 0) {
+                if (!selectedChannelId) {
+                    setSelectedChannelId(data[0].id.toString());
+                }
             }
         } catch (e) {
             console.error("Error fetching channels", e);
+            toast.error("Error al cargar canales");
+        } finally {
             setLoading(false);
         }
     };
@@ -102,51 +105,39 @@ export default function CallsManagement() {
 
     const handleSaveConfig = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calls/config`, {
+            const data = await apiRequest('/calls/config', {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify({
-                    price: parseFloat(config.price),
-                    duration_minutes: parseInt(config.duration_minutes),
+                    price: parseFloat(config.price.toString()),
+                    duration_minutes: parseInt(config.duration_minutes.toString()),
                     description: config.description,
                     is_active: config.is_active,
                     channel_id: selectedChannelId ? parseInt(selectedChannelId) : null
                 }),
             });
 
-            if (res.ok) {
+            if (data) {
                 toast.success("Configuración guardada");
                 fetchConfig();
-            } else {
-                toast.error("Error al guardar");
             }
         } catch (e) {
-            toast.error("Error de conexión");
+            toast.error("Error al guardar: " + (e as Error).message);
         }
     };
 
     const handleAddSlot = async () => {
         if (!newSlotDate || !newSlotTime) return;
 
-        // Combine date and time to ISO string
-        if (!newSlotDate) return;
         const dateStr = format(newSlotDate, "yyyy-MM-dd");
         const start_time = new Date(`${dateStr}T${newSlotTime}:00`).toISOString();
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calls/slots`, {
+            const data = await apiRequest('/calls/slots', {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify([{ start_time }]),
             });
 
-            if (res.ok) {
+            if (data) {
                 toast.success("Horario agregado");
                 setNewSlotDate(undefined);
                 setNewSlotTime("");
@@ -159,14 +150,11 @@ export default function CallsManagement() {
 
     const handleDeleteSlot = async (id: number) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calls/slots/${id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
+            await apiRequest(`/calls/slots/${id}`, {
+                method: "DELETE"
             });
-            if (res.ok) {
-                toast.success("Horario eliminado");
-                fetchConfig();
-            }
+            toast.success("Horario eliminado");
+            fetchConfig();
         } catch (e) {
             toast.error("Error eliminando slot");
         }
@@ -228,7 +216,8 @@ export default function CallsManagement() {
                         value={selectedChannelId}
                         onChange={(e) => setSelectedChannelId(e.target.value)}
                     >
-                        {channels.length === 0 && <option value="">Cargando canales...</option>}
+                        {loading && channels.length === 0 && <option value="">Cargando canales...</option>}
+                        {!loading && channels.length === 0 && <option value="">No se encontraron canales</option>}
                         {channels.map(c => (
                             <option key={c.id} value={c.id}>{c.title}</option>
                         ))}
