@@ -128,7 +128,7 @@ export default function CallsManagement() {
                 return;
             }
 
-            await apiRequest('/calls/services', {
+            const newService = await apiRequest<CallService>('/calls/services', {
                 method: "POST",
                 body: JSON.stringify({
                     channel_id: parseInt(selectedChannelId),
@@ -139,7 +139,13 @@ export default function CallsManagement() {
             toast.success("Servicio creado");
             setIsCreatingService(false);
             setServiceForm({ description: "", duration_minutes: 30, price: 0, is_active: true });
-            fetchServices();
+
+            // Direct state update for immediate reaction
+            setServices(prev => [...prev, newService]);
+            setSelectedServiceId(newService.id);
+
+            // Background sync (optional but safe)
+            // fetchServices(); 
         } catch (e) {
             toast.error("Error: " + (e as Error).message);
         }
@@ -150,7 +156,12 @@ export default function CallsManagement() {
         try {
             await apiRequest(`/calls/services/${id}`, { method: "DELETE" });
             toast.success("Servicio eliminado");
-            fetchServices();
+
+            // Direct state update
+            setServices(prev => prev.filter(s => s.id !== id));
+            if (selectedServiceId === id) {
+                setSelectedServiceId(null);
+            }
         } catch (e) {
             toast.error("Error eliminando servicio");
         }
