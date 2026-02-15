@@ -6,7 +6,8 @@ from shared.models import User, CallService, CallSlot
 from api.deps import get_current_user
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
+from shared.utils.calendar import generate_calendar_links
 
 router = APIRouter(prefix="/calls", tags=["calls"])
 
@@ -30,6 +31,7 @@ class CallSlotOut(BaseModel):
     is_booked: bool
     jitsi_link: Optional[str] = None
     booked_by_name: Optional[str] = None # Helper for UI
+    calendar_links: Optional[dict] = None # New: Links for Google, Outlook, Yahoo
 
     class Config:
         from_attributes = True
@@ -56,7 +58,21 @@ async def get_services(
         query = query.where(CallService.channel_id == channel_id)
 
     result = await db.execute(query.options(selectinload(CallService.slots)))
-    return result.scalars().all()
+    services = result.scalars().all()
+    
+    # Enrich slots with calendar links if booked
+    for svc in services:
+        for slot in svc.slots:
+            if slot.is_booked:
+                end_time = slot.start_time + timedelta(minutes=svc.duration_minutes)
+                slot.calendar_links = generate_calendar_links(
+                    title=f"Llamada: {svc.description}",
+                    start_time=slot.start_time,
+                    end_time=end_time,
+                    description=f"Sesión reservada de {svc.description}. Link de reunión: {slot.jitsi_link}",
+                    location=slot.jitsi_link or "Online"
+                )
+    return services
 
 @router.post("/services", response_model=CallServiceOut)
 async def create_service(

@@ -8,7 +8,8 @@ from shared.database import AsyncSessionLocal
 from shared.models import CallService, CallSlot, User
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+from shared.utils.calendar import generate_calendar_links
 
 router = Router()
 
@@ -242,11 +243,26 @@ async def finalize_booking(callback: types.CallbackQuery):
         session.add(booking)
         await session.commit()
         
+        # Generate calendar links
+        cal_links = generate_calendar_links(
+            title=f"Llamada: {service.description}",
+            start_time=start_time,
+            end_time=end_time,
+            description=f"Sesión reservada de {service.description}. Link de reunión: {jitsi_link}",
+            location=jitsi_link
+        )
+        
+        builder = InlineKeyboardBuilder()
+        builder.button(text="📅 Google Calendar", url=cal_links["google"])
+        builder.button(text="📆 Outlook / Office", url=cal_links["outlook"])
+        builder.adjust(2)
+            
         await callback.message.edit_text(
             f"✅ **¡Pago Exitoso y Reserva Confirmada!**\n\n"
             f"🗓 Fecha: {start_time.strftime('%Y-%m-%d %H:%M')} UTC\n"
             f"🔗 **Tu Enlace de Acceso:**\n`{jitsi_link}`\n\n"
-            f"Te recomendamos guardar este enlace y añadir la fecha a tu calendario.",
+            f"Te recomendamos guardar este enlace y añadir la fecha a tu calendario:",
+            reply_markup=builder.as_markup(),
             parse_mode="Markdown"
         )
 

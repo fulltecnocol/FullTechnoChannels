@@ -23,6 +23,11 @@ interface CallSlot {
     jitsi_link?: string;
     booked_by_name?: string;
     service_id: number;
+    calendar_links?: {
+        google: string;
+        outlook: string;
+        yahoo: string;
+    };
 }
 
 interface CallService {
@@ -396,17 +401,45 @@ export default function CallsManagement() {
                             <p className="text-gray-500">Aún no tienes ventas.</p>
                         )}
                         {services.flatMap(s => s.slots.map(slot => ({ ...slot, serviceName: s.description }))).filter(s => s.is_booked).map(slot => (
-                            <div key={slot.id} className="flex justify-between items-center p-3 bg-green-900/20 border border-green-800 rounded">
-                                <div>
-                                    <span className="font-bold text-green-400">
-                                        {new Date(slot.start_time).toLocaleString()}
-                                    </span>
-                                    <div className="text-sm text-gray-300">
-                                        Servicio: <span className="font-semibold">{slot.serviceName}</span>
+                            <div key={slot.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 bg-green-900/10 border border-green-800/30 rounded-xl">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-green-400">
+                                            {format(new Date(slot.start_time), "d 'de' MMMM, HH:mm", { locale: es })}
+                                        </span>
+                                        <span className="bg-green-600/20 text-green-400 text-[10px] font-black px-1.5 py-0.5 rounded border border-green-600/30">VENDIDO</span>
                                     </div>
-                                    <p className="text-sm text-gray-300">Link: <a href={slot.jitsi_link} target="_blank" className="underline hover:text-white">{slot.jitsi_link}</a></p>
+                                    <div className="text-sm text-gray-200">
+                                        Servicio: <span className="font-semibold text-white">{slot.serviceName}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-400 flex items-center gap-1.5">
+                                        <Video className="w-3.5 h-3.5" />
+                                        Link: <a href={slot.jitsi_link} target="_blank" className="underline hover:text-white transition-colors">{slot.jitsi_link}</a>
+                                    </p>
                                 </div>
-                                <div className="bg-green-600 text-xs px-2 py-1 rounded text-white">VENDIDO</div>
+
+                                {slot.calendar_links && (
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={slot.calendar_links.google}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-3 py-1.5 bg-neutral-950/50 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-xs font-bold text-white transition-all flex items-center gap-2"
+                                        >
+                                            <CalendarIcon className="w-3.5 h-3.5 text-blue-400" />
+                                            Google
+                                        </a>
+                                        <a
+                                            href={slot.calendar_links.outlook}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-3 py-1.5 bg-neutral-950/50 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-xs font-bold text-white transition-all flex items-center gap-2"
+                                        >
+                                            <CalendarIcon className="w-3.5 h-3.5 text-blue-400" />
+                                            Outlook
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
