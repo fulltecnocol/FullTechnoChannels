@@ -5,6 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.future import select
 from sqlalchemy import and_
 from shared.database import AsyncSessionLocal
+from shared.models import CallService, CallSlot, User
 
 import logging
 from datetime import datetime
