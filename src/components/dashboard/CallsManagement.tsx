@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Video, Calendar as CalendarIcon } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Calendar } from "@/components/ui/calendar";
+import { CustomCalendar } from "@/components/ui/CustomCalendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -303,23 +303,14 @@ export default function CallsManagement() {
                         {/* LEFT: Calendar & Stats */}
                         <div className="lg:col-span-5 space-y-6">
                             <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800 shadow-xl backdrop-blur-sm">
-                                <Calendar
-                                    mode="single"
-                                    selected={newSlotDate}
-                                    onSelect={setNewSlotDate}
-                                    className="w-full pointer-events-auto"
-                                    modifiers={{
-                                        hasSlots: config.slots?.map((s: any) => new Date(s.start_time)) || []
-                                    }}
-                                    modifiersStyles={{
-                                        hasSlots: {
-                                            position: 'relative',
-                                        }
-                                    }}
-                                    modifiersClassNames={{
-                                        hasSlots: "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-amber-500 after:rounded-full after:shadow-[0_0_8px_rgba(245,158,11,0.8)] font-bold text-white bg-neutral-800/80"
-                                    }}
-                                />
+                                <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800 shadow-xl backdrop-blur-sm">
+                                    <CustomCalendar
+                                        selected={newSlotDate}
+                                        onSelect={setNewSlotDate}
+                                        className="w-full pointer-events-auto"
+                                        highlightedDates={config.slots?.map((s: any) => new Date(s.start_time)) || []}
+                                    />
+                                </div>
                             </div>
 
                             <div className="bg-indigo-950/20 border border-indigo-500/20 p-4 rounded-lg">
