@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from api.main import app as api_app
 from bot.main import app as bot_app, on_bot_startup
@@ -21,7 +22,18 @@ app = FastAPI(title=f"TeleGate {SERVICE_TYPE.upper()} Service")
 
 # 1. Trusted Host Middleware (Security Hardening)
 # Broadened for Cloud Run internal health checks and domains
+# 1. Trusted Host Middleware (Security Hardening)
+# Broadened for Cloud Run internal health checks and domains
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
+
+# 2. CORS Middleware (Required for Dashboard)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For production, replace with specific Firebase domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # 2. Custom Security Headers Middleware
