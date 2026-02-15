@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { apiRequest } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,18 +33,11 @@ export default function CallsManagement() {
     const fetchConfig = async () => {
         try {
             if (!token) return;
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calls/config`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setConfig(data);
-            } else {
-                console.error("Error fetching config:", res.status, res.statusText);
-            }
+            const data = await apiRequest<Dictionary>('/calls/config');
+            setConfig(data);
         } catch (error) {
             console.error(error);
-            toast.error("Error cargando configuración");
+            // toast.error("Error cargando configuración"); // apiRequest throws, caught here
         } finally {
             setLoading(false);
         }

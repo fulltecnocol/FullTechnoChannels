@@ -2,8 +2,9 @@
 
 import React, { useSyncExternalStore } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 
-const subscribe = () => () => {};
+const subscribe = () => () => { };
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
 
@@ -29,7 +30,9 @@ export function ClientProviders({
 
     return (
         <GoogleOAuthProvider clientId={googleClientId}>
-            {children}
+            <AuthProvider>
+                {children}
+            </AuthProvider>
         </GoogleOAuthProvider>
     );
 }
