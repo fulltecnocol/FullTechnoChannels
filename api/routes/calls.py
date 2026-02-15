@@ -1,17 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from sqlalchemy import and_
 from shared.database import get_db, AsyncSessionLocal
-from shared.models import User, CallService, CallSlot
+from shared.models import User, CallService, CallSlot, CallBooking
 from api.deps import get_current_user
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
 from shared.utils.calendar import generate_calendar_links
+import logging
+
+# Configurar logging para facilitar depuración en Cloud Run
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/calls", tags=["calls"])
 
-# --- SCHEMAS ---
 # --- SCHEMAS ---
 class CallServiceSchema(BaseModel):
     channel_id: Optional[int] = None
@@ -52,27 +56,98 @@ async def get_services(
     db: AsyncSessionLocal = Depends(get_db)
 ):
     """Get all call services for the user/channel"""
-    query = select(CallService).where(CallService.owner_id == current_user.id)
-    
-    if channel_id:
-        query = query.where(CallService.channel_id == channel_id)
+    try:
+        query = select(CallService).where(CallService.owner_id == current_user.id)
+        if channel_id:
+            query = query.where(CallService.channel_id == channel_id)
 
-    result = await db.execute(query.options(selectinload(CallService.slots)))
-    services = result.scalars().all()
-    
-    # Enrich slots with calendar links if booked
-    for svc in services:
-        for slot in svc.slots:
-            if slot.is_booked:
-                end_time = slot.start_time + timedelta(minutes=svc.duration_minutes)
-                slot.calendar_links = generate_calendar_links(
-                    title=f"Llamada: {svc.description}",
-                    start_time=slot.start_time,
-                    end_time=end_time,
-                    description=f"Sesión reservada de {svc.description}. Link de reunión: {slot.jitsi_link}",
-                    location=slot.jitsi_link or "Online"
-                )
-    return services
+        # Load slots AND the booked_by user for those slots
+        result = await db.execute(
+            query.options(
+                selectinload(CallService.slots).selectinload(CallSlot.booked_by)
+            )
+        )
+        services = result.scalars().all()
+        
+        # 1. Fetch confirmed bookings (modern system)
+        service_ids = [s.id for s in services]
+        all_bookings = []
+        if service_ids:
+            bookings_res = await db.execute(
+                select(CallBooking).where(
+                    and_(
+                        CallBooking.service_id.in_(service_ids),
+                        CallBooking.status == "confirmed"
+                    )
+                ).options(selectinload(CallBooking.booker))
+            )
+            all_bookings = bookings_res.scalars().all()
+
+        final_services = []
+        for svc in services:
+            current_slots = []
+            
+            # 1.1 Process legacy slots (CallSlot)
+            for slot in svc.slots:
+                slot_data = {
+                    "id": slot.id,
+                    "service_id": slot.service_id,
+                    "start_time": slot.start_time,
+                    "is_booked": slot.is_booked,
+                    "jitsi_link": slot.jitsi_link,
+                    "booked_by_name": slot.booked_by.full_name if slot.booked_by else None,
+                    "calendar_links": None
+                }
+                
+                if slot.is_booked:
+                    end_time = slot.start_time + timedelta(minutes=svc.duration_minutes)
+                    slot_data["calendar_links"] = generate_calendar_links(
+                        title=f"Llamada: {svc.description}",
+                        start_time=slot.start_time,
+                        end_time=end_time,
+                        description=f"Sesión reservada de {svc.description}. Link de reunión: {slot.jitsi_link}",
+                        location=slot.jitsi_link or "Online"
+                    )
+                current_slots.append(slot_data)
+            
+            # 1.2 Process modern bookings (CallBooking) as pseudo-slots
+            svc_bookings = [b for b in all_bookings if b.service_id == svc.id]
+            for b in svc_bookings:
+                # Evitar duplicados si ya existe un slot para este mismo tiempo
+                if any(s["start_time"] == b.start_time for s in current_slots):
+                    continue
+
+                actual_end = b.end_time or (b.start_time + timedelta(minutes=svc.duration_minutes))
+                current_slots.append({
+                    "id": 1000000 + b.id,
+                    "service_id": svc.id,
+                    "start_time": b.start_time,
+                    "is_booked": True,
+                    "jitsi_link": b.meeting_link,
+                    "booked_by_name": b.booker.full_name if b.booker else "Usuario Telegram",
+                    "calendar_links": generate_calendar_links(
+                        title=f"Llamada: {svc.description}",
+                        start_time=b.start_time,
+                        end_time=actual_end,
+                        description=f"Sesión reservada de {svc.description}. Link de reunión: {b.meeting_link}",
+                        location=b.meeting_link or "Online"
+                    )
+                })
+
+            final_services.append({
+                "id": svc.id,
+                "channel_id": svc.channel_id,
+                "price": float(svc.price),
+                "duration_minutes": svc.duration_minutes,
+                "description": svc.description,
+                "is_active": svc.is_active,
+                "slots": current_slots
+            })
+
+        return final_services
+    except Exception as e:
+        logger.error(f"FATAL Error in get_services: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/services", response_model=CallServiceOut)
 async def create_service(

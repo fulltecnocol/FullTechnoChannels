@@ -14,6 +14,7 @@ from shared.models import (
     SystemConfig as ConfigItem,
     BusinessExpense,
 )
+from shared.signature_models import OwnerLegalInfo, SignedContract
 from api.schemas.user import UserAdminResponse
 from api.schemas.misc import ConfigUpdate, TaxExpenseRequest
 from api.deps import get_current_admin
@@ -142,6 +143,115 @@ async def delete_user_admin(
     await db.delete(user)
     await db.commit()
     return {"ok": True}
+
+
+@router.get("/users/{user_id}/legal")
+async def get_user_legal_info(
+    user_id: int,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Get legal info for a specific user (Admin only)"""
+    # 1. Get Base Legal Info
+    result = await db.execute(select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == user_id))
+    info = result.scalar_one_or_none()
+    
+    if not info:
+        return {"has_legal": False}
+    
+    # 2. Check if there is ANY signed contract in the SignedContract table
+    # This acts as a fallback if owner_legal_info.contract_signed is false due to sync issues
+    contract_res = await db.execute(
+        select(SignedContract).where(SignedContract.owner_id == user_id).limit(1)
+    )
+    has_signed_contract = contract_res.scalar_one_or_none() is not None or info.contract_signed
+    
+    # Map to schema
+    return {
+        "has_legal": True,
+        "person_type": info.person_type,
+        "full_legal_name": info.full_legal_name,
+        "id_type": info.id_type,
+        "id_number": info.id_number,
+        "business_name": info.business_name,
+        "nit": info.nit,
+        "legal_rep_name": info.legal_rep_name,
+        "legal_rep_id": info.legal_rep_id,
+        "address": info.address,
+        "city": info.city,
+        "department": info.department,
+        "phone": info.phone,
+        "bank_name": info.bank_name,
+        "account_type": info.account_type,
+        "account_number": info.account_number,
+        "account_holder_name": info.account_holder_name,
+        "rut_url": info.rut_url,
+        "bank_cert_url": info.bank_cert_url,
+        "chamber_commerce_url": info.chamber_commerce_url,
+        "contract_pdf_url": f"/admin/users/{user_id}/contract" if has_signed_contract else None,
+        "signed_at": info.contract_signed_at.isoformat() if info.contract_signed_at else None
+    }
+
+
+@router.get("/users/{user_id}/contract")
+async def get_user_signed_contract_pdf(
+    user_id: int,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Generates and serves the signed contract PDF for a user (Admin only)"""
+    # 1. Get Legal Info
+    res_legal = await db.execute(select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == user_id))
+    info = res_legal.scalar_one_or_none()
+    
+    if not info:
+        raise HTTPException(status_code=404, detail="Legal info not found")
+        
+    # 2. Get Signature Data from the latest SignedContract record
+    res_contract = await db.execute(
+        select(SignedContract)
+        .where(SignedContract.owner_id == user_id)
+        .order_by(SignedContract.signed_at.desc())
+    )
+    contract = res_contract.scalar_one_or_none()
+    
+    # Fallback logic if OwnerLegalInfo says it's signed but no record in SignedContract
+    if not contract and not info.contract_signed:
+        raise HTTPException(status_code=404, detail="Signed contract not found")
+        
+    if not contract:
+        # Fallback if SignedContract is missing but OwnerLegalInfo says signed
+        signature_data = {
+            "signature_date": info.contract_signed_at or datetime.utcnow(),
+            "signature_code": info.contract_signature_method or "OTP",
+            "telegram_user_id": "N/A",
+            "ip_address": "N/A",
+            "document_hash": "N/A",
+            "blockchain_tx_hash": None,
+            "blockchain_network": "polygon",
+            "contract_id": f"CTR-{user_id}-LEGACY",
+        }
+    else:
+        signature_data = {
+            "signature_date": contract.signed_at,
+            "signature_code": contract.signature_code,
+            "telegram_user_id": contract.signature_telegram_user_id,
+            "ip_address": contract.signature_ip_address,
+            "document_hash": contract.pdf_hash,
+            "blockchain_tx_hash": contract.blockchain_tx_hash,
+            "blockchain_network": contract.blockchain_network,
+            "contract_id": f"CTR-{user_id}-{int(contract.signed_at.timestamp())}",
+        }
+
+    # 3. Generate PDF on the fly
+    from api.services.pdf_service import PDFContractService
+    pdf_bytes = PDFContractService.generate_contract_pdf(info.__dict__, signature_data)
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"inline; filename=contract_{user_id}.pdf"},
+    )
 
 
 @router.get("/tax/summary")

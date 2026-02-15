@@ -1,7 +1,7 @@
 import { ShieldEllipsis, Users, LayoutGrid, Zap, History, ShieldCheck, Wallet, LifeBuoy, AlertTriangle, Trash2, Eye, X, FileText, ExternalLink, Loader2 } from 'lucide-react';
 import { UserAdmin, ConfigItem, Withdrawal, SupportTicket, LegalInfo } from '@/lib/types';
 import { useState, useEffect } from 'react';
-import { adminApi } from '@/lib/api';
+import { adminApi, API_URL } from '@/lib/api';
 
 interface AdminSystemProps {
     adminUsers: UserAdmin[];
@@ -408,7 +408,12 @@ export function AdminSystem({
                                             </a>
                                         )}
                                         {selectedLegal.contract_pdf_url && (
-                                            <a href={selectedLegal.contract_pdf_url} target="_blank" className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors group">
+                                            <a
+                                                href={`/api${selectedLegal.contract_pdf_url}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors group"
+                                            >
                                                 <div className="flex items-center gap-3">
                                                     <ShieldCheck className="w-5 h-5 text-primary" />
                                                     <div className="flex flex-col">

@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Comisiones Pro - MLM Dashboard</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+      
+       body {
+           font-family: 'Inter', sans-serif;
+           background-color: #0c0c0c; /* Negro Mate */
+           color: #e5e7eb;
+           margin: 0;
+           padding: 0;
+           overflow-x: hidden;
+       }
+
+
+      .bg-stone-gray { background-color: #1a1a1a; }
+      .text-gold { color: #d4af37; }
+      .bg-gold { background-color: #d4af37; }
+      .border-gold { border-color: rgba(212, 175, 55, 0.3); }
+
+
+      .card {
+           background-color: #1a1a1a;
+           border-radius: 12px;
+           border: 1px solid rgba(255, 255, 255, 0.05);
+           padding: 1.25rem;
+           transition: transform 0.2s ease;
+       }
+
+
+      .card:active {
+           transform: scale(0.98);
+      }
+
+
+      .progress-bar {
+           height: 6px;
+           background-color: #333;
+           border-radius: 10px;
+           overflow: hidden;
+       }
+
+
+      .level-locked {
+           opacity: 0.4;
+           filter: grayscale(1);
+           position: relative;
+       }
+
+
+      .level-locked::after {
+           content: '🔒';
+           position: absolute;
+           top: 5px;
+           right: 5px;
+           font-size: 8px;
+      }
+
+
+       /* Chart Tooltip Custom */
+      .chart-container { position: relative; height: 180px; width: 100%; }
+
+
+       /* Custom Scroll */
+       ::-webkit-scrollbar { width: 5px; }
+       ::-webkit-scrollbar-track { background: #0c0c0c; }
+       ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 5px; }
+
+
+       .gold-glow {
+           box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+       }
+   </style>
+</head>
+<body class="p-4 md:p-6 pb-24">
+
+
+   <!-- Header / Perfil -->
+   <header class="flex justify-between items-center mb-6">
+       <div>
+           <h1 class="text-xl font-bold flex items-center gap-2">
+               <span class="text-gold">⚡</span> Comisiones Pro
+           </h1>
+           <p class="text-[10px] text-stone-500 uppercase tracking-widest">Estrategia 8% | Pagos a Mes Vencido</p>
+       </div>
+       <div class="flex items-center gap-2 bg-stone-gray px-3 py-1.5 rounded-full border border-stone-800 gold-glow">
+           <div class="w-6 h-6 rounded-full bg-gold flex items-center justify-center text-[10px] text-black font-bold">O</div>
+           <span class="text-xs font-semibold">Rango Oro</span>
+       </div>
+   </header>
+
+
+   <!-- KPIs Principales -->
+   <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+       <div class="card border-l-4 border-gold">
+           <div class="flex justify-between items-start">
+               <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Balance Disponible</p>
+               <span class="text-[8px] bg-green-900/30 text-green-400 px-1.5 py-0.5 rounded tracking-tighter">VERIFICADO</span>
+           </div>
+           <div class="flex items-end gap-1">
+               <span class="text-2xl font-bold">$2,450.00</span>
+               <span class="text-xs text-stone-500 pb-1">USD</span>
+           </div>
+           <button class="mt-3 w-full py-2 bg-gold text-black text-xs font-bold rounded-lg hover:opacity-90 transition-all shadow-lg">RETIRAR FONDOS</button>
+       </div>
+      
+       <div class="card">
+           <div class="flex justify-between items-start">
+               <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Pendiente (Mes Vencido)</p>
+               <span class="text-[10px]">⏳</span>
+           </div>
+           <div class="flex items-end gap-1">
+               <span class="text-2xl font-bold text-stone-300">$840.20</span>
+               <span class="text-xs text-stone-500 pb-1 italic">Vencen en 12d</span>
+           </div>
+           <p class="text-[10px] text-stone-600 mt-2 leading-tight">Retención de seguridad activa para cubrir posibles devoluciones de clientes.</p>
+       </div>
+
+
+       <div class="card hidden md:block">
+           <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mb-1">Crecimiento Semanal</p>
+           <div class="chart-container">
+               <canvas id="miniChart"></canvas>
+           </div>
+       </div>
+   </section>
+
+
+   <!-- Modelo Decreciente Interactivo -->
+   <section class="mb-6">
+       <div class="flex justify-between items-center mb-4">
+           <h3 class="text-xs font-bold text-stone-500 uppercase tracking-widest">Distribución del 8% por Niveles</h3>
+           <span class="text-[9px] text-gold border border-gold/30 px-2 py-0.5 rounded">MODELO DECRECIENTE</span>
+       </div>
+       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+           <!-- Nivel 1 -->
+           <div class="bg-stone-gray p-3 rounded-xl border border-gold/40 text-center gold-glow">
+               <span class="block text-[10px] text-stone-500 mb-1">Directo (L1)</span>
+               <span class="text-gold font-bold text-lg">2.5%</span>
+           </div>
+           <!-- Nivel 2 -->
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center">
+               <span class="block text-[10px] text-stone-500 mb-1">Gen II (L2)</span>
+               <span class="text-white font-bold text-lg">1.5%</span>
+           </div>
+           <!-- Nivel 3 -->
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center">
+               <span class="block text-[10px] text-stone-500 mb-1">Gen III (L3)</span>
+               <span class="text-white font-bold text-lg">1.0%</span>
+           </div>
+           <!-- Nivel 4 -->
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center">
+               <span class="block text-[10px] text-stone-500 mb-1">Interno (L4)</span>
+               <span class="text-white font-bold text-lg">0.7%</span>
+           </div>
+           <!-- Nivel 5 -->
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center">
+               <span class="block text-[10px] text-stone-500 mb-1">Líder (L5)</span>
+               <span class="text-white font-bold text-lg">0.6%</span>
+           </div>
+           <!-- Niveles Bloqueados -->
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center level-locked relative group">
+               <span class="block text-[10px] text-stone-500 mb-1">Elite (L6)</span>
+               <span class="text-white font-bold text-lg">0.5%</span>
+               <div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-[8px] px-2 py-1 rounded border border-gold z-10">REQ: RANGO ORO</div>
+           </div>
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center level-locked">
+               <span class="block text-[10px] text-stone-500 mb-1">Embajador (L7)</span>
+               <span class="text-white font-bold text-lg">0.4%</span>
+           </div>
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center level-locked">
+               <span class="block text-[10px] text-stone-500 mb-1">Maestro (L8)</span>
+               <span class="text-white font-bold text-lg">0.35%</span>
+           </div>
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center level-locked">
+               <span class="block text-[10px] text-stone-500 mb-1">Leyenda (L9)</span>
+               <span class="text-white font-bold text-lg">0.25%</span>
+           </div>
+           <div class="bg-stone-gray p-3 rounded-xl border border-stone-800 text-center level-locked">
+               <span class="block text-[10px] text-stone-500 mb-1">Infinito (L10)</span>
+               <span class="text-white font-bold text-lg">0.2%</span>
+           </div>
+       </div>
+   </section>
+
+
+   <!-- Gamificación y Análisis -->
+   <section class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+       <!-- Gamificación: Rango -->
+       <div class="card">
+           <div class="flex justify-between items-center mb-4">
+               <h4 class="text-sm font-bold">Camino a Diamante 💎</h4>
+               <span class="text-[10px] bg-stone-800 px-2 py-0.5 rounded text-gold font-bold">45% COMPLETADO</span>
+           </div>
+           <div class="space-y-4">
+               <div>
+                   <div class="flex justify-between text-[10px] mb-1 text-stone-400">
+                       <span>Referidos Directos</span>
+                       <span>8 / 15</span>
+                   </div>
+                   <div class="progress-bar"><div class="bg-gold h-full" style="width: 53%"></div></div>
+               </div>
+               <div>
+                   <div class="flex justify-between text-[10px] mb-1 text-stone-400">
+                       <span>Volumen Grupal del Mes</span>
+                       <span>$3,400 / $10,000</span>
+                   </div>
+                   <div class="progress-bar"><div class="bg-gold h-full" style="width: 34%"></div></div>
+               </div>
+           </div>
+           <div class="mt-4 p-2 bg-stone-800/50 rounded border border-stone-700">
+               <p class="text-[9px] text-stone-400 leading-tight">💡 <strong>Tip Pro:</strong> El rango Diamante desbloquea las comisiones de los niveles 9 y 10, donde el volumen de red es masivo.</p>
+           </div>
+       </div>
+
+
+       <!-- Distribución de Ingresos -->
+       <div class="card flex flex-col">
+           <h4 class="text-sm font-bold mb-4">Origen de Comisiones</h4>
+           <div class="flex-grow flex items-center justify-center" style="height: 140px;">
+               <canvas id="pieChart"></canvas>
+           </div>
+       </div>
+   </section>
+
+
+   <!-- Historial de Ventas Reales -->
+   <section class="card overflow-hidden">
+       <div class="flex justify-between items-center mb-4">
+           <h4 class="text-sm font-bold">Ventas de Red (Pagado a Mes Vencido)</h4>
+           <span class="text-[10px] text-stone-500">Historial Reciente</span>
+       </div>
+       <div class="overflow-x-auto">
+           <table class="w-full text-left text-[11px]">
+               <thead>
+                   <tr class="text-stone-500 border-b border-stone-800">
+                       <th class="pb-2 font-bold uppercase tracking-tighter">Usuario</th>
+                       <th class="pb-2 font-bold uppercase tracking-tighter">Origen</th>
+                       <th class="pb-2 font-bold uppercase tracking-tighter">Venta</th>
+                       <th class="pb-2 font-bold uppercase tracking-tighter text-right">Tu 8% Parcial</th>
+                   </tr>
+               </thead>
+               <tbody class="divide-y divide-stone-800/50">
+                   <tr>
+                       <td class="py-3 flex items-center gap-2">
+                           <div class="w-5 h-5 rounded-full bg-stone-700 flex items-center justify-center text-[8px]">👤</div> @marcos_88
+                       </td>
+                       <td class="py-3 text-stone-400">Nivel 1 (2.5%)</td>
+                       <td class="py-3 text-stone-300">$200.00</td>
+                       <td class="py-3 text-right text-gold font-bold">$5.00</td>
+                   </tr>
+                   <tr>
+                       <td class="py-3 flex items-center gap-2">
+                           <div class="w-5 h-5 rounded-full bg-stone-700 flex items-center justify-center text-[8px]">👤</div> @elena_sales
+                       </td>
+                       <td class="py-3 text-stone-400">Nivel 2 (1.5%)</td>
+                       <td class="py-3 text-stone-300">$150.00</td>
+                       <td class="py-3 text-right text-gold font-bold">$2.25</td>
+                   </tr>
+                   <tr>
+                       <td class="py-3 flex items-center gap-2">
+                           <div class="w-5 h-5 rounded-full bg-stone-700 flex items-center justify-center text-[8px]">👤</div> @crypto_node
+                       </td>
+                       <td class="py-3 text-stone-400">Nivel 3 (1.0%)</td>
+                       <td class="py-3 text-stone-300">$500.00</td>
+                       <td class="py-3 text-right text-gold font-bold">$5.00</td>
+                   </tr>
+               </tbody>
+           </table>
+       </div>
+   </section>
+
+
+   <!-- Bottom Nav (Fija) -->
+   <nav class="fixed bottom-0 left-0 w-full bg-stone-gray border-t border-stone-800 p-3 flex justify-around items-center z-50">
+       <button class="text-gold flex flex-col items-center gap-1">
+           <span class="text-xl">🏠</span>
+           <span class="text-[9px] font-bold uppercase">Dashboard</span>
+       </button>
+       <button class="text-stone-500 flex flex-col items-center gap-1 opacity-60">
+           <span class="text-xl">🌐</span>
+           <span class="text-[9px] font-bold uppercase">Mi Red</span>
+       </button>
+       <button class="text-stone-500 flex flex-col items-center gap-1 opacity-60">
+           <span class="text-xl">📊</span>
+           <span class="text-[9px] font-bold uppercase">Simulador</span>
+       </button>
+       <button class="text-stone-500 flex flex-col items-center gap-1 opacity-60">
+           <span class="text-xl">⚙️</span>
+           <span class="text-[9px] font-bold uppercase">Ajustes</span>
+       </button>
+   </nav>
+
+
+   <script>
+       // Mini Chart de Crecimiento
+       const ctxMini = document.getElementById('miniChart').getContext('2d');
+       new Chart(ctxMini, {
+           type: 'line',
+           data: {
+               labels: ['L', 'M', 'M', 'J', 'V', 'S', 'D'], // Etiquetas corregidas
+               datasets: [{
+                   data: [6, 12, 8, 15, 10, 18, 14],
+                   borderColor: '#d4af37',
+                   borderWidth: 2,
+                   tension: 0.4,
+                   pointRadius: 0,
+                   fill: true,
+                   backgroundColor: 'rgba(212, 175, 55, 0.05)'
+               }]
+           },
+           options: {
+               responsive: true,
+               maintainAspectRatio: false,
+               plugins: { legend: { display: false } },
+               scales: {
+                   x: { display: false },
+                   y: { display: false }
+               }
+           }
+       });
+
+
+       // Gráfico de Dona para Origen de Comisiones
+       const ctxPie = document.getElementById('pieChart').getContext('2d');
+       new Chart(ctxPie, {
+           type: 'doughnut',
+           data: {
+               labels: ['Niveles 1-3', 'Niveles 4-6', 'Niveles 7-10'], // Etiquetas corregidas
+               datasets: [{
+                   data: [55, 30, 15],
+                   backgroundColor: ['#d4af37', '#b8860b', '#333'],
+                   borderWidth: 0,
+                   hoverOffset: 10
+               }]
+           },
+           options: {
+               responsive: true,
+               maintainAspectRatio: false,
+               cutout: '80%',
+               plugins: {
+                   legend: {
+                       position: 'right',
+                       labels: {
+                           color: '#888',
+                           font: { size: 10, weight: '600' },
+                           boxWidth: 8,
+                           padding: 15
+                       }
+                   }
+               }
+           }
+       });
+   </script>
+</body>
+</html>
