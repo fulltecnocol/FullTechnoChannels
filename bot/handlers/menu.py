@@ -1,0 +1,129 @@
+from aiogram import Router, types, F
+from aiogram.filters import Command
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy.future import select
+from sqlalchemy import and_
+from shared.database import AsyncSessionLocal
+from shared.models import User as DBUser, Subscription, Plan, Channel, Promotion
+from bot.handlers.initial import get_or_create_user
+from datetime import datetime
+
+router = Router()
+
+@router.message(Command("menu"))
+async def cmd_menu(message: types.Message):
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(text="👤 Mi Perfil", callback_data="profile"),
+        types.InlineKeyboardButton(text="📺 Canales", callback_data="channels"),
+    )
+    builder.row(
+        types.InlineKeyboardButton(text="📞 Agendar Llamada", callback_data="book_call_menu"),
+        types.InlineKeyboardButton(text="🆘 Soporte", callback_data="support_help"),
+    )
+    await message.answer(
+        "👋 **Menú Principal de TeleGate**\n\n"
+        "Selecciona una opción para continuar:",
+        reply_markup=builder.as_markup(),
+        parse_mode="Markdown",
+    )
+
+@router.callback_query(F.data == "profile")
+async def handle_profile_callback(callback: types.CallbackQuery):
+    await show_profile(callback.message, callback.from_user)
+    await callback.answer()
+
+@router.message(Command("me"))
+async def cmd_profile(message: types.Message):
+    await show_profile(message, message.from_user)
+
+async def show_profile(message: types.Message, tg_user: types.User):
+    # Check Cache First
+    from shared.cache import memory_cache
+    cache_key = f"profile_msg_{tg_user.id}"
+    cached_text = await memory_cache.get(cache_key)
+    
+    if cached_text:
+        await message.answer(cached_text, parse_mode="Markdown")
+        return
+
+    async with AsyncSessionLocal() as session:
+        user = await get_or_create_user(tg_user, session)
+        
+        # 1. Obtener Suscripciones Activas
+        sub_res = await session.execute(
+            select(Subscription, Plan, Channel)
+            .select_from(Subscription)
+            .join(Plan, Subscription.plan_id == Plan.id)
+            .join(Channel, Plan.channel_id == Channel.id)
+            .where(
+                and_(
+                    Subscription.user_id == user.id,
+                    Subscription.is_active,
+                    Subscription.end_date > datetime.utcnow(),
+                )
+            )
+        )
+        subs = sub_res.all()
+
+        # 2. Obtener Info de Afiliados
+        from shared.accounting import get_affiliate_tier_info
+
+        tier_info = await get_affiliate_tier_info(session, user.id)
+        
+        bot_info = await message.bot.get_me()
+
+        profile_text = (
+            f"👤 **PERFIL TELEGATE: {tg_user.full_name}**\n"
+            f"━━━━━━━━━━━━━━━━━━\n\n"
+            f"🆔 **ID**: `{user.id}`\n"
+            f"🏆 **Rango**: {tier_info['tier']}\n"
+            f"💰 **Balance**: `${user.balance:.2f} USD`\n"
+            f"🤝 **Invitados**: `{tier_info['count']}`\n\n"
+            f"🔗 **Tu Link de Referido**:\n"
+            f"`https://t.me/{bot_info.username}?start=ref_{user.referral_code}`\n\n"
+            f"📅 **Tus Membresías Activas**:\n"
+        )
+
+        if subs:
+            for sub, plan, chan in subs:
+                days_left = (sub.end_date - datetime.utcnow()).days
+                profile_text += (
+                    f"• **{chan.title}**: {plan.name} ({days_left} días restantes)\n"
+                )
+        else:
+            profile_text += "_No tienes membresías activas._\n"
+
+        profile_text += "\n\n_Powered by Full Techno HUB_"
+        
+        # Cache message for 60 seconds
+        await memory_cache.set(cache_key, profile_text, ttl_seconds=60)
+        
+        await message.answer(profile_text, parse_mode="Markdown")
+
+@router.callback_query(F.data == "channels")
+async def handle_channels_callback(callback: types.CallbackQuery):
+    # This logic assumes we want to show available channels or user's channels
+    # For now, let's just show a placeholder or basic list
+    async with AsyncSessionLocal() as session:
+         result = await session.execute(select(Channel).where(Channel.is_verified == True))
+         channels = result.scalars().all()
+         
+         if not channels:
+             await callback.message.edit_text("📺 No hay canales públicos disponibles por ahora.")
+             return
+
+         text = "📺 **Canales Disponibles**\n\n"
+         builder = InlineKeyboardBuilder()
+         
+         for channel in channels:
+             builder.row(types.InlineKeyboardButton(text=channel.title, callback_data=f"channel_view_{channel.id}"))
+        
+         await callback.message.edit_text(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
+
+@router.callback_query(F.data.startswith("channel_view_"))
+async def view_channel_plans(callback: types.CallbackQuery):
+    channel_id = int(callback.data.split("_")[2])
+    # Logic to show plans for the channel (moved/adapted from original main.py if it exists there, 
+    # otherwise we can keep it simple for now)
+    await callback.answer("Función de ver planes en desarrollo en refactorización.")

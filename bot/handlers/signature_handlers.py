@@ -487,6 +487,7 @@ async def handle_read_pdf(callback: types.CallbackQuery):
     await callback.message.edit_text("⏳ Generando documento... (Por favor espera)")
 
     user_id = callback.from_user.id
+    WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
 
     try:
         async with AsyncSessionLocal() as session:
@@ -507,34 +508,30 @@ async def handle_read_pdf(callback: types.CallbackQuery):
                 for c in legal_info_model.__table__.columns
             }
 
-            # Intentar generar archivo
+            import httpx
+            import base64
+
+            # Llamar al Worker Service
             try:
-                # Intento 1: PDF (WeasyPrint)
-                pdf_bytes = await PDFContractService.generate_preview_pdf_async(
-                    legal_info_dict
-                )
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    response = await client.post(
+                        f"{WORKER_URL}/generate-preview",
+                        json={"legal_data": legal_info_dict}
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    pdf_bytes = base64.b64decode(data["pdf_base64"])
+                
                 file_data = pdf_bytes
                 filename = "Contrato_Mandato.pdf"
                 caption = "📄 **Contrato de Mandato** (PDF)\nRevisa los términos antes de firmar."
-            except Exception as e_pdf:
-                logging.warning(
-                    f"PDF generation failed: {e_pdf}. Falling back to HTML."
-                )
 
-                # Intento 2: HTML (Fallback)
-                try:
-                    html_content = PDFContractService.generate_contract_html(
-                        legal_info_dict
-                    )
-                    file_data = html_content.encode("utf-8")
-                    filename = "Contrato_Mandato.html"
-                    caption = "📄 **Contrato de Mandato** (Vista Web)\nDescarga y abre este archivo en tu navegador para leerlo."
-                except Exception as e_html:
-                    logging.error(f"HTML generation failed: {e_html}")
-                    await callback.message.edit_text(
-                        f"❌ Error crítico generando documento: {e_html}"
-                    )
-                    return
+            except Exception as e_api:
+                logging.error(f"Worker call failed: {e_api}")
+                await callback.message.edit_text(
+                    "⚠️ El servicio de documentos está ocupado. Intenta en unos segundos."
+                )
+                return
 
             # Enviar documento
             input_file = BufferedInputFile(file_data, filename=filename)
@@ -553,7 +550,7 @@ async def handle_read_pdf(callback: types.CallbackQuery):
         try:
             await callback.message.edit_text(f"❌ Error inesperado: {str(e)}")
         except:
-            await callback.message.answer(f"❌ Error inesperado: {str(e)}")
+             await callback.message.answer(f"❌ Error inesperado: {str(e)}")
 
 
 @signature_router.callback_query(F.data == "legal_sign_now")
@@ -629,14 +626,62 @@ async def process_otp_verification(message: types.Message, state: FSMContext):
             "✅ **Firma Verificada Correctamente**\n⏳ Registrando en Blockchain..."
         )
 
-        # Aquí ocurriría el proceso de firma real:
-        # 1. Generar PDF final firmado con WeasyPrint
-        # 2. Calcular Hash
-        # 3. Enviar a Blockchain (store_contract)
-        # 4. Guardar SignedContract en DB
+        # Verificación y Firma
+        # Llamar al Worker Service para generar el PDF firmado final
+        # NOTA: En un escenario real, el Worker debería subir el PDF a Storage y devolver la URL.
+        # Aquí, por simplicidad, generamos los bytes pero no los guardamos en disco en este paso,
+        # asumimos que la URL es generada o que el worker se encarga de subirlo.
+        # Para mantener compatible con el modelo actual, usaremos un placeholder de URL
+        # o subiremos si tuvieramos bucket.
+        
+        # Como el modelo SignedContract pide pdf_url, vamos a simularlo o 
+        # si queremos ser estrictos, el Worker debería devolverlo.
+        
+        # Por ahora, solo validamos que el PDF se genera correctamente sin errores.
+        
+        try:
+             import httpx
+             import base64
+             import os
+             
+             WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
+             
+             # Recuperar datos legales para enviar al worker
+             async with AsyncSessionLocal() as session:
+                res_legal = await session.execute(
+                    select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == db_user.id)
+                )
+                legal_info = res_legal.scalar_one_or_none()
+                legal_dict = {
+                    c.name: getattr(legal_info, c.name)
+                    for c in legal_info.__table__.columns
+                }
+             
+             signature_data_preview = {
+                "signature_date": datetime.utcnow().isoformat(),
+                "signature_code": input_otp,
+                "telegram_user_id": str(message.from_user.id),
+                "ip_address": "Telegram Bot",
+                "document_hash": "PENDING",
+                "blockchain_tx_hash": "PENDING",
+                "blockchain_network": "Polygon Amoy",
+                "contract_id": "PENDING",
+             }
 
-        # Simulamos éxito para la demo
-        import uuid
+             async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    f"{WORKER_URL}/sign-contract",
+                    json={
+                        "legal_data": legal_dict,
+                        "signature_data": signature_data_preview
+                    }
+                )
+                response.raise_for_status()
+                # Si no falla, es que se generó bien.
+        except Exception as e:
+             logging.error(f"Worker signing failed: {e}")
+             await message.answer("❌ Error generando contrato firmado. Intenta nuevamente.")
+             return
 
         fake_tx = "0x" + uuid.uuid4().hex + uuid.uuid4().hex
 
@@ -734,12 +779,28 @@ async def cmd_download_contract(message: types.Message):
                 "contract_id": f"CTR-{signed_contract.id}",
             }
 
-            # 4. Generar Documento (PDF o HTML)
+            # 4. Generar Documento (PDF) vía Worker
+            WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
+            
             try:
-                # Intento PDF
-                pdf_bytes, _ = await PDFContractService.generate_signed_pdf_async(
-                    legal_dict, signature_data
-                )
+                import httpx
+                import base64
+                
+                # Formatear fechas para JSON
+                signature_data["signature_date"] = signature_data["signature_date"].isoformat()
+                
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    response = await client.post(
+                        f"{WORKER_URL}/sign-contract",
+                        json={
+                            "legal_data": legal_dict,
+                            "signature_data": signature_data
+                        }
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    pdf_bytes = base64.b64decode(data["pdf_base64"])
+
                 file_data = pdf_bytes
                 filename = f"Contrato_Mandato_Firmado_{signed_contract.id}.pdf"
                 caption = (
@@ -747,24 +808,10 @@ async def cmd_download_contract(message: types.Message):
                     f"📅 Fecha: {signed_contract.signed_at.strftime('%Y-%m-%d')}\n"
                     f"🔗 Blockchain TX: `{signed_contract.blockchain_tx_hash}`"
                 )
-            except Exception as e_pdf:
-                logging.warning(f"Falla PDF descarga: {e_pdf}. Usando HTML fallback.")
-                # Intento HTML
-                try:
-                    html_content = PDFContractService.generate_contract_html(
-                        legal_dict, signature_data
-                    )
-                    file_data = html_content.encode("utf-8")
-                    filename = f"Contrato_Mandato_Firmado_{signed_contract.id}.html"
-                    caption = (
-                        "✅ **CONTRATO DE MANDATO (Vista Web)**\n\n"
-                        "⚠️ PDF no disponible. Descarga este archivo HTML para visualizar tu contrato firmado.\n\n"
-                        f"📅 Fecha: {signed_contract.signed_at.strftime('%Y-%m-%d')}\n"
-                        f"🔗 Blockchain TX: `{signed_contract.blockchain_tx_hash}`"
-                    )
-                except Exception as e_html:
-                    await message.answer(f"❌ Error generando documento: {e_html}")
-                    return
+            except Exception as e_api:
+                logging.error(f"Worker download failed: {e_api}")
+                await message.answer(f"❌ Error recuperando contrato: {e_api}")
+                return
 
             # 5. Enviar
             file = BufferedInputFile(file_data, filename=filename)

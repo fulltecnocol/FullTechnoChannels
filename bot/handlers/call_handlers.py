@@ -13,10 +13,16 @@ from datetime import datetime
 router = Router()
 
 @router.message(Command("llamada"))
-async def cmd_llamada(message: types.Message):
+@router.callback_query(F.data == "book_call_menu")
+async def cmd_llamada(message_or_callback: types.Message | types.CallbackQuery):
     """
-    Muestra la oferta de llamadas del dueño del canal (si existe).
+    Muestra la oferta de llamadas. Soporta Message (comando) y Callback (botón).
     """
+    # Unify interface: if callback, retrieve message and answer callback
+    message = message_or_callback
+    if isinstance(message_or_callback, types.CallbackQuery):
+        message = message_or_callback.message
+        await message_or_callback.answer()
     async with AsyncSessionLocal() as session:
         # 1. Identificar al usuario y su dueño (si es que la lógica es 1 dueño por bot instance/global?)
         # En este sistema parece que es Multi-Tenant pero el bot es "FullT_GuardBot".

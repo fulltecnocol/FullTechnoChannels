@@ -24,8 +24,8 @@ if "postgresql" in DATABASE_URL:
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,  # Desactivado en producción para rendimiento
-    pool_size=10,  # Conexiones base
-    max_overflow=20,  # Conexiones extra bajo carga
+    pool_size=5,  # Reduced for Cloud Run autoscaling (prevent connection exhaust)
+    max_overflow=10,  # Cap overflow
     pool_timeout=30,  # Segundos antes de error si no hay conexión libre
     pool_recycle=1800,  # Reciclar conexión cada 30 min para evitar desconexiones de red
     connect_args=connect_args,

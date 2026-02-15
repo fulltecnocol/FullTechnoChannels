@@ -270,7 +270,7 @@ export default function LandingPage() {
                         <Link href="/register" className="w-full sm:w-auto px-12 py-6 bg-primary text-primary-foreground rounded-2xl font-black text-xl shadow-2xl shadow-primary/30 hover:scale-[1.05] transition-all">
                             Crear mi cuenta ahora
                         </Link>
-                        <a href="https://t.me/TuBotDeAyuda" target="_blank" className="w-full sm:w-auto px-12 py-6 bg-surface border border-surface-border rounded-2xl font-black text-xl hover:bg-surface-border transition-all flex items-center justify-center gap-3">
+                        <a href="https://t.me/FullT_GuardBot" target="_blank" className="w-full sm:w-auto px-12 py-6 bg-surface border border-surface-border rounded-2xl font-black text-xl hover:bg-surface-border transition-all flex items-center justify-center gap-3">
                             <Bot className="w-6 h-6" />
                             Hablar con Soporte
                         </a>
