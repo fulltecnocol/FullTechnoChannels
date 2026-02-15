@@ -11,7 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Video, Calendar as CalendarIcon } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface Dictionary {
     [key: string]: any;
@@ -272,95 +274,178 @@ export default function CallsManagement() {
                     </Button>
                 </Card>
 
-                {/* SCHEDULER CARD */}
-                <Card className="p-6 space-y-4 bg-gray-900 border-gray-800">
-                    <h3 className="font-semibold text-lg">📅 Disponibilidad</h3>
-                    <p className="text-sm text-gray-400">Agrega bloques de tiempo disponibles.</p>
-
-                    <div className="flex gap-2">
-                        <DatePicker
-                            date={newSlotDate}
-                            setDate={setNewSlotDate}
-                            className="flex-1"
-                            placeholder="Fecha de la sesión"
-                        />
-                        <Input
-                            type="time"
-                            value={newSlotTime}
-                            onChange={(e) => setNewSlotTime(e.target.value)}
-                            className="w-32"
-                        />
-                        <Button onClick={handleAddSlot} size="icon" variant="secondary">
-                            <Plus className="w-4 h-4" />
-                        </Button>
-                    </div>
-
-                    <div className="border-t border-gray-800 pt-4 mt-4">
-                        <h4 className="text-sm font-medium mb-3 text-purple-400">Generador de Recurrencia</h4>
-                        <div className="space-y-3">
-                            <div className="flex flex-wrap gap-2">
-                                {daysMap.map(day => (
-                                    <button
-                                        key={day.id}
-                                        onClick={() => toggleDay(day.id)}
-                                        className={`px-3 py-1 rounded text-xs border ${recurringDays.includes(day.id) ? 'bg-purple-600 border-purple-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
-                                    >
-                                        {day.label}
-                                    </button>
-                                ))}
+                {/* SCHEDULER CARD (Option B) */}
+                <Card className="p-6 bg-gray-900 border-gray-800 md:col-span-2">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="font-semibold text-lg flex items-center gap-2">
+                                <CalendarIcon className="w-5 h-5 text-indigo-400" />
+                                Gestión de Disponibilidad
+                            </h3>
+                            <p className="text-sm text-gray-400">Selecciona un día en el calendario para gestionar sus horas.</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-right">
+                                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Disponibles</p>
+                                <p className="text-xl font-mono text-indigo-400">{config.slots?.filter((s: any) => !s.is_booked).length || 0}</p>
                             </div>
-                            <div className="flex gap-2 items-center">
-                                <Input type="time" value={recurStart} onChange={e => setRecurStart(e.target.value)} className="w-24 text-xs" />
-                                <span className="text-gray-500">-</span>
-                                <Input type="time" value={recurEnd} onChange={e => setRecurEnd(e.target.value)} className="w-24 text-xs" />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="space-y-1 flex-1">
-                                    <Label className="text-xs">Desde</Label>
-                                    <DatePicker
-                                        date={recurStartDate}
-                                        setDate={setRecurStartDate}
-                                        className="h-9 text-xs"
-                                    />
-                                </div>
-                                <div className="space-y-1 flex-1">
-                                    <Label className="text-xs">Hasta</Label>
-                                    <DatePicker
-                                        date={recurEndDate}
-                                        setDate={setRecurEndDate}
-                                        className="h-9 text-xs"
-                                    />
-                                </div>
-                            </div>
-                            <Button onClick={handleGenerateSlots} className="w-full bg-indigo-900/50 hover:bg-indigo-900 border border-indigo-500/30 text-indigo-200 text-xs">
-                                ✨ Generar Bloques
-                            </Button>
                         </div>
                     </div>
 
-                    <div className="space-y-2 max-h-60 overflow-y-auto mt-4">
-                        {config.slots?.length === 0 && <p className="text-sm text-gray-500 italic">No hay horarios disponibles.</p>}
-
-                        {config.slots?.filter((s: any) => !s.is_booked).map((slot: any) => (
-                            <div key={slot.id} className="flex justify-between items-center p-2 bg-gray-800 rounded border border-gray-700">
-                                <div className="flex flex-col">
-                                    <span className="font-medium text-white">
-                                        {new Date(slot.start_time).toLocaleDateString()}
-                                    </span>
-                                    <span className="text-sm text-purple-400">
-                                        {new Date(slot.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDeleteSlot(slot.id)}
-                                    className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* LEFT: Calendar & Stats */}
+                        <div className="lg:col-span-5 space-y-6">
+                            <div className="bg-gray-950/50 p-4 rounded-xl border border-gray-800 shadow-inner">
+                                <Calendar
+                                    mode="single"
+                                    selected={newSlotDate}
+                                    onSelect={setNewSlotDate}
+                                    className="w-full"
+                                    modifiers={{
+                                        hasSlots: config.slots?.map((s: any) => new Date(s.start_time)) || []
+                                    }}
+                                    modifiersStyles={{
+                                        hasSlots: { fontWeight: 'bold', color: '#818cf8', textDecoration: 'underline' }
+                                    }}
+                                />
                             </div>
-                        ))}
+
+                            <div className="bg-indigo-950/20 border border-indigo-500/20 p-4 rounded-lg">
+                                <h4 className="text-xs font-bold text-indigo-300 uppercase mb-3">Generador de Recurrencia</h4>
+                                <div className="space-y-4 text-xs">
+                                    <div className="flex flex-wrap gap-2">
+                                        {daysMap.map(day => (
+                                            <button
+                                                key={day.id}
+                                                onClick={() => toggleDay(day.id)}
+                                                className={`px-3 py-1.5 rounded-md border transition-all ${recurringDays.includes(day.id) ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'}`}
+                                            >
+                                                {day.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-4 items-center">
+                                        <div className="flex-1 space-y-1">
+                                            <Label className="text-[10px] text-gray-500 uppercase">Hora Inicio</Label>
+                                            <Input type="time" value={recurStart} onChange={e => setRecurStart(e.target.value)} className="h-8 bg-gray-900 border-gray-800 text-xs" />
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <Label className="text-[10px] text-gray-500 uppercase">Hora Fin</Label>
+                                            <Input type="time" value={recurEnd} onChange={e => setRecurEnd(e.target.value)} className="h-8 bg-gray-900 border-gray-800 text-xs" />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1 space-y-1">
+                                            <Label className="text-[10px] text-gray-500 uppercase">Desde</Label>
+                                            <DatePicker date={recurStartDate} setDate={setRecurStartDate} className="h-8 text-[10px]" />
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <Label className="text-[10px] text-gray-500 uppercase">Hasta</Label>
+                                            <DatePicker date={recurEndDate} setDate={setRecurEndDate} className="h-8 text-[10px]" />
+                                        </div>
+                                    </div>
+                                    <Button onClick={handleGenerateSlots} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white h-9 shadow-lg shadow-indigo-600/20">
+                                        ✨ Generar Bloques en Rango
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Selected Day Slots */}
+                        <div className="lg:col-span-7 flex flex-col min-h-[400px]">
+                            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-800">
+                                <h4 className="font-medium text-gray-200">
+                                    {newSlotDate ? format(newSlotDate, "EEEE, d 'de' MMMM", { locale: es }) : 'Selecciona un día'}
+                                </h4>
+                                {newSlotDate && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-xs text-red-500 hover:text-red-400 hover:bg-red-900/10"
+                                        onClick={async () => {
+                                            const slotsToDelete = config.slots?.filter((s: any) =>
+                                                !s.is_booked &&
+                                                format(new Date(s.start_time), 'yyyy-MM-dd') === format(newSlotDate, 'yyyy-MM-dd')
+                                            );
+                                            if (slotsToDelete?.length > 0 && confirm(`¿Eliminar los ${slotsToDelete.length} bloques de este día?`)) {
+                                                for (const s of slotsToDelete) {
+                                                    await handleDeleteSlot(s.id);
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="w-3 h-3 mr-1" /> Limpiar Día
+                                    </Button>
+                                )}
+                            </div>
+
+                            {newSlotDate ? (
+                                <div className="flex-1 flex flex-col">
+                                    {/* Quick Add */}
+                                    <div className="flex gap-2 mb-6">
+                                        <div className="relative flex-1">
+                                            <Input
+                                                type="time"
+                                                value={newSlotTime}
+                                                onChange={(e) => setNewSlotTime(e.target.value)}
+                                                className="bg-gray-900 border-gray-800 pr-10"
+                                            />
+                                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+                                                <Plus className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                        <Button onClick={handleAddSlot} className="bg-purple-600 hover:bg-purple-500">
+                                            Añadir Hora
+                                        </Button>
+                                    </div>
+
+                                    {/* Slots List */}
+                                    <div className="space-y-2 max-h-[450px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-800">
+                                        {config.slots?.filter((s: any) =>
+                                            !s.is_booked &&
+                                            format(new Date(s.start_time), 'yyyy-MM-dd') === format(newSlotDate, 'yyyy-MM-dd')
+                                        ).sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()).length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-12 text-gray-600 bg-gray-950/20 rounded-xl border border-dashed border-gray-800">
+                                                <CalendarIcon className="w-8 h-8 mb-2 opacity-20" />
+                                                <p className="text-sm italic">Sin horarios disponibles para este día.</p>
+                                            </div>
+                                        ) : (
+                                            config.slots?.filter((s: any) =>
+                                                !s.is_booked &&
+                                                format(new Date(s.start_time), 'yyyy-MM-dd') === format(newSlotDate, 'yyyy-MM-dd')
+                                            ).sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()).map((slot: any) => (
+                                                <div key={slot.id} className="group flex justify-between items-center p-3 bg-gray-800/60 hover:bg-gray-800 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-all">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 flex items-center justify-center bg-indigo-500/10 rounded text-indigo-400">
+                                                            <Video className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-lg font-mono text-white">
+                                                                {new Date(slot.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">{config.duration_minutes} MINUTOS</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteSlot(slot.id)}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-400 hover:bg-red-900/20"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col items-center justify-center text-gray-500 bg-gray-950/20 rounded-xl border border-dashed border-gray-800">
+                                    <CalendarIcon className="w-12 h-12 mb-4 opacity-10" />
+                                    <p className="text-center px-8">Selecciona una fecha en el calendario para ver o añadir horarios.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </Card>
             </div>
