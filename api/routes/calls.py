@@ -155,3 +155,76 @@ async def delete_slot(
     await db.delete(slot)
     await db.commit()
     return {"status": "deleted"}
+
+
+# --- RECURRING ENDPOINT ---
+
+class GenerateSlotsIn(BaseModel):
+    days_of_week: List[int]  # 0=Mon, 6=Sun
+    start_time: str  # HH:MM
+    end_time: str    # HH:MM
+    start_date: datetime 
+    end_date: datetime
+
+@router.post("/availability/generate", response_model=List[CallSlotOut])
+async def generate_slots(
+    data: GenerateSlotsIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSessionLocal = Depends(get_db)
+):
+    """Generate slots for a date range based on recurring rules"""
+    # 1. Get Service
+    result = await db.execute(
+        select(CallService).where(CallService.owner_id == current_user.id)
+    )
+    service = result.scalar_one_or_none()
+    if not service:
+        raise HTTPException(status_code=400, detail="Must configure service first")
+    
+    duration = service.duration_minutes
+    if duration < 5:
+        raise HTTPException(status_code=400, detail="Duration too short")
+
+    # Parse times
+    try:
+        start_h, start_m = map(int, data.start_time.split(':'))
+        end_h, end_m = map(int, data.end_time.split(':'))
+    except:
+        raise HTTPException(status_code=400, detail="Invalid time format (HH:MM)")
+
+    new_slots = []
+    
+    # Iterate through days
+    from datetime import timedelta
+    
+    # Ensure we use date objects for iteration
+    current_date = data.start_date.date()
+    end_date_obj = data.end_date.date()
+    
+    while current_date <= end_date_obj:
+        # Check if day match
+        if current_date.weekday() in data.days_of_week:
+            # Generate slots for this day
+            slot_start = datetime.combine(current_date, datetime.min.time()).replace(hour=start_h, minute=start_m)
+            day_end = datetime.combine(current_date, datetime.min.time()).replace(hour=end_h, minute=end_m)
+            
+            current_slot = slot_start
+            while current_slot + timedelta(minutes=duration) <= day_end:
+                # Create slot
+                slot = CallSlot(
+                    service_id=service.id,
+                    start_time=current_slot,
+                    is_booked=False
+                )
+                db.add(slot)
+                new_slots.append(slot)
+                
+                current_slot += timedelta(minutes=duration)
+        
+        current_date += timedelta(days=1)
+    
+    await db.commit()
+    for s in new_slots:
+        await db.refresh(s)
+        
+    return new_slots

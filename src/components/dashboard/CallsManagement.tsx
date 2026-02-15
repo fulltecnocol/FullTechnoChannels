@@ -30,6 +30,23 @@ export default function CallsManagement() {
     const [newSlotDate, setNewSlotDate] = useState("");
     const [newSlotTime, setNewSlotTime] = useState("");
 
+    // Recurring State
+    const [recurringDays, setRecurringDays] = useState<number[]>([]);
+    const [recurStart, setRecurStart] = useState("09:00");
+    const [recurEnd, setRecurEnd] = useState("17:00");
+    const [recurStartDate, setRecurStartDate] = useState("");
+    const [recurEndDate, setRecurEndDate] = useState("");
+
+    const daysMap = [
+        { id: 0, label: "Lun" },
+        { id: 1, label: "Mar" },
+        { id: 2, label: "Mié" },
+        { id: 3, label: "Jue" },
+        { id: 4, label: "Vie" },
+        { id: 5, label: "Sáb" },
+        { id: 6, label: "Dom" },
+    ];
+
     const fetchConfig = async () => {
         try {
             if (!token) return;
@@ -121,6 +138,41 @@ export default function CallsManagement() {
             toast.error("Error eliminando slot");
         }
     }
+    const handleGenerateSlots = async () => {
+        if (!recurStartDate || !recurEndDate || recurringDays.length === 0) {
+            toast.error("Completa los campos de recurrencia");
+            return;
+        }
+
+        try {
+            const res = await apiRequest('/calls/availability/generate', {
+                method: 'POST',
+                body: JSON.stringify({
+                    days_of_week: recurringDays,
+                    start_time: recurStart,
+                    end_time: recurEnd,
+                    start_date: new Date(recurStartDate).toISOString(),
+                    end_date: new Date(recurEndDate).toISOString()
+                })
+            });
+
+            if (res) {
+                toast.success("Horarios generados correctamente");
+                fetchConfig();
+                // Reset fields? Maybe keep them for convenience
+            }
+        } catch (e) {
+            toast.error("Error generando horarios (Verifica solapamientos o datos)");
+        }
+    };
+
+    const toggleDay = (dayId: number) => {
+        if (recurringDays.includes(dayId)) {
+            setRecurringDays(recurringDays.filter(d => d !== dayId));
+        } else {
+            setRecurringDays([...recurringDays, dayId]);
+        }
+    };
 
     if (loading) return <Loader2 className="animate-spin" />;
 
@@ -204,6 +256,41 @@ export default function CallsManagement() {
                         <Button onClick={handleAddSlot} size="icon" variant="secondary">
                             <Plus className="w-4 h-4" />
                         </Button>
+                    </div>
+
+                    <div className="border-t border-gray-800 pt-4 mt-4">
+                        <h4 className="text-sm font-medium mb-3 text-purple-400">Generador de Recurrencia</h4>
+                        <div className="space-y-3">
+                            <div className="flex flex-wrap gap-2">
+                                {daysMap.map(day => (
+                                    <button
+                                        key={day.id}
+                                        onClick={() => toggleDay(day.id)}
+                                        className={`px-3 py-1 rounded text-xs border ${recurringDays.includes(day.id) ? 'bg-purple-600 border-purple-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
+                                    >
+                                        {day.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                <Input type="time" value={recurStart} onChange={e => setRecurStart(e.target.value)} className="w-24 text-xs" />
+                                <span className="text-gray-500">-</span>
+                                <Input type="time" value={recurEnd} onChange={e => setRecurEnd(e.target.value)} className="w-24 text-xs" />
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="space-y-1 flex-1">
+                                    <Label className="text-xs">Desde</Label>
+                                    <Input type="date" value={recurStartDate} onChange={e => setRecurStartDate(e.target.value)} className="text-xs" />
+                                </div>
+                                <div className="space-y-1 flex-1">
+                                    <Label className="text-xs">Hasta</Label>
+                                    <Input type="date" value={recurEndDate} onChange={e => setRecurEndDate(e.target.value)} className="text-xs" />
+                                </div>
+                            </div>
+                            <Button onClick={handleGenerateSlots} className="w-full bg-indigo-900/50 hover:bg-indigo-900 border border-indigo-500/30 text-indigo-200 text-xs">
+                                ✨ Generar Bloques
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="space-y-2 max-h-60 overflow-y-auto mt-4">
