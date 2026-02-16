@@ -39,6 +39,29 @@ export async function apiRequest<T = unknown>(endpoint: string, options: Request
     return response.json();
 }
 
+export async function apiDownload(endpoint: string, filename: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    const headers = {
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    };
+
+    const response = await fetch(`${API_URL}${endpoint}`, { headers });
+
+    if (!response.ok) {
+        throw new Error("Error descargando archivo");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
 export const authApi = {
     login: (data: { email: string; password: string }): Promise<AuthResponse> => {
         // FastAPI OAuth2PasswordRequestForm expects form data
@@ -208,6 +231,7 @@ export const adminApi = {
         method: "PATCH",
         body: JSON.stringify({ referrer_id: referrerId }),
     }),
+    downloadContract: (userId: number) => apiDownload(`/admin/users/${userId}/contract`, `contract_${userId}.pdf`),
 };
 
 export const legalApi = {

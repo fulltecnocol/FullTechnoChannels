@@ -23,6 +23,7 @@ export function AdminSystem({
     const [localConfigs, setLocalConfigs] = useState<Record<string, number>>({});
     const [isSaving, setIsSaving] = useState<string | null>(null);
     const [selectedLegal, setSelectedLegal] = useState<LegalInfo | null>(null);
+    const [selectedLegalUserId, setSelectedLegalUserId] = useState<number | null>(null);
     const [isLegalLoading, setIsLegalLoading] = useState(false);
 
     // Upline Modal State
@@ -56,6 +57,7 @@ export function AdminSystem({
 
     const viewLegal = async (userId: number) => {
         setIsLegalLoading(true);
+        setSelectedLegalUserId(userId);
         try {
             const info = await adminApi.getUserLegalInfo(userId);
             setSelectedLegal(info);
@@ -438,21 +440,19 @@ export function AdminSystem({
                                             </a>
                                         )}
                                         {selectedLegal.contract_pdf_url && (
-                                            <a
-                                                href={`/api${selectedLegal.contract_pdf_url}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors group"
+                                            <button
+                                                onClick={() => selectedLegalUserId && adminApi.downloadContract(selectedLegalUserId)}
+                                                className="w-full flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors group cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <ShieldCheck className="w-5 h-5 text-primary" />
-                                                    <div className="flex flex-col">
+                                                    <div className="flex flex-col text-left">
                                                         <span className="text-sm font-bold">Contrato Firmado</span>
-                                                        <span className="text-[10px] text-muted">Firmado el {new Date(selectedLegal.signed_at!).toLocaleDateString()}</span>
+                                                        <span className="text-[10px] text-muted">Firmado el {selectedLegal.signed_at ? new Date(selectedLegal.signed_at).toLocaleDateString() : 'N/A'}</span>
                                                     </div>
                                                 </div>
                                                 <ExternalLink className="w-4 h-4 text-muted group-hover:text-primary transition-colors" />
-                                            </a>
+                                            </button>
                                         )}
                                     </div>
                                 </div>

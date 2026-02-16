@@ -287,43 +287,64 @@ export default function HowItWorksPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
                         {/* Interactive Levels Visualizer */}
                         <div className="lg:col-span-7 space-y-3">
-                            {[
-                                { level: 1, name: "Directo", key: "affiliate_level_1_fee", fallback: "3.0%", bg: "bg-primary", width: "100%" },
-                                { level: 2, name: "Generación II", key: "affiliate_level_2_fee", fallback: "1.0%", bg: "bg-primary/90", width: "95%" },
-                                { level: 3, name: "Generación III", key: "affiliate_level_3_fee", fallback: "0.5%", bg: "bg-primary/80", width: "90%" },
-                                { level: 4, name: "Círculo Interno", key: "affiliate_level_4_fee", fallback: "0.3%", bg: "bg-primary/70", width: "85%" },
-                                { level: 5, name: "Liderazgo", key: "affiliate_level_5_fee", fallback: "0.2%", bg: "bg-primary/60", width: "80%" },
-                                { level: 6, name: "Elite", key: "affiliate_level_6_fee", fallback: "0.1%", bg: "bg-primary/50", width: "75%" },
-                                { level: 7, name: "Embajador", key: "affiliate_level_7_fee", fallback: "0.1%", bg: "bg-primary/40", width: "70%" },
-                                { level: 8, name: "Maestro", key: "affiliate_level_8_fee", fallback: "0.1%", bg: "bg-primary/30", width: "65%" },
-                                { level: 9, name: "Leyenda", key: "affiliate_level_9_fee", fallback: "0.1%", bg: "bg-primary/20", width: "60%" },
-                                { level: 10, name: "Infinitum", key: "affiliate_level_10_fee", fallback: "0.1%", bg: "bg-primary/10", width: "55%" },
-                            ].map((item, idx) => {
-                                const val = config[item.key];
-                                const percentText = val !== undefined ? `${(val * 100).toFixed(1)}%` : item.fallback;
+                            {(() => {
+                                const tiers = [
+                                    { level: 1, name: "Directo", key: "affiliate_level_1_fee", fallback: 0.03, bg: "bg-primary", width: "100%" },
+                                    { level: 2, name: "Generación II", key: "affiliate_level_2_fee", fallback: 0.01, bg: "bg-primary/90", width: "95%" },
+                                    { level: 3, name: "Generación III", key: "affiliate_level_3_fee", fallback: 0.005, bg: "bg-primary/80", width: "90%" },
+                                    { level: 4, name: "Círculo Interno", key: "affiliate_level_4_fee", fallback: 0.003, bg: "bg-primary/70", width: "85%" },
+                                    { level: 5, name: "Liderazgo", key: "affiliate_level_5_fee", fallback: 0.002, bg: "bg-primary/60", width: "80%" },
+                                    { level: 6, name: "Elite", key: "affiliate_level_6_fee", fallback: 0.001, bg: "bg-primary/50", width: "75%" },
+                                    { level: 7, name: "Embajador", key: "affiliate_level_7_fee", fallback: 0.001, bg: "bg-primary/40", width: "70%" },
+                                    { level: 8, name: "Maestro", key: "affiliate_level_8_fee", fallback: 0.001, bg: "bg-primary/30", width: "65%" },
+                                    { level: 9, name: "Leyenda", key: "affiliate_level_9_fee", fallback: 0.001, bg: "bg-primary/20", width: "60%" },
+                                    { level: 10, name: "Infinitum", key: "affiliate_level_10_fee", fallback: 0.001, bg: "bg-primary/10", width: "55%" },
+                                ];
 
-                                return (
-                                    <div key={idx} className="relative group">
-                                        <div className="absolute inset-0 bg-primary/5 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <div className="relative premium-card p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                                            <div className="flex items-center gap-6 w-full">
-                                                <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center text-black font-black text-sm shadow-lg shrink-0 border border-white/10`}>
-                                                    L{item.level}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h4 className="font-bold text-white text-base">{item.name}</h4>
-                                                    <div className="w-full h-1 bg-surface-border rounded-full mt-2 overflow-hidden hidden md:block">
-                                                        <div className={`h-full ${item.bg}`} style={{ width: item.width }} />
+                                let cumulative = 0;
+
+                                return tiers.map((item, idx) => {
+                                    const rawVal = config[item.key];
+                                    let val = Number(rawVal);
+                                    if (isNaN(val) || rawVal === undefined) {
+                                        val = item.fallback;
+                                    }
+                                    cumulative += val;
+
+                                    // Current level percentage
+                                    const currentPercent = (val * 100).toFixed(1);
+                                    // Accumulated percentage
+                                    const totalPercent = (cumulative * 100).toFixed(1);
+
+                                    return (
+                                        <div key={idx} className="relative group">
+                                            <div className="absolute inset-0 bg-primary/5 blur-lg rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="relative premium-card p-4 flex flex-col md:flex-row items-center justify-between gap-4 border border-surface-border">
+                                                <div className="flex items-center gap-6 w-full">
+                                                    <div className={`w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center text-black font-black text-lg shadow-lg shrink-0 border border-white/10`}>
+                                                        L{item.level}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-bold text-white text-lg">{item.name}</h4>
+                                                            <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                                                                (+{currentPercent}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full h-1 bg-surface-border rounded-full mt-2 overflow-hidden hidden md:block">
+                                                            <div className={`h-full ${item.bg}`} style={{ width: item.width }} />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <span className="text-2xl font-black text-white">{percentText}</span>
+                                                <div className="text-right shrink-0 flex flex-col items-end">
+                                                    <span className="text-xs text-muted font-bold uppercase tracking-wider">Potencial Total</span>
+                                                    <span className="text-3xl font-black text-white">{totalPercent}%</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                });
+                            })()}
                         </div>
 
                         {/* Explanation Card */}
