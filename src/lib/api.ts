@@ -62,6 +62,29 @@ export async function apiDownload(endpoint: string, filename: string) {
     document.body.removeChild(a);
 }
 
+export async function apiViewPdf(endpoint: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    const headers = {
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    };
+
+    const response = await fetch(`${API_URL}${endpoint}`, { headers });
+
+    if (!response.ok) {
+        throw new Error("Error abriendo archivo");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    // Open in new tab
+    const pdfWindow = window.open(url, '_blank');
+    if (!pdfWindow) {
+        alert("Por favor permite las ventanas emergentes para ver el archivo.");
+    }
+    // Note: Can't easily revoke URL here without risking the new tab losing content on some browsers.
+    // We let the browser handle cleanup when the document is unloaded.
+}
+
 export const authApi = {
     login: (data: { email: string; password: string }): Promise<AuthResponse> => {
         // FastAPI OAuth2PasswordRequestForm expects form data
@@ -232,6 +255,7 @@ export const adminApi = {
         body: JSON.stringify({ referrer_id: referrerId }),
     }),
     downloadContract: (userId: number) => apiDownload(`/admin/users/${userId}/contract`, `contract_${userId}.pdf`),
+    viewContract: (userId: number) => apiViewPdf(`/admin/users/${userId}/contract`),
 };
 
 export const legalApi = {

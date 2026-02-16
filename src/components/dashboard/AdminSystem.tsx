@@ -441,13 +441,21 @@ export function AdminSystem({
                                         )}
                                         {selectedLegal.contract_pdf_url && (
                                             <button
-                                                onClick={() => selectedLegalUserId && adminApi.downloadContract(selectedLegalUserId)}
+                                                onClick={async () => {
+                                                    if (!selectedLegalUserId) return;
+                                                    try {
+                                                        await adminApi.viewContract(selectedLegalUserId);
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        alert("No se pudo abrir el documento. Verifica los permisos o intenta más tarde.");
+                                                    }
+                                                }}
                                                 className="w-full flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl hover:bg-primary/10 transition-colors group cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <ShieldCheck className="w-5 h-5 text-primary" />
                                                     <div className="flex flex-col text-left">
-                                                        <span className="text-sm font-bold">Contrato Firmado</span>
+                                                        <span className="text-sm font-bold">Ver Contrato Firmado</span>
                                                         <span className="text-[10px] text-muted">Firmado el {selectedLegal.signed_at ? new Date(selectedLegal.signed_at).toLocaleDateString() : 'N/A'}</span>
                                                     </div>
                                                 </div>

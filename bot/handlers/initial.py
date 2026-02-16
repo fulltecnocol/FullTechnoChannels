@@ -2,7 +2,9 @@ from aiogram import Router, types
 from aiogram.filters import Command, CommandObject
 from sqlalchemy.future import select
 from shared.database import AsyncSessionLocal
-from shared.models import User as DBUser, Promotion
+from shared.models import User as DBUser, Promotion, RegistrationToken
+from datetime import datetime, timedelta
+import random
 
 router = Router()
 
@@ -115,5 +117,59 @@ async def process_code(message: types.Message, code: str, session):
         else:
             await message.reply("❌ Código de promoción inválido.")
         return True
+
+    # 🟣 CASO D: Solicitud de Código de Registro
+    if code == "registro":
+        # 1. Verificar si ya está registrado
+        existing_user = await get_or_create_user(message.from_user, session)
+        if existing_user.email: # Ya tiene cuenta vinculada
+            await message.reply(
+                "✅ **Ya estás registrado**\n\n"
+                "Tu cuenta de Telegram ya está vinculada a un usuario. Puedes iniciar sesión directamente en la web."
+            )
+            return True
+
+        # 2. Generar Token
+        token = str(random.randint(100000, 999999))
+        
+        # 3. Guardar en DB (Upsert)
+        new_token = RegistrationToken(
+            token=token,
+            telegram_id=message.from_user.id,
+            username=message.from_user.username,
+            full_name=message.from_user.full_name,
+            expires_at=datetime.utcnow() + timedelta(minutes=15)
+        )
+        session.add(new_token)
+        await session.commit()
+        
+        # Create Inline Keyboard
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+        import os
+        dashboard_url = os.getenv("DASHBOARD_URL", "https://telegate.fulltechnohub.com")
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔐 Copiar Código (Tap)", callback_data=f"copy_{token}")],
+            [InlineKeyboardButton(text="🌐 Volver al Registro", url=f"{dashboard_url}/register")]
+        ])
+
+        await message.reply(
+            f"🔐 **Tu Código de Registro**\n\n"
+            f"Tu código es: `{token}`\n\n"
+            f"⚠️ _Válido por 15 minutos._",
+            reply_markup=keyboard
+        )
+        return True
         
     return False
+
+@router.callback_query(lambda c: c.data and c.data.startswith("copy_"))
+async def handle_copy_code(callback: types.CallbackQuery):
+    code = callback.data.split("_")[1]
+    # We can't actually copy to clipboard via bot API, but we can send it as a clean message
+    # or just answer the callback.
+    # Best UX: Answer with "Copiado" (illusion) and send just the code in a new message
+    
+    await callback.message.answer(f"`{code}`", parse_mode="Markdown")
+    await callback.answer("✅ Código listo para copiar", show_alert=False)
+
