@@ -1,14 +1,12 @@
 from aiogram import Router, F, types
 from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.future import select
 from sqlalchemy import and_
 from shared.database import AsyncSessionLocal
-from shared.models import CallService, CallSlot, User
+from shared.models import CallService, User
 
-import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from shared.utils.calendar import generate_calendar_links
 
 router = Router()
@@ -34,7 +32,7 @@ async def cmd_llamada(message_or_callback: types.Message | types.CallbackQuery):
         # Opción B: El usuario selecciona de qué canal quiere la llamada.
         
         # Para simplificar MVP: Asumimos que buscamos CUALQUIER servicio activo.
-        result = await session.execute(select(CallService).where(CallService.is_active == True))
+        result = await session.execute(select(CallService).where(CallService.is_active.is_(True)))
         services = result.scalars().all()
         
         if not services:

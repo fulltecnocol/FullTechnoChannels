@@ -1,13 +1,13 @@
 import logging
-from typing import List, Optional, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import List, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy import func, desc
 
 from shared.database import get_db
-from shared.models import User, Payment, AffiliateEarning, SystemConfig
+from shared.models import User, Payment, AffiliateEarning
 from api.deps import get_current_user
 
 router = APIRouter(prefix="/affiliate", tags=["Affiliate"])
@@ -132,3 +132,33 @@ async def get_affiliate_stats(current_user: User = Depends(get_current_user), db
         "direct_referrals": promoters_count,
         "referral_code": current_user.referral_code
     }
+
+@router.get("/check-code/{code}")
+async def check_referral_code(code: str, db: AsyncSession = Depends(get_db)):
+    """Checks if a referral code is available"""
+    result = await db.execute(select(User).where(User.referral_code == code.lower()))
+    user = result.scalar_one_or_none()
+    return {"available": user is None}
+
+@router.post("/update-code")
+async def update_referral_code(
+    data: Dict[str, str], 
+    current_user: User = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
+    """Updates the user's custom referral code"""
+    new_code = data.get("code", "").strip().lower()
+    
+    if len(new_code) < 3:
+        raise HTTPException(status_code=400, detail="El código debe tener al menos 3 caracteres")
+    
+    # Check if already in use by someone else
+    result = await db.execute(select(User).where(User.referral_code == new_code))
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user and existing_user.id != current_user.id:
+        raise HTTPException(status_code=400, detail="Este código ya está en uso")
+    
+    current_user.referral_code = new_code
+    await db.commit()
+    return {"status": "success", "referral_code": new_code}

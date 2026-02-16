@@ -2,6 +2,8 @@ import logging
 from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from datetime import datetime, timedelta
+import uuid
 from aiogram.types import (
     ReplyKeyboardMarkup,
     KeyboardButton,
@@ -11,6 +13,7 @@ from aiogram.types import (
 )
 from sqlalchemy import select
 import os
+from aiogram.types import BufferedInputFile
 
 from bot.states.signature_states import SignatureFlow
 from shared.database import AsyncSessionLocal
@@ -478,9 +481,6 @@ async def handle_save_and_preview(callback: types.CallbackQuery, state: FSMConte
 
 # --- FIRMA DEL CONTRATO ---
 
-from aiogram.types import BufferedInputFile
-from api.services.pdf_service import PDFContractService
-
 
 @signature_router.callback_query(F.data == "legal_read_pdf")
 async def handle_read_pdf(callback: types.CallbackQuery):
@@ -549,7 +549,7 @@ async def handle_read_pdf(callback: types.CallbackQuery):
         logging.error(f"Handler error: {e}")
         try:
             await callback.message.edit_text(f"❌ Error inesperado: {str(e)}")
-        except:
+        except Exception:
              await callback.message.answer(f"❌ Error inesperado: {str(e)}")
 
 
@@ -641,13 +641,20 @@ async def process_otp_verification(message: types.Message, state: FSMContext):
         
         try:
              import httpx
-             import base64
              import os
              
              WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
              
              # Recuperar datos legales para enviar al worker
+             # Recuperar datos legales para enviar al worker
              async with AsyncSessionLocal() as session:
+                # First get user
+                res_user = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
+                db_user = res_user.scalar_one_or_none()
+                if not db_user:
+                     await message.answer("❌ Error: Usuario no encontrado.")
+                     return
+
                 res_legal = await session.execute(
                     select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == db_user.id)
                 )
@@ -825,4 +832,3 @@ async def cmd_download_contract(message: types.Message):
 
 
 # --- UTILIDAD ---
-from datetime import timedelta

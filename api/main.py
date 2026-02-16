@@ -1,12 +1,10 @@
 import os
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 import stripe
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
-from sqlalchemy import and_
 
 # Import modular routers
 from api.routes import auth, owner, admin, legal, calls, public, availability, affiliate
@@ -15,9 +13,7 @@ from api.routes import auth, owner, admin, legal, calls, public, availability, a
 from shared.database import get_db, AsyncSessionLocal
 from shared.models import Plan
 from api.schemas.misc import PaymentRequest
-from api.schemas.misc import PaymentRequest
 from api.services.membership_service import activate_membership
-from api.middleware.rate_limiter import RateLimitMiddleware
 from shared.logging_config import configure_logger
 import sentry_sdk
 import structlog
@@ -90,7 +86,7 @@ async def stripe_webhook(request: Request, db: AsyncSessionLocal = Depends(get_d
             if STRIPE_WEBHOOK_SECRET
             else {}
         )
-    except:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid Stripe Event")
 
     if event.get("type") == "checkout.session.completed":
@@ -127,7 +123,7 @@ async def wompi_webhook(request: Request, db: AsyncSessionLocal = Depends(get_db
                 method="wompi",
             )
             return {"status": "ok"}
-        except:
+        except Exception:
             pass
     return {"status": "ignored"}
 

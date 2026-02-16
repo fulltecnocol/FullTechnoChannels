@@ -1,9 +1,8 @@
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 import os
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
-
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 # Valor por defecto para desarrollo local si no hay DB configurada
 DEFAULT_DB = "sqlite+aiosqlite:///./membership.db"

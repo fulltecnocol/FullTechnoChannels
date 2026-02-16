@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Zap, Copy, Loader2, Share2, Info } from 'lucide-react';
+import { Zap, Copy, Loader2, Share2, Info, Edit3, Check, X, Search } from 'lucide-react';
 import { ConfigItem, SummaryData, AffiliateNetworkResponse, AffiliateStats } from '@/lib/types';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, affiliateApi } from '@/lib/api';
 import { NetworkTree } from './affiliates/NetworkTree';
 import { CommissionChart } from './affiliates/CommissionChart';
 import { RevenueHistory } from './affiliates/RevenueHistory';
@@ -24,7 +24,13 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
     const [stats, setStats] = useState<AffiliateStats | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${user?.referral_code}` : '';
+    const [editingCode, setEditingCode] = useState(false);
+    const [tempCode, setTempCode] = useState('');
+    const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+    const [updatingCode, setUpdatingCode] = useState(false);
+
+    const currentReferralCode = stats?.referral_code || user?.referral_code || '';
+    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${currentReferralCode}` : '';
 
     const goldMin = configs.find(c => c.key === 'tier_gold_min')?.value || 6;
     const diamondMin = configs.find(c => c.key === 'tier_diamond_min')?.value || 21;
@@ -56,6 +62,39 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
         fetchAffiliateData();
     }, [user]);
 
+    const handleCheckCode = async (code: string) => {
+        setTempCode(code);
+        if (code.length < 3) {
+            setIsAvailable(null);
+            return;
+        }
+        try {
+            const res = await affiliateApi.checkCode(code);
+            setIsAvailable(res.available);
+        } catch {
+            setIsAvailable(null);
+        }
+    };
+
+    const handleUpdateCode = async () => {
+        if (!isAvailable && tempCode !== currentReferralCode) {
+            toast.error("El código no está disponible o es inválido");
+            return;
+        }
+        setUpdatingCode(true);
+        try {
+            await affiliateApi.updateCode(tempCode);
+            setStats(prev => prev ? { ...prev, referral_code: tempCode } : null);
+            setEditingCode(false);
+            toast.success("Código de referido actualizado exitosamente");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Error al actualizar el código";
+            toast.error(message);
+        } finally {
+            setUpdatingCode(false);
+        }
+    };
+
     if (loading && !stats) return <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-amber-500 w-10 h-10" /></div>;
 
     return (
@@ -85,16 +124,64 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                            <div
-                                onClick={() => copyToClipboard(referralLink)}
-                                className="flex-1 flex items-center justify-between gap-3 px-4 py-3 bg-black rounded-xl border border-zinc-800 cursor-pointer hover:border-amber-500/50 transition-colors group"
-                            >
-                                <span className="text-sm font-mono text-zinc-300 truncate max-w-[200px]">{referralLink}</span>
-                                <Copy className="w-4 h-4 text-zinc-500 group-hover:text-amber-500" />
-                            </div>
-                            <button className="p-3 bg-amber-500 text-black rounded-xl hover:bg-amber-400 transition-colors">
-                                <Share2 className="w-5 h-5" />
-                            </button>
+                            {editingCode ? (
+                                <div className="flex-1 flex flex-col gap-2 min-w-[280px]">
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-black rounded-xl border border-zinc-700">
+                                        <span className="text-zinc-500 text-sm font-mono whitespace-nowrap">ref=</span>
+                                        <input
+                                            type="text"
+                                            value={tempCode}
+                                            onChange={(e) => handleCheckCode(e.target.value)}
+                                            placeholder="mi-codigo-personalizado"
+                                            className="bg-transparent border-none outline-none text-sm font-mono text-zinc-300 w-full"
+                                            autoFocus
+                                        />
+                                        {tempCode.length >= 3 && (
+                                            isAvailable ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-500" />
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleUpdateCode}
+                                            disabled={updatingCode || (isAvailable === false && tempCode !== currentReferralCode)}
+                                            className="flex-1 py-2 bg-amber-500 text-black rounded-lg text-xs font-bold hover:bg-amber-400 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            {updatingCode ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                            Guardar
+                                        </button>
+                                        <button
+                                            onClick={() => setEditingCode(false)}
+                                            className="px-4 py-2 bg-zinc-800 text-white rounded-lg text-xs font-bold hover:bg-zinc-700"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div
+                                        onClick={() => copyToClipboard(referralLink)}
+                                        className="flex-1 flex items-center justify-between gap-3 px-4 py-3 bg-black rounded-xl border border-zinc-800 cursor-pointer hover:border-amber-500/50 transition-colors group"
+                                    >
+                                        <span className="text-sm font-mono text-zinc-300 truncate max-w-[200px]">{referralLink}</span>
+                                        <Copy className="w-4 h-4 text-zinc-500 group-hover:text-amber-500" />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setTempCode(currentReferralCode);
+                                            setEditingCode(true);
+                                            setIsAvailable(true);
+                                        }}
+                                        className="p-3 bg-zinc-800 text-white rounded-xl hover:bg-zinc-700 transition-colors"
+                                        title="Editar Código"
+                                    >
+                                        <Edit3 className="w-5 h-5" />
+                                    </button>
+                                    <button className="p-3 bg-amber-500 text-black rounded-xl hover:bg-amber-400 transition-colors">
+                                        <Share2 className="w-5 h-5" />
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
 

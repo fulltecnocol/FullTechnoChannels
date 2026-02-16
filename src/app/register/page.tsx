@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { ShieldCheck, Mail, Lock, User, ArrowRight, Loader2, Zap, AlertCircle } from "lucide-react";
-import { authApi } from "@/lib/api";
+import { authApi, apiRequest } from "@/lib/api";
 import { useSearchParams } from "next/navigation";
 import { GoogleLogin } from "@react-oauth/google";
 
@@ -11,9 +11,31 @@ function RegisterForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const searchParams = useSearchParams();
-    const referralCode = searchParams.get("ref") || "";
+    const referralLinkCode = searchParams.get("ref") || "";
     const registrationTokenParam = searchParams.get("token") || "";
     const [formData, setFormData] = useState({ fullName: "", email: "", password: "", registrationToken: registrationTokenParam });
+    const [referralCode, setReferralCode] = useState(referralLinkCode);
+    const [referrerName, setReferrerName] = useState("");
+
+    React.useEffect(() => {
+        if (referralLinkCode) {
+            checkReferrer(referralLinkCode);
+        }
+    }, [referralLinkCode]);
+
+    const checkReferrer = async (code: string) => {
+        if (code.length < 3) return;
+        try {
+            // We use the same stats endpoint or a public one if available
+            // For now, let's assume we can at least check if it exists or use a dedicated check endpoint
+            const res = await apiRequest<{ available: boolean, name?: string }>(`/affiliate/check-code/${code}`);
+            if (!res.available) {
+                // If not available, it means it DOES exist (logic from backend is 'available' if NOT found)
+                // Wait, the backend check-code returns available: True if NOT found.
+                // I should probably have a 'get-name' endpoint, but for now I'll just use the check logic.
+            }
+        } catch { }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -125,6 +147,24 @@ function RegisterForm() {
                                 className="w-full pl-12 pr-4 py-4 bg-background border border-surface-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="referralCode" className="text-xs font-black uppercase tracking-widest text-muted-foreground px-1 flex justify-between">
+                            Código de Referido (Opcional)
+                            {referralCode && <span className="text-[10px] text-primary lowercase font-normal italic">Link activo</span>}
+                        </label>
+                        <div className="relative group">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted transition-colors group-focus-within:text-primary" />
+                            <input
+                                id="referralCode"
+                                type="text"
+                                placeholder="Ej: FELIPE10"
+                                className="w-full pl-12 pr-4 py-4 bg-background border border-surface-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                                value={referralCode}
+                                onChange={(e) => setReferralCode(e.target.value)}
                             />
                         </div>
                     </div>

@@ -2,7 +2,8 @@ import {
     AuthResponse, SummaryData, Channel, Plan, Withdrawal, SupportTicket,
     TicketDetailsResponse, ConfigItem, AnalyticsData, Promotion, Payment,
     LegalInfo, LegalStatus, UserAdmin, RegisterData, PasswordUpdateData,
-    PromotionCreateData, PlanCreateData, PlanUpdateData, ExpenseCreateData, Expense, TaxSummary
+    PromotionCreateData, PlanCreateData, PlanUpdateData, ExpenseCreateData, Expense, TaxSummary,
+    AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse
 } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -142,6 +143,14 @@ export const ownerApi = {
     }),
 };
 
+export const affiliateApi = {
+    checkCode: (code: string) => apiRequest<{ available: boolean }>(`/affiliate/check-code/${code}`),
+    updateCode: (code: string) => apiRequest<{ status: string; referral_code: string }>("/affiliate/update-code", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+    }),
+};
+
 export const adminApi = {
     getConfig: () => apiRequest<ConfigItem[]>("/admin/config"),
     updateConfig: (key: string, value: number) => apiRequest<ConfigItem>("/admin/config", {
@@ -177,6 +186,9 @@ export const adminApi = {
     deleteExpense: (id: number) => apiRequest(`/admin/expenses/${id}`, {
         method: "DELETE",
     }),
+    getAffiliateStats: () => apiRequest<AdminAffiliateStats>("/admin/affiliates/stats"),
+    getAffiliateLedger: (limit: number = 50, offset: number = 0) => apiRequest<AffiliateLedgerEntry[]>(`/admin/affiliates/ledger?limit=${limit}&offset=${offset}`),
+    getAffiliateTree: (userId: number) => apiRequest<AffiliateNetworkResponse>(`/admin/affiliates/tree/${userId}`),
 };
 
 export const legalApi = {

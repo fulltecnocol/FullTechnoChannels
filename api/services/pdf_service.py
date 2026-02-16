@@ -138,13 +138,13 @@ class PDFContractService:
                                     CDLL(lib_path)
                                     found = True
                                     break
-                                except:
+                                except Exception:
                                     pass
                         if not found:
                             lib_name = lib.split(".")[0].replace("lib", "")
-                            l = find_library(lib_name)
-                            if l:
-                                CDLL(l)
+                            lib_handle = find_library(lib_name)
+                            if lib_handle:
+                                CDLL(lib_handle)
                 except Exception as e:
                     logging.warning(f"MacOS library loading warning: {e}")
 

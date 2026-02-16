@@ -35,9 +35,7 @@ export function AvailabilityManager() {
 
     // Temp state for editing
     // Map day_id -> { enabled, start, end }
-    const [schedule, setSchedule] = useState<{
-        [key: number]: { enabled: boolean; start: string; end: string }
-    }>({});
+    const [schedule, setSchedule] = useState<Record<number, { enabled: boolean; start: string; end: string }>>({});
 
     useEffect(() => {
         fetchAvailability();
@@ -49,7 +47,7 @@ export function AvailabilityManager() {
             const data = await apiRequest<AvailabilityRange[]>("/availability/");
 
             // Transform to local state map
-            const newSchedule: any = {};
+            const newSchedule: Record<number, { enabled: boolean; start: string; end: string }> = {};
 
             // Initialize all days as disabled default
             DAYS.forEach(d => {
@@ -84,11 +82,10 @@ export function AvailabilityManager() {
             setSaving(true);
 
             // Transform schedule map back to list
-            const rangesToSave: any[] = [];
+            const rangesToSave: AvailabilityRange[] = [];
 
-            Object.keys(schedule).forEach(dayIdStr => {
+            Object.entries(schedule).forEach(([dayIdStr, dayConfig]) => {
                 const dayId = parseInt(dayIdStr);
-                const dayConfig = (schedule as any)[dayId];
 
                 if (dayConfig.enabled) {
                     rangesToSave.push({
@@ -115,8 +112,8 @@ export function AvailabilityManager() {
         }
     };
 
-    const updateDay = (dayId: number, field: string, value: any) => {
-        setSchedule((prev: any) => ({
+    const updateDay = (dayId: number, field: string, value: string | boolean) => {
+        setSchedule((prev) => ({
             ...prev,
             [dayId]: {
                 ...prev[dayId],
@@ -146,7 +143,7 @@ export function AvailabilityManager() {
 
                 <div className="space-y-3">
                     {DAYS.map(day => {
-                        const config = (schedule as any)[day.id];
+                        const config = schedule[day.id];
                         if (!config) return null;
 
                         return (

@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta, time
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from datetime import datetime
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.future import select
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import selectinload
+from sqlalchemy import and_
 from pydantic import BaseModel, Field
 
 from shared.database import get_db, AsyncSessionLocal
@@ -52,7 +51,7 @@ async def set_availability(
     await db.execute(
         select(AvailabilityRange)
         .where(AvailabilityRange.owner_id == current_user.id)
-        .where(AvailabilityRange.is_recurring == True)
+        .where(AvailabilityRange.is_recurring.is_(True))
         .execution_options(synchronize_session=False)
     )
     # Note: efficient deletion might require delete(AvailabilityRange)... but this select logic is flawed for deletion.
@@ -60,7 +59,7 @@ async def set_availability(
     # Safe way:
     existing = await db.execute(
         select(AvailabilityRange).where(
-            and_(AvailabilityRange.owner_id == current_user.id, AvailabilityRange.is_recurring == True)
+            and_(AvailabilityRange.owner_id == current_user.id, AvailabilityRange.is_recurring.is_(True))
         )
     )
     for row in existing.scalars():
@@ -134,7 +133,6 @@ async def block_availability(
         end_time=data.end_time,
         status="blocked"
     )
-    db.add(booking)
     db.add(booking)
     await db.commit()
     await invalidate_service_cache(data.service_id)

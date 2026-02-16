@@ -4,7 +4,7 @@ import base64
 import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 # Add project root to sys.path to allow imports from shared/api
 # This assumes the worker is run from the project root or the docker context sends the whole repo

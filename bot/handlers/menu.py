@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.future import select
 from sqlalchemy import and_
 from shared.database import AsyncSessionLocal
-from shared.models import User as DBUser, Subscription, Plan, Channel, Promotion
+from shared.models import Subscription, Plan, Channel
 from bot.handlers.initial import get_or_create_user
 from datetime import datetime
 
@@ -106,7 +106,7 @@ async def handle_channels_callback(callback: types.CallbackQuery):
     # This logic assumes we want to show available channels or user's channels
     # For now, let's just show a placeholder or basic list
     async with AsyncSessionLocal() as session:
-         result = await session.execute(select(Channel).where(Channel.is_verified == True))
+         result = await session.execute(select(Channel).where(Channel.is_verified.is_(True)))
          channels = result.scalars().all()
          
          if not channels:
@@ -134,7 +134,7 @@ async def view_channel_plans(callback: types.CallbackQuery):
 
         # Get Plans
         result = await session.execute(
-            select(Plan).where(Plan.channel_id == channel_id, Plan.is_active == True)
+            select(Plan).where(Plan.channel_id == channel_id, Plan.is_active.is_(True))
         )
         plans = result.scalars().all()
 

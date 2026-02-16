@@ -5,7 +5,21 @@ interface CommissionChartProps {
     data: { level: number; amount: number }[];
 }
 
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: { name: string; value: number; color: string } }[] }) => {
+    if (active && payload && payload.length) {
+        const { name, value } = payload[0].payload;
+        return (
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-2 text-white text-xs font-bold">
+                <p className="mb-1">{name}</p>
+                <p className="text-zinc-300">Comisión: <span className="text-white">${(Number(value) || 0).toFixed(2)}</span></p>
+            </div>
+        );
+    }
+    return null;
+};
+
 export function CommissionChart({ data }: CommissionChartProps) {
+
     const chartData = useMemo(() => {
         if (!data || data.length === 0) return [];
 
@@ -59,9 +73,7 @@ export function CommissionChart({ data }: CommissionChartProps) {
                         ))}
                     </Pie>
                     <Tooltip
-                        contentStyle={{ backgroundColor: '#1a1a1a', borderColor: '#333', borderRadius: '12px' }}
-                        itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                        formatter={(value: any) => [`$${(Number(value) || 0).toFixed(2)}`, 'Comisión']}
+                        content={<CustomTooltip />}
                     />
                     <Legend
                         verticalAlign="middle"

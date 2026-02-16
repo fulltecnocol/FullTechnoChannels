@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 from sqlalchemy import and_, func
 
@@ -13,6 +14,7 @@ from shared.models import (
     Payment,
     SystemConfig as ConfigItem,
     BusinessExpense,
+    AffiliateEarning
 )
 from shared.signature_models import OwnerLegalInfo, SignedContract
 from api.schemas.user import UserAdminResponse
@@ -348,3 +350,97 @@ async def delete_expense(
     await db.delete(expense)
     await db.commit()
     return {"ok": True}
+
+
+# --- Affiliate Monitoring ---
+
+@router.get("/affiliates/stats")
+async def get_admin_affiliate_stats(
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Global affiliate metrics for Admin"""
+    # Total commissions paid through the platform
+    total_earnings_res = await db.execute(select(func.sum(AffiliateEarning.amount)))
+    total_paid = total_earnings_res.scalar() or 0.0
+
+    # Count of users who have referred at least one person
+    recruiters_count_res = await db.execute(
+        select(func.count(func.distinct(DBUser.referred_by_id)))
+        .where(DBUser.referred_by_id.is_not(None))
+    )
+    total_recruiters = recruiters_count_res.scalar() or 0
+
+    # Total earnings by level
+    levels_res = await db.execute(
+        select(AffiliateEarning.level, func.sum(AffiliateEarning.amount))
+        .group_by(AffiliateEarning.level)
+        .order_by(AffiliateEarning.level)
+    )
+    earnings_by_level = [{"level": r[0], "amount": r[1]} for r in levels_res.all()]
+
+    return {
+        "total_commissions_paid": total_paid,
+        "active_recruiters": total_recruiters,
+        "earnings_by_level": earnings_by_level
+    }
+
+
+@router.get("/affiliates/ledger")
+async def get_admin_affiliate_ledger(
+    limit: int = 50,
+    offset: int = 0,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """A master feed of all affiliate earning events"""
+    result = await db.execute(
+        select(AffiliateEarning)
+        .options(
+            selectinload(AffiliateEarning.affiliate),
+            selectinload(AffiliateEarning.payment).selectinload(Payment.user)
+        )
+        .order_by(AffiliateEarning.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    earnings = result.scalars().all()
+
+    ledger_data = []
+    for earn in earnings:
+        ledger_data.append({
+            "id": earn.id,
+            "affiliate_name": earn.affiliate.full_name or earn.affiliate.username if earn.affiliate else "N/A",
+            "affiliate_id": earn.affiliate_id,
+            "source_user": earn.payment.user.username if earn.payment and earn.payment.user else "N/A",
+            "amount": earn.amount,
+            "level": earn.level,
+            "created_at": earn.created_at.isoformat(),
+            "payment_id": earn.payment_id
+        })
+
+    return ledger_data
+
+
+@router.get("/affiliates/tree/{user_id}")
+async def get_admin_user_tree(
+    user_id: int,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Fetch the network tree for any user (Admin only)"""
+    from api.routes.affiliate import get_recursive_downline
+    
+    # Check if user exists
+    user_res = await db.execute(select(DBUser).where(DBUser.id == user_id))
+    user = user_res.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    network_tree = await get_recursive_downline(db, user_id, max_depth=10)
+    
+    return {
+        "user_id": user.id,
+        "root_name": user.full_name or user.username,
+        "children": network_tree
+    }

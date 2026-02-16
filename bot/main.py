@@ -2,16 +2,15 @@ import os
 import logging
 import asyncio
 from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import Update
 
 load_dotenv(override=True)
 
 # Forzar el uso del Loop por defecto (Asyncio) en lugar de uvloop si está instalado
 # Esto es crítico para evitar problemas de SSL/DNS con Supabase en algunos entornos
 asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-
-from fastapi import FastAPI, Request
-from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import Update
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

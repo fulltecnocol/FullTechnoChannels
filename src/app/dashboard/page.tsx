@@ -24,6 +24,7 @@ import { AffiliateSection } from "@/components/dashboard/AffiliateSection";
 import { DeleteChannelModal } from "@/components/dashboard/DeleteChannelModal";
 import { TaxHub } from "@/components/dashboard/TaxHub";
 import { AdminSystem } from "@/components/dashboard/AdminSystem";
+import { AdminAffiliateCenter } from "@/components/dashboard/AdminAffiliateCenter";
 import { PlanManagementModal } from "@/components/dashboard/PlanManagementModal";
 import CallsManagement from "@/components/dashboard/CallsManagement";
 import { useDashboard } from "@/hooks/useDashboard";
@@ -386,6 +387,7 @@ export default function DashboardPage() {
             { id: "settings", label: "Configuración", icon: Settings },
             ...(summary?.is_admin ? [
               { id: "admin", label: "Admin Sistema", icon: ShieldEllipsis },
+              { id: "admin_affiliates", label: "Admin Afiliados", icon: Zap },
               { id: "admin_payments", label: "Admin Pagos", icon: CreditCard },
               { id: "admin_tax", label: "Tax Hub", icon: Calculator }
             ] : []),
@@ -584,6 +586,10 @@ export default function DashboardPage() {
             setActiveTab={setActiveTab}
             mounted={mounted}
           />
+        )}
+
+        {activeTab === "admin_affiliates" && summary?.is_admin && (
+          <AdminAffiliateCenter />
         )}
 
         {activeTab === "calls" && (

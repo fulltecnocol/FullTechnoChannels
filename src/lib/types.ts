@@ -292,3 +292,20 @@ export interface AffiliateStats {
     direct_referrals: number;
     referral_code: string;
 }
+
+export interface AdminAffiliateStats {
+    total_commissions_paid: number;
+    active_recruiters: number;
+    earnings_by_level: { level: number; amount: number }[];
+}
+
+export interface AffiliateLedgerEntry {
+    id: number;
+    affiliate_name: string;
+    affiliate_id: number;
+    source_user: string;
+    amount: number;
+    level: number;
+    created_at: string;
+    payment_id: number;
+}

@@ -27,6 +27,8 @@ from shared.models import (
     AffiliateEarning,
     SupportTicket,
     Promotion,
+    SystemConfig,
+    TicketMessage,
 )
 from shared.accounting import distribute_payment_funds, get_affiliate_tier_info
 
@@ -425,7 +427,7 @@ async def verify_crypto_payment(
         promo_id_val = int(parts[5])
         if promo_id_val > 0:
             promo_id = promo_id_val
-    except:
+    except Exception:
         pass
 
     await activate_membership(

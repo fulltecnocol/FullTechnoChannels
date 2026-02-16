@@ -1,9 +1,8 @@
 from aiogram import Router, types
 from aiogram.filters import Command, CommandObject
 from sqlalchemy.future import select
-from sqlalchemy import and_
 from shared.database import AsyncSessionLocal
-from shared.models import User as DBUser, RegistrationToken, Promotion
+from shared.models import User as DBUser, Promotion
 
 router = Router()
 
@@ -25,15 +24,21 @@ async def get_or_create_user(tg_user: types.User, session):
 
 @router.message(Command("start"))
 async def send_welcome(message: types.Message, command: CommandObject):
+    from .menu import cmd_menu
     async with AsyncSessionLocal() as session:
         args = command.args
         if args:
-            await process_code(message, args, session)
-        else:
-            await get_or_create_user(message.from_user, session)
-            await message.reply(
-                "¡Hola! Soy tu bot de membresía multi-canal. Usa un link de invitación o envía tu código de vinculación para empezar."
-            )
+            processed = await process_code(message, args, session)
+            if processed:
+                # After successful deep link processing, show the main menu
+                await cmd_menu(message)
+                return
+        
+        await get_or_create_user(message.from_user, session)
+        await message.reply(
+            "¡Hola! Soy tu bot de membresía multi-canal. Usa un link de invitación o envía tu código de vinculación para empezar."
+        )
+        await cmd_menu(message)
 
 async def process_code(message: types.Message, code: str, session):
     # 🟢 CASO A: Sincronización de Cuenta de Dueño/Afiliado
@@ -85,7 +90,7 @@ async def process_code(message: types.Message, code: str, session):
                             f"{current_user.full_name} se ha unido usando tu enlace."
                         )
                     await bot.session.close() # Close session for this one-off
-                except:
+                except Exception:
                     pass
                 
                 await message.reply(f"✅ Has sido referido exitosamente por **{referrer.full_name}**.")

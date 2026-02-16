@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useSyncExternalStore } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { useSyncExternalStore, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 
@@ -19,20 +20,34 @@ export function ClientProviders({
     // while still preventing hydration mismatches
     const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
+    const [queryClient] = useState(() => new QueryClient({
+        defaultOptions: {
+            queries: {
+                staleTime: 60 * 1000,
+            },
+        },
+    }));
+
     // To prevent hydration mismatch
     if (!mounted) {
         return null;
     }
 
     if (!googleClientId) {
-        return <>{children}</>;
+        return (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
     }
 
     return (
         <GoogleOAuthProvider clientId={googleClientId}>
-            <AuthProvider>
-                {children}
-            </AuthProvider>
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    {children}
+                </AuthProvider>
+            </QueryClientProvider>
         </GoogleOAuthProvider>
     );
 }

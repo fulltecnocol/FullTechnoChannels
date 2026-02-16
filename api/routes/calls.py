@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy import and_
@@ -9,7 +9,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
 from shared.utils.calendar import generate_calendar_links
-from shared.services.availability_service import invalidate_service_cache
 import logging
 
 # Configurar logging para facilitar depuración en Cloud Run
@@ -317,7 +316,7 @@ async def generate_slots(
     try:
         start_h, start_m = map(int, data.start_time.split(':'))
         end_h, end_m = map(int, data.end_time.split(':'))
-    except:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid time format (HH:MM)")
 
     new_slots = []

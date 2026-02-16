@@ -1,26 +1,25 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
 import logging
 import asyncio
-
-# Forzar el uso del Loop por defecto (Asyncio) en lugar de uvloop si está instalado
-# Esto es crítico para evitar problemas de SSL/DNS con Supabase en algunos entornos
-asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-
 import httpx
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher, Router, types, F
 from aiogram.filters import Command, CommandObject
 from aiogram.types import ChatJoinRequest, Update
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy.future import select
+from sqlalchemy import and_
 
 from shared.database import AsyncSessionLocal
 from shared.models import Plan, User as DBUser, Channel, Subscription, Promotion
-from sqlalchemy.future import select
-from sqlalchemy import and_
-from datetime import datetime, timedelta
+
+load_dotenv(override=True)
+
+# Forzar el uso del Loop por defecto (Asyncio) en lugar de uvloop si está instalado
+# Esto es crítico para evitar problemas de SSL/DNS con Supabase en algunos entornos
+asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
