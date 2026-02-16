@@ -3,7 +3,8 @@ import {
     TicketDetailsResponse, ConfigItem, AnalyticsData, Promotion, Payment,
     LegalInfo, LegalStatus, UserAdmin, RegisterData, PasswordUpdateData,
     PromotionCreateData, PlanCreateData, PlanUpdateData, ExpenseCreateData, Expense, TaxSummary,
-    AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse, LeaderboardEntry
+    AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse, LeaderboardEntry,
+    AffiliateRank, RankCreate
 } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -191,6 +192,22 @@ export const adminApi = {
     getAffiliateStats: () => apiRequest<AdminAffiliateStats>("/admin/affiliates/stats"),
     getAffiliateLedger: (limit: number = 50, offset: number = 0) => apiRequest<AffiliateLedgerEntry[]>(`/admin/affiliates/ledger?limit=${limit}&offset=${offset}`),
     getAffiliateTree: (userId: number) => apiRequest<AffiliateNetworkResponse>(`/admin/affiliates/tree/${userId}`),
+
+    // Ranks
+    getAffiliateRanks: () => apiRequest<AffiliateRank[]>("/admin/ranks"),
+    createAffiliateRank: (data: RankCreate) => apiRequest<AffiliateRank>("/admin/ranks", {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    deleteAffiliateRank: (id: number) => apiRequest<void>(`/admin/ranks/${id}`, {
+        method: "DELETE",
+    }),
+
+    // User Upline
+    updateUserUpline: (userId: number, referrerId: number) => apiRequest<{ ok: boolean; new_referrer: string }>(`/admin/users/${userId}/uplink`, {
+        method: "PATCH",
+        body: JSON.stringify({ referrer_id: referrerId }),
+    }),
 };
 
 export const legalApi = {

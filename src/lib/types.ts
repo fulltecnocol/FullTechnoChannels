@@ -324,3 +324,19 @@ export interface LeaderboardEntry {
     badges: Badge[];
     avatar?: string;
 }
+
+export interface AffiliateRank {
+    id: number;
+    name: string;
+    min_referrals: number;
+    bonus_percentage: number;
+    icon?: string;
+    created_at: string;
+}
+
+export interface RankCreate {
+    name: string;
+    min_referrals: number;
+    bonus_percentage: number;
+    icon?: string;
+}

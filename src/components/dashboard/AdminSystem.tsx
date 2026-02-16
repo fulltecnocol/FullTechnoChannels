@@ -1,4 +1,4 @@
-import { ShieldEllipsis, Users, LayoutGrid, Zap, History, ShieldCheck, Wallet, LifeBuoy, AlertTriangle, Trash2, Eye, X, FileText, ExternalLink, Loader2 } from 'lucide-react';
+import { ShieldEllipsis, Users, LayoutGrid, Zap, History, ShieldCheck, Wallet, LifeBuoy, AlertTriangle, Trash2, Eye, X, FileText, ExternalLink, Loader2, UserPlus } from 'lucide-react';
 import { UserAdmin, ConfigItem, Withdrawal, SupportTicket, LegalInfo } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { adminApi, API_URL } from '@/lib/api';
@@ -24,6 +24,11 @@ export function AdminSystem({
     const [isSaving, setIsSaving] = useState<string | null>(null);
     const [selectedLegal, setSelectedLegal] = useState<LegalInfo | null>(null);
     const [isLegalLoading, setIsLegalLoading] = useState(false);
+
+    // Upline Modal State
+    const [uplineUser, setUplineUser] = useState<UserAdmin | null>(null);
+    const [newReferrerId, setNewReferrerId] = useState('');
+    const [isUpdatingUpline, setIsUpdatingUpline] = useState(false);
 
     useEffect(() => {
         const initialConfigs: Record<string, number> = {};
@@ -58,6 +63,24 @@ export function AdminSystem({
             alert("Error al cargar información legal");
         } finally {
             setIsLegalLoading(false);
+        }
+    };
+
+    const handleUplineUpdate = async () => {
+        if (!uplineUser || !newReferrerId) return;
+        setIsUpdatingUpline(true);
+        try {
+            await adminApi.updateUserUpline(uplineUser.id, Number(newReferrerId));
+            // Ensure we notify the user
+            const { toast } = await import('sonner');
+            toast.success("Patrocinador actualizado correctamente");
+            setUplineUser(null);
+            setNewReferrerId('');
+        } catch (error: any) {
+            const { toast } = await import('sonner');
+            toast.error(error.message || "Error al actualizar patrocinador");
+        } finally {
+            setIsUpdatingUpline(false);
         }
     };
     return (
@@ -109,6 +132,13 @@ export function AdminSystem({
                                     </td>
                                     <td className="p-5">
                                         <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setUplineUser(u)}
+                                                className="p-2 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500/20 transition-all"
+                                                title="Cambiar Patrocinador"
+                                            >
+                                                <UserPlus className="w-4 h-4" />
+                                            </button>
                                             <button
                                                 onClick={() => viewLegal(u.id)}
                                                 className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all"
@@ -428,6 +458,56 @@ export function AdminSystem({
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Cambio de Patrocinador */}
+            {uplineUser && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="premium-card w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 relative border-primary/20">
+                        <button
+                            onClick={() => setUplineUser(null)}
+                            className="absolute top-4 right-4 p-2 hover:bg-surface-border rounded-full transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4 text-primary">
+                                <UserPlus className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-black text-primary">Cambiar Patrocinador</h3>
+                            <p className="text-sm text-muted mt-1">
+                                Asigna un nuevo "Up-Link" para <strong>{uplineUser.full_name}</strong>.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-500 font-medium">
+                                <AlertTriangle className="w-4 h-4 inline mr-2 mb-0.5" />
+                                Cuidado: Esto moverá al usuario y toda su red descendente bajo el nuevo patrocinador.
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-black uppercase text-muted tracking-widest">ID del Nuevo Patrocinador</label>
+                                <input
+                                    type="number"
+                                    value={newReferrerId}
+                                    onChange={(e) => setNewReferrerId(e.target.value)}
+                                    className="w-full bg-background border border-surface-border rounded-lg px-4 py-3 font-bold focus:border-primary outline-none"
+                                    placeholder="Ej: 42"
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleUplineUpdate}
+                                disabled={isUpdatingUpline || !newReferrerId}
+                                className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-black hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isUpdatingUpline ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirmar Cambio"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
