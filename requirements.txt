@@ -17,3 +17,9 @@ aiogram
 httpx
 google-auth
 google-api-python-client
+redis
+alembic
+structlog
+sentry-sdk
+argon2-cffi
+gunicorn

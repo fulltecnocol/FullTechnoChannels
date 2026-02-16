@@ -4,7 +4,35 @@ from sqlalchemy.future import select
 from sqlalchemy import and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import json
 from shared.models import CallService, AvailabilityRange, CallBooking
+from shared.database import redis_client
+
+async def invalidate_service_cache(service_id: int):
+    """Invalidate all availability caches for a specific service"""
+    # Pattern match is slow, simpler to just rely on TTL or precise keys if possible.
+    # For now, we will perform a scan (safe for medium load) or just rely on short TTL for general browsing.
+    # But for robustness, let's use a tag-like approach or just simple SCAN for this service prefix.
+    try:
+        cursor = b"0"
+        while cursor:
+             cursor, keys = await redis_client.scan(cursor, match=f"avail:{service_id}:*", count=100)
+             if keys:
+                 await redis_client.delete(*keys)
+    except Exception as e:
+        print(f"Cache invalidation error: {e}")
+
+async def invalidate_user_cache(user_id: int):
+    """Invalidate all availability caches for a specific user (all their services)"""
+    # This is expensive without a map of User -> Services.
+    # But since we use 'avail:service_id:...', we can't easily match by user_id unless we know service IDs.
+    # For MVP/Option B, we will rely on TTL for 'set_availability' or we can fetch services and invalidate.
+    # Let's fetch services to be robust.
+    # We require db session for that, which this function doesn't have.
+    # Alternative: Use a pattern if we stored owner_id in key? No.
+    # We will pass DB to this function or just accept 60s inconsistency for general settings change.
+    # BETTER: The caller (route) has DB, so the ROUTE should fetch services and call invalidate_service_cache loop.
+    pass
 
 async def get_available_slots(
     db: AsyncSession,
@@ -18,6 +46,16 @@ async def get_available_slots(
     2. User's Availability Ranges (General hours)
     3. Existing Bookings (Capacity)
     """
+    cache_key = f"avail:{service_id}:{from_date}:{to_date}"
+
+    # Try Cache
+    try:
+        cached = await redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        pass # Fallback to DB
+
     # 1. Fetch Service
     service = await db.get(CallService, service_id)
     if not service or not service.is_active:
@@ -108,5 +146,15 @@ async def get_available_slots(
                 slot_time += duration
 
         current_day += timedelta(days=1)
+
+    # Cache Result (TTL 60s)
+    try:
+        await redis_client.setex(
+            cache_key,
+            60,
+            json.dumps(available_slots, default=str) # default=str handles datetime serialization
+        )
+    except Exception:
+        pass
 
     return available_slots

@@ -1,20 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { apiRequest } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Video, Calendar as CalendarIcon, Clock } from "lucide-react";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Loader2, Trash2, Video, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { CustomCalendar } from "@/components/ui/CustomCalendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { AvailabilityManager } from "./AvailabilityManager";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CallSlot {
     id: number;
@@ -45,16 +44,23 @@ interface Channel {
     title: string;
 }
 
-export default function CallsManagement() {
-    const { user, token, loading: authLoading } = useAuth();
-    const [loading, setLoading] = useState(true);
+interface DynamicSlot {
+    start_time: string;
+    end_time: string;
+    available: boolean;
+}
 
-    // Services State
-    const [services, setServices] = useState<CallService[]>([]);
+export default function CallsManagement() {
+    const { token } = useAuth();
+    const queryClient = useQueryClient();
+
+    // Local State (Selection)
     const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
     const [isCreatingService, setIsCreatingService] = useState(false);
+    const [selectedChannelId, setSelectedChannelId] = useState<string>("");
+    const [newSlotDate, setNewSlotDate] = useState<Date | undefined>(undefined);
 
-    // Form for Create/Edit Service
+    // Form State
     const [serviceForm, setServiceForm] = useState({
         description: "",
         duration_minutes: 30,
@@ -62,159 +68,145 @@ export default function CallsManagement() {
         is_active: true
     });
 
-    const [channels, setChannels] = useState<Channel[]>([]);
-    const [selectedChannelId, setSelectedChannelId] = useState<string>("");
+    // --- QUERIES ---
 
-    // Dynamic Slots & Manual Override State
-    const [newSlotDate, setNewSlotDate] = useState<Date | undefined>(undefined);
-    const [previewSlots, setPreviewSlots] = useState<any[]>([]);
-
-
-    const fetchChannels = async () => {
-        try {
-            if (!token) return;
-            setLoading(true);
+    const { data: channels = [], isLoading: channelsLoading } = useQuery({
+        queryKey: ['channels'],
+        queryFn: async () => {
+            if (!token) return [];
             const data = await apiRequest<Channel[]>('/owner/channels');
-            setChannels(data);
-            if (data.length > 0) {
-                if (!selectedChannelId) {
-                    setSelectedChannelId(data[0].id.toString());
-                }
+            if (data.length > 0 && !selectedChannelId) {
+                setSelectedChannelId(data[0].id.toString());
             }
-        } catch (e) {
-            console.error("Error fetching channels", e);
-            toast.error("Error al cargar canales");
-        } finally {
-            setLoading(false);
-        }
-    };
+            return data;
+        },
+        enabled: !!token
+    });
 
-    const fetchServices = async () => {
-        try {
-            if (!token || !selectedChannelId) return;
-            setLoading(true);
+    const { data: services = [], isLoading: servicesLoading } = useQuery({
+        queryKey: ['services', selectedChannelId],
+        queryFn: async () => {
+            if (!selectedChannelId) return [];
             const data = await apiRequest<CallService[]>(`/calls/services?channel_id=${selectedChannelId}`);
-            setServices(data);
-
-            // Auto select first service if none selected or invalid
+            // Auto-select logic
             if (data.length > 0 && (!selectedServiceId || !data.find(s => s.id === selectedServiceId))) {
-                setSelectedServiceId(data[0].id);
+                // We need to be careful not to cause loops, but setting state in effect or callback is better.
+                // However, doing it here in render is bad practice.
+                // We'll handle auto-selection in useEffect or just let user select.
+                // But to match previous behavior:
+                // We can't easily do it inside queryFn.
+                // We'll use a side effect for selection (see useEffect below)
             }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+            return data;
+        },
+        enabled: !!token && !!selectedChannelId,
+        staleTime: 1000 * 30, // 30s stale
+    });
 
-    useEffect(() => {
-        if (!authLoading && token) {
-            fetchChannels();
-        } else if (!token && !authLoading) {
-            setLoading(false);
-        }
-    }, [token, authLoading]);
+    // Auto-select service effect
+    const [hasAutoSelected, setHasAutoSelected] = useState(false);
+    if (services.length > 0 && !selectedServiceId && !hasAutoSelected) {
+        setSelectedServiceId(services[0].id);
+        setHasAutoSelected(true);
+    }
 
-    useEffect(() => {
-        if (selectedChannelId) {
-            fetchServices();
-        }
-    }, [selectedChannelId]);
 
-    const handleCreateService = async () => {
-        try {
-            if (!serviceForm.description || serviceForm.duration_minutes <= 0 || serviceForm.price < 0) {
-                toast.error("Completa los datos del servicio correctamente");
-                return;
-            }
-
-            const newService = await apiRequest<CallService>('/calls/services', {
-                method: "POST",
-                body: JSON.stringify({
-                    channel_id: parseInt(selectedChannelId),
-                    ...serviceForm
-                }),
-            });
-
-            toast.success("Servicio creado");
-            setIsCreatingService(false);
-            setServiceForm({ description: "", duration_minutes: 30, price: 0, is_active: true });
-
-            // Direct state update for immediate reaction
-            setServices(prev => [...prev, newService]);
-            setSelectedServiceId(newService.id);
-
-            // Background sync (optional but safe)
-            // fetchServices(); 
-        } catch (e) {
-            toast.error("Error: " + (e as Error).message);
-        }
-    };
-
-    const handleDeleteService = async (id: number) => {
-        if (!confirm("¿Eliminar este servicio y todos sus horarios?")) return;
-        try {
-            await apiRequest(`/calls/services/${id}`, { method: "DELETE" });
-            toast.success("Servicio eliminado");
-
-            // Direct state update
-            setServices(prev => prev.filter(s => s.id !== id));
-            if (selectedServiceId === id) {
-                setSelectedServiceId(null);
-            }
-        } catch (e) {
-            toast.error("Error eliminando servicio");
-        }
-    };
-
-    // Find selected service object
-    const selectedService = services.find(s => s.id === selectedServiceId);
-
-    const fetchDynamicSlots = async (serviceId: number, date: Date) => {
-        try {
+    const { data: previewSlots = [] } = useQuery<DynamicSlot[]>({
+        queryKey: ['slots', selectedServiceId, newSlotDate?.toISOString()], // Refetch when month changes ideally, but date picker selects day
+        // To really optimize, we should fetch by month.
+        // Assuming current logic fetches by month 1 to current+2
+        queryFn: async () => {
+            if (!selectedServiceId) return [];
+            const date = newSlotDate || new Date();
             const start = new Date(date.getFullYear(), date.getMonth(), 1);
             const end = new Date(date.getFullYear(), date.getMonth() + 2, 0);
 
             const startStr = format(start, "yyyy-MM-dd");
             const endStr = format(end, "yyyy-MM-dd");
 
-            const slots = await apiRequest<any[]>(`/availability/slots?service_id=${serviceId}&from_date=${startStr}&to_date=${endStr}`);
-            setPreviewSlots(slots);
-        } catch (e) {
-            console.error(e);
-        }
-    };
+            return await apiRequest<DynamicSlot[]>(`/availability/slots?service_id=${selectedServiceId}&from_date=${startStr}&to_date=${endStr}`);
+        },
+        enabled: !!selectedServiceId,
+        staleTime: 1000 * 60, // 1 min (matches backend cache)
+    });
 
-    const handleBlockSlot = async (startTime: string, endTime: string) => {
-        if (!selectedServiceId) return;
-        if (!confirm("¿Seguro que quieres bloquear este horario? Los usuarios no podrán agendar a esta hora.")) return;
+    // --- MUTATIONS ---
 
-        try {
+    const createServiceMutation = useMutation({
+        mutationFn: async () => {
+            return await apiRequest<CallService>('/calls/services', {
+                method: "POST",
+                body: JSON.stringify({
+                    channel_id: parseInt(selectedChannelId),
+                    ...serviceForm
+                }),
+            });
+        },
+        onSuccess: (newService: CallService) => {
+            toast.success("Servicio creado");
+            setIsCreatingService(false);
+            setServiceForm({ description: "", duration_minutes: 30, price: 0, is_active: true });
+            queryClient.invalidateQueries({ queryKey: ['services'] });
+            setSelectedServiceId(newService.id);
+        },
+        onError: (e: Error) => toast.error(e.message)
+    });
+
+    const deleteServiceMutation = useMutation({
+        mutationFn: async (id: number) => {
+            await apiRequest(`/calls/services/${id}`, { method: "DELETE" });
+        },
+        onSuccess: (_, id) => {
+            toast.success("Servicio eliminado");
+            queryClient.invalidateQueries({ queryKey: ['services'] });
+            if (selectedServiceId === id) setSelectedServiceId(null);
+        },
+        onError: () => toast.error("Error eliminando servicio")
+    });
+
+    const blockSlotMutation = useMutation({
+        mutationFn: async ({ start, end }: { start: string, end: string }) => {
             await apiRequest('/availability/block', {
                 method: "POST",
                 body: JSON.stringify({
                     service_id: selectedServiceId,
-                    start_time: startTime,
-                    end_time: endTime
+                    start_time: start,
+                    end_time: end
                 })
             });
+        },
+        onSuccess: () => {
             toast.success("Horario bloqueado");
-            // Refresh preview
-            if (newSlotDate) {
-                fetchDynamicSlots(selectedServiceId, newSlotDate);
-            }
-        } catch (e) {
-            toast.error("Error al bloquear horario");
+            queryClient.invalidateQueries({ queryKey: ['slots'] });
+        },
+        onError: () => toast.error("Error al bloquear horario")
+    });
+
+
+    // --- HANDLERS ---
+
+    const handleCreateService = () => {
+        if (!serviceForm.description || serviceForm.duration_minutes <= 0 || serviceForm.price < 0) {
+            toast.error("Completa los datos correctamente");
+            return;
         }
+        createServiceMutation.mutate();
     };
 
-    useEffect(() => {
-        if (selectedServiceId) {
-            fetchDynamicSlots(selectedServiceId, newSlotDate || new Date());
-        }
-    }, [selectedServiceId, newSlotDate]); // Refetch when date changes (month view) or service changes
+    const handleDeleteService = (id: number) => {
+        if (!confirm("¿Eliminar este servicio?")) return;
+        deleteServiceMutation.mutate(id);
+    };
 
-    if (loading) return <Loader2 className="animate-spin" />;
+    const handleBlockSlot = (start: string, end: string) => {
+        if (!confirm("¿Bloquear este horario?")) return;
+        blockSlotMutation.mutate({ start, end });
+    };
+
+    // Find selected service object
+    const selectedService = services.find(s => s.id === selectedServiceId);
+
+    if (channelsLoading) return <Loader2 className="animate-spin" />;
 
     return (
         <div className="space-y-6">
@@ -234,8 +226,6 @@ export default function CallsManagement() {
                         value={selectedChannelId}
                         onChange={(e) => setSelectedChannelId(e.target.value)}
                     >
-                        {loading && channels.length === 0 && <option value="">Cargando canales...</option>}
-                        {!loading && channels.length === 0 && <option value="">No se encontraron canales</option>}
                         {channels.map(c => (
                             <option key={c.id} value={c.id}>{c.title}</option>
                         ))}
@@ -289,8 +279,8 @@ export default function CallsManagement() {
                                     />
                                 </div>
                             </div>
-                            <Button onClick={handleCreateService} size="sm" className="w-full bg-primary text-primary-foreground font-bold shadow-lg shadow-amber-500/20">
-                                Crear Servicio
+                            <Button onClick={handleCreateService} disabled={createServiceMutation.isPending} size="sm" className="w-full bg-primary text-primary-foreground font-bold shadow-lg shadow-amber-500/20">
+                                {createServiceMutation.isPending ? "Creando..." : "Crear Servicio"}
                             </Button>
                         </div>
                     )}
@@ -299,6 +289,8 @@ export default function CallsManagement() {
                         {services.length === 0 && !isCreatingService && (
                             <p className="text-sm text-neutral-500 italic text-center py-4">No tienes servicios activos.</p>
                         )}
+                        {servicesLoading && <Loader2 className="animate-spin mx-auto text-amber-500" />}
+
                         {services.map(svc => (
                             <div
                                 key={svc.id}
@@ -347,12 +339,6 @@ export default function CallsManagement() {
                                 <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-mono text-amber-400">
                                     {Intl.DateTimeFormat().resolvedOptions().timeZone}
                                 </span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
-                                <p className="text-xs text-neutral-500 uppercase font-bold tracking-wider">Total Disponibles</p>
-                                <p className="text-xl font-mono text-amber-400">{selectedService?.slots.filter(s => !s.is_booked).length || 0}</p>
                             </div>
                         </div>
                     </div>
@@ -418,6 +404,7 @@ export default function CallsManagement() {
                                                                 size="icon"
                                                                 className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-900/20"
                                                                 onClick={() => handleBlockSlot(slot.start_time, slot.end_time)}
+                                                                disabled={blockSlotMutation.isPending}
                                                             >
                                                                 <Trash2 className="w-3 h-3" />
                                                             </Button>

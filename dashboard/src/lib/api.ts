@@ -42,7 +42,8 @@ export const ownerApi = {
         method: "POST",
         body: JSON.stringify({ title }),
     }),
-    deleteChannel: (id: number) => apiRequest<void>(`/owner/channels/${id}`, { method: "DELETE" }),
+    deleteChannel: (id: number, confirm: boolean = false) => apiRequest<void>(`/owner/channels/${id}${confirm ? '?confirm=true' : ''}`, { method: "DELETE" }),
+    getDeleteChannelCost: (id: number) => apiRequest<any>(`/owner/channels/${id}/delete-cost`),
     getWithdrawals: () => apiRequest<Withdrawal[]>("/owner/withdrawals"),
     requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/owner/withdrawals", {
         method: "POST",
@@ -148,6 +149,10 @@ export const adminApi = {
         method: "POST",
     }),
     getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),
+    getTaxSummary: (year?: number) => apiRequest<any>(`/admin/tax/summary${year ? `?year=${year}` : ''}`),
+    getExpenses: (year?: number) => apiRequest<any[]>(`/admin/expenses${year ? `?year=${year}` : ''}`),
+    createExpense: (data: any) => apiRequest<any>(`/admin/expenses`, { method: "POST", body: JSON.stringify(data) }),
+    deleteExpense: (id: number) => apiRequest<void>(`/admin/expenses/${id}`, { method: "DELETE" }),
 };
 
 export const legalApi = {

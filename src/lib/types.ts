@@ -260,3 +260,35 @@ export interface SupportTicketItem {
     status: 'open' | 'closed' | 'pending';
     updated_at: string;
 }
+
+// --- Affiliate System Types ---
+
+export interface AffiliateNode {
+    id: number;
+    name: string;
+    level: number;
+    avatar_url?: string;
+    total_referrals: number;
+    join_date?: string;
+    children: AffiliateNode[];
+}
+
+export interface AffiliateNetworkResponse {
+    user_id: number;
+    root_name: string;
+    children: AffiliateNode[];
+}
+
+export interface AffiliateStats {
+    total_earnings: number;
+    earnings_by_level: { level: number; amount: number }[];
+    recent_history: {
+        id: number;
+        amount: number;
+        level: number;
+        date: string;
+        source_user: string;
+    }[];
+    direct_referrals: number;
+    referral_code: string;
+}

@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
 from shared.utils.calendar import generate_calendar_links
+from shared.services.availability_service import invalidate_service_cache
 import logging
 
 # Configurar logging para facilitar depuración en Cloud Run
@@ -166,7 +167,14 @@ async def create_service(
     )
     db.add(service)
     await db.commit()
-    await db.refresh(service)
+    # Reload with slots eagerly loaded to avoid MissingGreenlet
+    result = await db.execute(
+        select(CallService)
+        .where(CallService.id == service.id)
+        .options(selectinload(CallService.slots))
+    )
+    service = result.scalar_one()
+    
     return service
 
 @router.put("/services/{service_id}", response_model=CallServiceOut)

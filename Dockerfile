@@ -34,5 +34,5 @@ ENV PORT=8080
 ENV PYTHONPATH=/app
 
 # Start unified app (API + Bot)
-# Start unified app (API + Bot)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# Start unified app (API + Bot) with Gunicorn
+CMD ["sh", "-c", "gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8080}"]

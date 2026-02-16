@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from shared.database import get_db, AsyncSessionLocal
 from shared.models import User, CallService, AvailabilityRange, CallBooking
 from api.deps import get_current_user
+from shared.services.availability_service import invalidate_service_cache
 
 router = APIRouter(prefix="/availability", tags=["Availability"])
 
@@ -134,7 +135,9 @@ async def block_availability(
         status="blocked"
     )
     db.add(booking)
+    db.add(booking)
     await db.commit()
+    await invalidate_service_cache(data.service_id)
     return {"status": "blocked", "start_time": data.start_time}
 
 

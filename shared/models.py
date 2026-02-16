@@ -293,6 +293,9 @@ class CallService(Base):
     description = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
 
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
     owner = relationship("User", backref="call_service")
     channel = relationship("Channel")  # Relationship to Channel
     slots = relationship("CallSlot", back_populates="service")
@@ -306,6 +309,7 @@ class CallSlot(Base):
     is_booked = Column(Boolean, default=False)
     booked_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     jitsi_link = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     service = relationship("CallService", back_populates="slots")
     booked_by = relationship("User", foreign_keys=[booked_by_id])

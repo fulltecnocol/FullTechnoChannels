@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
+import ReactQueryProvider from "@/lib/react-query";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -35,7 +36,7 @@ export default function RootLayout({
         className={`${outfit.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        {children}
+        <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>
     </html>
   );

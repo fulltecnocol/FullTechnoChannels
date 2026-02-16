@@ -1,9 +1,10 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+load_dotenv()
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from redis.asyncio import Redis
 
 # Valor por defecto para desarrollo local si no hay DB configurada
 DEFAULT_DB = "sqlite+aiosqlite:///./membership.db"
@@ -34,6 +35,10 @@ AsyncSessionLocal = async_sessionmaker(
     engine, expire_on_commit=False, class_=AsyncSession
 )
 
+# Redis Configuration
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = Redis.from_url(REDIS_URL, decode_responses=True)
+
 
 async def init_db():
     from .models import Base
@@ -46,6 +51,11 @@ async def init_db():
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
+
+async def get_redis():
+    """Dependency to get Redis client"""
+    return redis_client
 
 
 def get_base():
