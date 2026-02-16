@@ -14,7 +14,8 @@ from shared.models import (
     Payment,
     SystemConfig as ConfigItem,
     BusinessExpense,
-    AffiliateEarning
+    AffiliateEarning,
+    AffiliateRank
 )
 from shared.signature_models import OwnerLegalInfo, SignedContract
 from api.schemas.user import UserAdminResponse
@@ -444,3 +445,105 @@ async def get_admin_user_tree(
         "root_name": user.full_name or user.username,
         "children": network_tree
     }
+
+
+# --- Dynamic Rank Configuration ---
+
+from pydantic import BaseModel
+
+class RankCreate(BaseModel):
+    name: str
+    min_referrals: int
+    bonus_percentage: float = 0.0
+    icon: str = None
+
+class RankResponse(RankCreate):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+@router.get("/ranks", response_model=List[RankResponse])
+async def get_admin_ranks(
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """List all configured affiliate ranks"""
+    result = await db.execute(select(AffiliateRank).order_by(AffiliateRank.min_referrals.asc()))
+    return result.scalars().all()
+
+@router.post("/ranks", response_model=RankResponse)
+async def create_admin_rank(
+    rank: RankCreate,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Create a new affiliate rank"""
+    # Check if name or min_referrals already exists
+    existing = await db.execute(
+        select(AffiliateRank).where(
+            (AffiliateRank.name == rank.name) | (AffiliateRank.min_referrals == rank.min_referrals)
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Rank name or referral count already exists")
+    
+    new_rank = AffiliateRank(**rank.dict())
+    db.add(new_rank)
+    await db.commit()
+    await db.refresh(new_rank)
+    return new_rank
+
+@router.delete("/ranks/{rank_id}")
+async def delete_admin_rank(
+    rank_id: int,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Delete an affiliate rank"""
+    rank = await db.get(AffiliateRank, rank_id)
+    if not rank:
+        raise HTTPException(status_code=404, detail="Rank not found")
+    
+    await db.delete(rank)
+    await db.commit()
+    return {"ok": True}
+
+
+# --- Manual Network Management ---
+
+class UplineUpdate(BaseModel):
+    referrer_id: int
+
+@router.patch("/users/{user_id}/uplink")
+async def update_user_uplink(
+    user_id: int,
+    data: UplineUpdate,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Manually assign or change a user's referrer (Upline)"""
+    # 1. Get Target User
+    user = await db.get(DBUser, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 2. Get New Referrer
+    referrer = await db.get(DBUser, data.referrer_id)
+    if not referrer:
+        raise HTTPException(status_code=404, detail="Referrer not found")
+    
+    # prevent self-referral
+    if user.id == referrer.id:
+        raise HTTPException(status_code=400, detail="User cannot refer themselves")
+        
+    # Prevent circular reference (simple check)
+    if referrer.referred_by_id == user.id:
+        raise HTTPException(status_code=400, detail="Circular reference detected")
+
+    # Update
+    user.referred_by_id = referrer.id
+    await db.commit()
+    
+    return {"ok": True, "new_referrer": referrer.full_name or referrer.username}

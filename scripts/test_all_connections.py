@@ -3,6 +3,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import pytest
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
@@ -11,6 +12,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
+@pytest.mark.asyncio
 async def test_connection_methods():
     """Test different Supabase connection methods"""
 

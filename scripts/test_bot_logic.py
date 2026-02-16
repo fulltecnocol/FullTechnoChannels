@@ -1,7 +1,11 @@
 import asyncio
 import sys
 import os
+import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+# Force default loop policy to avoid uvloop SSL issues
+asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
 # Add root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -9,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from shared.database import AsyncSessionLocal
 from shared.models import User as DBUser
 from sqlalchemy.future import select
-from bot.main import get_or_create_user, send_welcome
+from bot.handlers.initial import get_or_create_user, send_welcome
 from shared import signature_models  # FIX: Ensure models are registered
 
 
@@ -37,6 +41,7 @@ class MockCommand:
         self.args = args
 
 
+@pytest.mark.asyncio
 async def test_bot_logic():
     print("Testing Bot Logic...")
 

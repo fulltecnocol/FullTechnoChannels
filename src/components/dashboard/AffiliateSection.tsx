@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Zap, Copy, Loader2, Share2, Info, Edit3, Check, X, Search } from 'lucide-react';
-import { ConfigItem, SummaryData, AffiliateNetworkResponse, AffiliateStats } from '@/lib/types';
+import { ConfigItem, SummaryData, AffiliateNetworkResponse, AffiliateStats, LeaderboardEntry } from '@/lib/types';
 import { apiRequest, affiliateApi } from '@/lib/api';
 import { NetworkTree } from './affiliates/NetworkTree';
 import { CommissionChart } from './affiliates/CommissionChart';
 import { RevenueHistory } from './affiliates/RevenueHistory';
 import { GamificationCard } from './affiliates/GamificationCard';
+import { LeaderboardCard } from './affiliates/LeaderboardCard';
 import { toast } from 'sonner';
 
 interface AffiliateUser {
@@ -22,6 +23,7 @@ interface AffiliateSectionProps {
 export function AffiliateSection({ user, summary, configs, copyToClipboard }: AffiliateSectionProps) {
     const [networkData, setNetworkData] = useState<AffiliateNetworkResponse | null>(null);
     const [stats, setStats] = useState<AffiliateStats | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [editingCode, setEditingCode] = useState(false);
@@ -45,12 +47,14 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
             try {
                 if (!user) return;
                 setLoading(true);
-                const [net, st] = await Promise.all([
+                const [net, st, lb] = await Promise.all([
                     apiRequest<AffiliateNetworkResponse>('/affiliate/network'),
-                    apiRequest<AffiliateStats>('/affiliate/stats')
+                    apiRequest<AffiliateStats>('/affiliate/stats'),
+                    affiliateApi.getLeaderboard()
                 ]);
                 setNetworkData(net);
                 setStats(st);
+                setLeaderboard(lb);
             } catch (error) {
                 console.error("Error fetching affiliate data:", error);
                 toast.error("No se pudieron cargar los datos de afiliados");
@@ -62,22 +66,25 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
         fetchAffiliateData();
     }, [user]);
 
-    const handleCheckCode = async (code: string) => {
-        setTempCode(code);
-        if (code.length < 3) {
+    const handleCheckCode = (code: string) => {
+        const cleanCode = code.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        setTempCode(cleanCode);
+
+        if (cleanCode.length < 3) {
             setIsAvailable(null);
             return;
         }
-        try {
-            const res = await affiliateApi.checkCode(code);
+
+        // Debounce or simple check
+        affiliateApi.checkCode(cleanCode).then(res => {
             setIsAvailable(res.available);
-        } catch {
+        }).catch(() => {
             setIsAvailable(null);
-        }
+        });
     };
 
     const handleUpdateCode = async () => {
-        if (!isAvailable && tempCode !== currentReferralCode) {
+        if (isAvailable === false && tempCode !== currentReferralCode) {
             toast.error("El código no está disponible o es inválido");
             return;
         }
@@ -248,6 +255,11 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
                         <div className="bg-surface rounded-2xl border border-surface-border overflow-hidden">
                             <RevenueHistory history={stats?.recent_history || []} />
                         </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4">
+                        <h3 className="text-sm font-bold uppercase text-zinc-500 tracking-widest">Competencia Global</h3>
+                        <LeaderboardCard entries={leaderboard} />
                     </div>
                 </div>
             </div>

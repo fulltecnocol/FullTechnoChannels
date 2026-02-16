@@ -24,11 +24,15 @@ logger = structlog.get_logger(__name__)
 
 # Initialize Sentry
 SENTRY_DSN = os.getenv("SENTRY_DSN")
+ENV = os.getenv("ENV", "development")
+
 if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        traces_sample_rate=1.0,
-        profiles_sample_rate=1.0,
+        environment=ENV,
+        traces_sample_rate=0.1 if ENV == "production" else 1.0,
+        profiles_sample_rate=0.1 if ENV == "production" else 1.0,
+        send_default_pii=True,
     )
 
 # Configuration

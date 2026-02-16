@@ -3,7 +3,7 @@ import {
     TicketDetailsResponse, ConfigItem, AnalyticsData, Promotion, Payment,
     LegalInfo, LegalStatus, UserAdmin, RegisterData, PasswordUpdateData,
     PromotionCreateData, PlanCreateData, PlanUpdateData, ExpenseCreateData, Expense, TaxSummary,
-    AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse
+    AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse, LeaderboardEntry
 } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -18,6 +18,7 @@ export async function apiRequest<T = unknown>(endpoint: string, options: Request
     };
 
     const response = await fetch(`${API_URL}${endpoint}`, {
+        next: { revalidate: 60 },
         ...options,
         headers,
     });
@@ -149,6 +150,7 @@ export const affiliateApi = {
         method: "POST",
         body: JSON.stringify({ code }),
     }),
+    getLeaderboard: (): Promise<LeaderboardEntry[]> => apiRequest<LeaderboardEntry[]>("/affiliate/leaderboard"),
 };
 
 export const adminApi = {

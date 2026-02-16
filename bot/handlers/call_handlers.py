@@ -1,3 +1,4 @@
+from typing import Union
 from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -13,7 +14,7 @@ router = Router()
 
 @router.message(Command("llamada"))
 @router.callback_query(F.data == "book_call_menu")
-async def cmd_llamada(message_or_callback: types.Message | types.CallbackQuery):
+async def cmd_llamada(message_or_callback: Union[types.Message, types.CallbackQuery]):
     """
     Muestra la oferta de llamadas. Soporta Message (comando) y Callback (botón).
     """

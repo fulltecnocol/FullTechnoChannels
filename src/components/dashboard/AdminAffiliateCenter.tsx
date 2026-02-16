@@ -1,23 +1,28 @@
 import { useState, useEffect } from 'react';
 import {
     Zap, BarChart, List, Search, Users, TrendingUp, DollarSign,
-    Globe, ShieldCheck, Loader2, User
+    Globe, ShieldCheck, Loader2, User, Settings, Save, RefreshCw
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse } from '@/lib/types';
+import { AdminAffiliateStats, AffiliateLedgerEntry, AffiliateNetworkResponse, ConfigItem } from '@/lib/types';
 import { NetworkTree } from './affiliates/NetworkTree';
 import { toast } from 'sonner';
 
 export function AdminAffiliateCenter() {
     const [stats, setStats] = useState<AdminAffiliateStats | null>(null);
     const [ledger, setLedger] = useState<AffiliateLedgerEntry[]>([]);
+    const [configs, setConfigs] = useState<ConfigItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeView, setActiveView] = useState<'stats' | 'ledger' | 'audit'>('stats');
+    const [activeView, setActiveView] = useState<'stats' | 'ledger' | 'audit' | 'control'>('stats');
 
     // Audit view states
     const [searchUserId, setSearchUserId] = useState('');
     const [auditedTree, setAuditedTree] = useState<AffiliateNetworkResponse | null>(null);
     const [isAuditing, setIsAuditing] = useState(false);
+
+    // Control Room states
+    const [localConfigs, setLocalConfigs] = useState<Record<string, number>>({});
+    const [savingConfig, setSavingConfig] = useState<string | null>(null);
 
     useEffect(() => {
         fetchInitialData();
@@ -26,16 +31,40 @@ export function AdminAffiliateCenter() {
     const fetchInitialData = async () => {
         setLoading(true);
         try {
-            const [s, l] = await Promise.all([
+            const [s, l, c] = await Promise.all([
                 adminApi.getAffiliateStats(),
-                adminApi.getAffiliateLedger(50, 0)
+                adminApi.getAffiliateLedger(50, 0),
+                adminApi.getConfig()
             ]);
             setStats(s);
             setLedger(l);
+            setConfigs(c);
+
+            // Map configs to local state
+            const configMap: Record<string, number> = {};
+            c.forEach(item => {
+                configMap[item.key] = item.value;
+            });
+            setLocalConfigs(configMap);
         } catch (error) {
             toast.error("Error al cargar datos de afiliados");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleUpdateConfig = async (key: string, value: number) => {
+        setSavingConfig(key);
+        try {
+            await adminApi.updateConfig(key, value);
+            toast.success(`Configuración "${key}" actualizada`);
+
+            // Refresh original configs if needed or just trust local
+            setConfigs(prev => prev.map(c => c.key === key ? { ...c, value } : c));
+        } catch (error) {
+            toast.error("Error al actualizar configuración");
+        } finally {
+            setSavingConfig(null);
         }
     };
 
@@ -66,24 +95,30 @@ export function AdminAffiliateCenter() {
                     <p className="text-muted font-medium">Panel Maestro de Monitoreo, Auditoría y Ganancias Globales.</p>
                 </div>
 
-                <div className="flex bg-surface border border-surface-border rounded-xl p-1">
+                <div className="flex bg-surface border border-surface-border rounded-xl p-1 shrink-0 overflow-x-auto">
                     <button
                         onClick={() => setActiveView('stats')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeView === 'stats' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeView === 'stats' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
                     >
                         <BarChart className="w-3.5 h-3.5" /> Métricas
                     </button>
                     <button
                         onClick={() => setActiveView('ledger')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeView === 'ledger' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeView === 'ledger' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
                     >
                         <List className="w-3.5 h-3.5" /> Libro Mayor
                     </button>
                     <button
                         onClick={() => setActiveView('audit')}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${activeView === 'audit' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeView === 'audit' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
                     >
                         <Search className="w-3.5 h-3.5" /> Auditoría
+                    </button>
+                    <button
+                        onClick={() => setActiveView('control')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${activeView === 'control' ? 'bg-primary text-primary-foreground' : 'text-muted hover:text-white'}`}
+                    >
+                        <Settings className="w-3.5 h-3.5" /> Control Maestro
                     </button>
                 </div>
             </header>
@@ -145,10 +180,11 @@ export function AdminAffiliateCenter() {
             {/* --- VIEW: LEDGER --- */}
             {activeView === 'ledger' && (
                 <div className="premium-card overflow-hidden">
-                    <div className="p-6 border-b border-surface-border">
+                    <div className="p-6 border-b border-surface-border space-y-2">
                         <h3 className="font-bold flex items-center gap-2">
                             <List className="w-5 h-5 text-primary" /> Historial Maestro de Comisiones
                         </h3>
+                        <p className="text-xs text-muted">Muestra los últimos 50 eventos de pago registrados en la red multinivel.</p>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
@@ -252,6 +288,128 @@ export function AdminAffiliateCenter() {
                     )}
                 </div>
             )}
+
+            {/* --- VIEW: CONTROL MAESTRO --- */}
+            {activeView === 'control' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Commissions Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-muted">Comisiones por Nivel</h3>
+                            <span className="text-[10px] text-primary/70 font-bold uppercase italic">Valores en Decimal (0.03 = 3%)</span>
+                        </div>
+                        <div className="premium-card p-6 space-y-4">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(level => {
+                                const key = `affiliate_level_${level}_fee`;
+                                return (
+                                    <div key={level} className="flex items-center justify-between gap-4 p-3 bg-background/50 rounded-xl border border-surface-border">
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-[10px] font-black">L{level}</span>
+                                            <p className="text-sm font-bold">Nivel {level}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                step="0.001"
+                                                value={localConfigs[key] ?? 0}
+                                                onChange={(e) => setLocalConfigs(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                                                className="w-24 bg-surface border border-surface-border rounded-lg px-3 py-1.5 text-right text-xs font-black focus:border-primary outline-none"
+                                            />
+                                            <button
+                                                onClick={() => handleUpdateConfig(key, localConfigs[key] || 0)}
+                                                disabled={savingConfig === key}
+                                                className="p-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                            >
+                                                {savingConfig === key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Tiers & General Section */}
+                    <div className="space-y-8">
+                        {/* Ranges Thresholds */}
+                        <div className="space-y-6">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-muted">Metas de Rango (Metas de Directos)</h3>
+                            <div className="premium-card p-6 space-y-4">
+                                {[
+                                    { name: 'Rango Oro', key: 'tier_gold_min' },
+                                    { name: 'Rango Diamante', key: 'tier_diamond_min' }
+                                ].map(tier => (
+                                    <div key={tier.key} className="flex items-center justify-between gap-4 p-4 bg-background/50 rounded-xl border border-surface-border">
+                                        <div>
+                                            <p className="text-sm font-bold">{tier.name}</p>
+                                            <p className="text-[10px] text-muted">Mínimo de referidos directos activos</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                value={localConfigs[tier.key] ?? 0}
+                                                onChange={(e) => setLocalConfigs(prev => ({ ...prev, [tier.key]: Number(e.target.value) }))}
+                                                className="w-20 bg-surface border border-surface-border rounded-lg px-3 py-1.5 text-right font-black focus:border-primary outline-none"
+                                            />
+                                            <button
+                                                onClick={() => handleUpdateConfig(tier.key, localConfigs[tier.key] || 0)}
+                                                disabled={savingConfig === tier.key}
+                                                className="p-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                            >
+                                                {savingConfig === tier.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* General Platform Fee */}
+                        <div className="space-y-6">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-muted">Tarifas de Plataforma</h3>
+                            <div className="premium-card p-6 bg-primary/5 border-primary/20">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-lg">
+                                            <ShieldCheck className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">Comisión Total Plataforma</p>
+                                            <p className="text-[10px] text-muted">Fondo total retenido antes de repartir a la red</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={localConfigs['platform_fee'] ?? 0}
+                                            onChange={(e) => setLocalConfigs(prev => ({ ...prev, ['platform_fee']: Number(e.target.value) }))}
+                                            className="w-20 bg-surface border border-surface-border rounded-lg px-3 py-1.5 text-right font-black focus:border-primary outline-none"
+                                        />
+                                        <button
+                                            onClick={() => handleUpdateConfig('platform_fee', localConfigs['platform_fee'] || 0)}
+                                            disabled={savingConfig === 'platform_fee'}
+                                            className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                        >
+                                            {savingConfig === 'platform_fee' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-4">
+                            <RefreshCw className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="text-xs text-amber-200/70 leading-relaxed font-medium">
+                                <span className="font-bold text-amber-500 uppercase block mb-1">Nota Crítica</span>
+                                Los cambios aplicados aquí afectan instantáneamente a todas las nuevas suscripciones y renovaciones.
+                                La plataforma asegura automáticamente que las comisiones de la red no excedan el fondo total de la plataforma.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+

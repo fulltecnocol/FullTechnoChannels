@@ -6,6 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy import func, desc
 
+from datetime import datetime
 from shared.database import get_db
 from shared.models import User, Payment, AffiliateEarning
 from api.deps import get_current_user
@@ -136,7 +137,8 @@ async def get_affiliate_stats(current_user: User = Depends(get_current_user), db
 @router.get("/check-code/{code}")
 async def check_referral_code(code: str, db: AsyncSession = Depends(get_db)):
     """Checks if a referral code is available"""
-    result = await db.execute(select(User).where(User.referral_code == code.lower()))
+    clean_code = code.strip().lower()
+    result = await db.execute(select(User).where(User.referral_code == clean_code))
     user = result.scalar_one_or_none()
     return {"available": user is None}
 
@@ -160,5 +162,50 @@ async def update_referral_code(
         raise HTTPException(status_code=400, detail="Este código ya está en uso")
     
     current_user.referral_code = new_code
+    db.add(current_user)
     await db.commit()
     return {"status": "success", "referral_code": new_code}
+
+
+@router.get("/leaderboard")
+async def get_affiliate_leaderboard(db: AsyncSession = Depends(get_db)):
+    """
+    Returns the top 10 affiliates by total earnings and their achievements.
+    """
+    # Query top users by affiliate_balance
+    result = await db.execute(
+        select(User)
+        .where(User.is_owner)
+        .order_by(desc(User.affiliate_balance))
+        .limit(10)
+    )
+    top_users = result.scalars().all()
+
+    leaderboard = []
+    for user in top_users:
+        # Calculate achievements
+        badges = []
+        if user.affiliate_balance >= 1000:
+            badges.append({"id": "whale", "name": "Whale", "icon": "🐋"})
+        
+        # Count direct referrals
+        ref_count_result = await db.execute(
+            select(func.count(User.id)).where(User.referred_by_id == user.id)
+        )
+        ref_count = ref_count_result.scalar() or 0
+        if ref_count >= 50:
+            badges.append({"id": "maestro", "name": "Maestro de Red", "icon": "👑"})
+        
+        if (datetime.utcnow() - user.created_at).days > 180:
+            badges.append({"id": "pioneer", "name": "Pionero", "icon": "🚀"})
+
+        leaderboard.append({
+            "id": user.id,
+            "name": user.full_name or user.username or f"Usuario #{user.id}",
+            "earnings": user.affiliate_balance,
+            "referrals": ref_count,
+            "badges": badges,
+            "avatar": user.avatar_url
+        })
+
+    return leaderboard

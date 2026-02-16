@@ -309,3 +309,18 @@ export interface AffiliateLedgerEntry {
     created_at: string;
     payment_id: number;
 }
+
+export interface Badge {
+    id: string;
+    name: string;
+    icon: string;
+}
+
+export interface LeaderboardEntry {
+    id: number;
+    name: string;
+    earnings: number;
+    referrals: number;
+    badges: Badge[];
+    avatar?: string;
+}

@@ -12,6 +12,22 @@ async def get_config_value(db: AsyncSession, key: str, default: float) -> float:
     return config.value if config else default
 
 
+async def convert_to_usd(db: AsyncSession, amount: float, from_currency: str) -> float:
+    """
+    Convierte un monto a USD usando la tasa configurada.
+    """
+    if from_currency.lower() == "usd":
+        return amount
+    
+    if from_currency.lower() == "cop":
+        # Tasa por defecto 4000 si no existe en config
+        usd_cop_rate = await get_config_value(db, "usd_cop_rate", 4000.0)
+        return amount / usd_cop_rate
+    
+    # Agregar más monedas aquí si es necesario
+    return amount
+
+
 async def distribute_payment_funds(
     db: AsyncSession,
     user_id: int,
@@ -30,6 +46,11 @@ async def distribute_payment_funds(
     if not plan:
         return None
 
+    # Normalizar monto a USD para consistencia en balances internos
+    # Si el pago viene en otra moneda (ej: COP de Wompi), lo convertimos.
+    # Nota: total_amount es lo que reporta la pasarela en su moneda original.
+    amount_usd = await convert_to_usd(db, total_amount, "usd" if payment_method == "stripe" else "cop")
+
     channel_result = await db.execute(
         select(Channel).where(Channel.id == plan.channel_id)
     )
@@ -43,10 +64,10 @@ async def distribute_payment_funds(
 
     # 2. Obtener Comisión del Sitio (Total Pool)
     platform_fee_percent = await get_config_value(db, "platform_fee", 0.10)
-    total_commission_pool = total_amount * platform_fee_percent
+    total_commission_pool = amount_usd * platform_fee_percent
 
     # El dueño del canal siempre recibe el resto (Total - Comisión Total del Sitio)
-    owner_amount = total_amount - total_commission_pool
+    owner_amount = amount_usd - total_commission_pool
 
     # Nombres de los niveles para branding
     LEVEL_NAMES = {
@@ -90,7 +111,7 @@ async def distribute_payment_funds(
             db, fee_key, default_fees.get(level, 0.0)
         )
 
-        level_amount = total_amount * level_fee_percent
+        level_amount = amount_usd * level_fee_percent
         total_affiliate_distributed += level_amount
 
         # Guardar ganancia del nivel
@@ -110,7 +131,7 @@ async def distribute_payment_funds(
         referrer_user = ref_result.scalar_one_or_none()
 
         if referrer_user:
-            # Sumar al balance del afiliado inmediatamente
+            # Sumar al balance del afiliado inmediatamente (siempre en USD)
             referrer_user.affiliate_balance += level_amount
 
             # Notificar vía Telegram si tiene telegram_id vinculado
@@ -118,7 +139,7 @@ async def distribute_payment_funds(
                 level_name = LEVEL_NAMES.get(level, f"Nivel {level}")
                 notif_msg = (
                     f"💰 *¡Comisión de Red Recibida!*\n\n"
-                    f"Has ganado **${level_amount:.2f}** por una compra en tu **{level_name}**.\n"
+                    f"Has ganado **${level_amount:.2f} USD** por una compra en tu **{level_name}**.\n"
                     f"Tu balance de afiliado ha sido actualizado."
                 )
                 await send_telegram_notification(referrer_user.telegram_id, notif_msg)
@@ -132,11 +153,12 @@ async def distribute_payment_funds(
     if platform_net_amount < 0:
         platform_net_amount = 0  # Seguridad anti-quiebra
 
-    # 4. Registrar el Pago Principal
+    # 4. Registrar el Pago Principal (Normalizado a USD)
     payment = Payment(
         user_id=user_id,
         plan_id=plan_id,
-        amount=total_amount,
+        amount=amount_usd,
+        currency="usd",
         payment_method=payment_method,
         provider_tx_id=provider_tx_id,
         status="completed",
@@ -175,12 +197,27 @@ async def get_affiliate_tier_info(db: AsyncSession, user_id: int):
     )
     referral_count = result.scalar() or 0
 
-    gold_min = int(await get_config_value(db, "tier_gold_min", 6))
-    diamond_min = int(await get_config_value(db, "tier_diamond_min", 21))
-
-    if referral_count >= diamond_min:
-        return {"tier": "DIAMANTE", "count": referral_count, "next_min": None}
-    elif referral_count >= gold_min:
-        return {"tier": "ORO", "count": referral_count, "next_min": diamond_min}
-    else:
-        return {"tier": "BRONCE", "count": referral_count, "next_min": gold_min}
+    # Dynamic Rank Logic
+    from .models import AffiliateRank
+    
+    # Get all ranks sorted by difficulty (descending)
+    ranks_res = await db.execute(select(AffiliateRank).order_by(AffiliateRank.min_referrals.desc()))
+    ranks = ranks_res.scalars().all()
+    
+    current_tier = "Bronce" # Default fallback
+    next_goal = None
+    
+    # Find current rank
+    for rank in ranks:
+        if referral_count >= rank.min_referrals:
+            current_tier = rank.name
+            break
+            
+    # Find next goal (first rank required > current count)
+    # We iterate reversed (Ascending) to find the next immediate step
+    for rank in reversed(ranks):
+        if rank.min_referrals > referral_count:
+            next_goal = rank.min_referrals
+            break
+            
+    return {"tier": current_tier, "count": referral_count, "next_min": next_goal}
