@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libopenjp2-7-dev \
     libffi-dev \
+    shared-mime-info \
+    libgdk-pixbuf-2.0-0 \
+    libgirepository1.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy root requirements
@@ -27,6 +30,7 @@ RUN pip install --no-cache-dir python-dotenv
 COPY api/ ./api/
 COPY bot/ ./bot/
 COPY shared/ ./shared/
+COPY templates/ ./templates/
 COPY main.py ./
 
 # Environment variables

@@ -18,7 +18,10 @@ async def cmd_menu(message: types.Message):
         types.InlineKeyboardButton(text="📺 Canales", callback_data="channels"),
     )
     builder.row(
+        types.InlineKeyboardButton(text="🔐 Registrarme", callback_data="start_registration"),
         types.InlineKeyboardButton(text="📞 Agendar Llamada", callback_data="book_call_menu"),
+    )
+    builder.row(
         types.InlineKeyboardButton(text="🆘 Soporte", callback_data="support_help"),
     )
     await message.answer(

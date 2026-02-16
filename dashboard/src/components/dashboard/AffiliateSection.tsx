@@ -7,7 +7,8 @@ interface AffiliateSectionProps {
 }
 
 export function AffiliateSection({ user, summary, copyToClipboard }: AffiliateSectionProps) {
-    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${user?.referral_code}` : '';
+    const botUsername = process.env.NEXT_PUBLIC_BOT_USERNAME || 'FullT_GuardBot';
+    const referralLink = `https://t.me/${botUsername}?start=ref_${user?.referral_code}`;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
