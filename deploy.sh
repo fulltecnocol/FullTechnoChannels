@@ -26,7 +26,7 @@ gcloud run deploy $SERVICE_NAME \
   --region $REGION \
   --platform managed \
   --allow-unauthenticated \
-  --set-env-vars="SERVICE_TYPE=unified,DASHBOARD_URL=https://fgate.co" \
+  --set-env-vars="SERVICE_TYPE=unified,DASHBOARD_URL=https://app.fgate.co" \
   --set-secrets="BOT_TOKEN=BOT_TOKEN:latest,DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest" \
   --project $PROJECT_ID \
   --quiet

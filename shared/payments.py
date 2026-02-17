@@ -21,8 +21,8 @@ class StripeService:
                 # Usamos suscripción o pago único según necesites,
                 # por ahora mantenemos el modo suscripción.
                 mode="subscription",
-                success_url=f"{os.getenv('DASHBOARD_URL', 'http://localhost:3000')}/success?session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url=f"{os.getenv('DASHBOARD_URL', 'http://localhost:3000')}/cancel",
+                success_url=f"{os.getenv('DASHBOARD_URL', 'https://app.fgate.co')}/success?session_id={{CHECKOUT_SESSION_ID}}",
+                cancel_url=f"{os.getenv('DASHBOARD_URL', 'https://app.fgate.co')}/cancel",
                 metadata={
                     "user_id": user_id,
                     "plan_id": plan_id,

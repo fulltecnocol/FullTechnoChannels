@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         try {
-            const userData = await apiRequest<User>("/auth/me");
+            const userData = await apiRequest<User>("/owner/profile");
             setUser(userData);
         } catch (error) {
             // Token invalid

@@ -80,6 +80,57 @@ app.include_router(affiliate.router)
 app.include_router(profiles.router)
 
 
+
+# --- DEBUG ENDPOINTS (TEMPORARY) ---
+@app.get("/debug/users")
+async def debug_users(secret: str, db: AsyncSessionLocal = Depends(get_db)):
+    if secret != "super_secret_debug_key_2026":
+        raise HTTPException(status_code=403)
+    
+    from shared.models import User
+    result = await db.execute(select(User))
+    users = result.scalars().all()
+    return [
+        {
+            "id": u.id, 
+            "email": u.email, 
+            "full_name": u.full_name, 
+            "is_owner": u.is_owner, 
+            "is_admin": u.is_admin
+        } 
+        for u in users
+    ]
+
+@app.post("/debug/promote")
+async def debug_promote(secret: str, email: str, db: AsyncSessionLocal = Depends(get_db)):
+    if secret != "super_secret_debug_key_2026":
+        raise HTTPException(status_code=403)
+    
+    from shared.models import User
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_owner = True
+    user.is_admin = True
+    await db.commit()
+    return {"status": "promoted", "email": email}
+
+@app.get("/debug/channels")
+async def debug_channels(secret: str, owner_id: int, db: AsyncSessionLocal = Depends(get_db)):
+    if secret != "super_secret_debug_key_2026":
+        raise HTTPException(status_code=403)
+    
+    from shared.models import Channel
+    result = await db.execute(select(Channel).where(Channel.owner_id == owner_id))
+    channels = result.scalars().all()
+    return [
+        {"id": c.id, "title": c.title, "is_verified": c.is_verified} 
+        for c in channels
+    ]
+# -----------------------------------
+
 @app.get("/")
 async def root():
     return {"name": "FGate API", "status": "online", "version": "2.0.0"}
@@ -168,8 +219,8 @@ async def create_payment_link(
                 }
             ],
             mode="payment",
-            success_url=f"{os.getenv('DASHBOARD_URL')}/success",
-            cancel_url=f"{os.getenv('DASHBOARD_URL')}/cancel",
+            success_url=f"{os.getenv('DASHBOARD_URL', 'https://app.fgate.co')}/success",
+            cancel_url=f"{os.getenv('DASHBOARD_URL', 'https://app.fgate.co')}/cancel",
             client_reference_id=ref,
             metadata={
                 "user_id": data.user_id,

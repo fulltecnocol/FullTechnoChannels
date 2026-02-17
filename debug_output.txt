@@ -1,0 +1,65 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host membership-backend-dhtw77aq7a-uc.a.run.app:443 was resolved.
+* IPv6: 2600:1900:4243:200::, 2600:1901:81d4:200::, 2600:1900:4241:200::, 2600:1900:4245:200::, 2600:1901:81d5:200::, 2600:1900:4242:200::, 2600:1900:4240:200::, 2600:1900:4244:200::
+* IPv4: 34.143.74.2, 34.143.72.2, 34.143.75.2, 34.143.73.2, 34.143.78.2, 34.143.79.2, 34.143.77.2, 34.143.76.2
+*   Trying [2600:1900:4243:200::]:443...
+* Connected to membership-backend-dhtw77aq7a-uc.a.run.app (2600:1900:4243:200::) port 443
+* ALPN: curl offers h2,http/1.1
+* (304) (OUT), TLS handshake, Client hello (1):
+} [347 bytes data]
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* (304) (IN), TLS handshake, Unknown (8):
+{ [15 bytes data]
+* (304) (IN), TLS handshake, Certificate (11):
+{ [6494 bytes data]
+* (304) (IN), TLS handshake, CERT verify (15):
+{ [79 bytes data]
+* (304) (IN), TLS handshake, Finished (20):
+{ [36 bytes data]
+* (304) (OUT), TLS handshake, Finished (20):
+} [36 bytes data]
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: CN=*.a.run.app
+*  start date: Jan 26 08:39:02 2026 GMT
+*  expire date: Apr 20 08:39:01 2026 GMT
+*  subjectAltName: host "membership-backend-dhtw77aq7a-uc.a.run.app" matched cert's "*.a.run.app"
+*  issuer: C=US; O=Google Trust Services; CN=WR2
+*  SSL certificate verify ok.
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://membership-backend-dhtw77aq7a-uc.a.run.app/debug/users?secret=super_secret_debug_key_2026
+* [HTTP/2] [1] [:method: GET]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: membership-backend-dhtw77aq7a-uc.a.run.app]
+* [HTTP/2] [1] [:path: /debug/users?secret=super_secret_debug_key_2026]
+* [HTTP/2] [1] [user-agent: curl/8.7.1]
+* [HTTP/2] [1] [accept: */*]
+> GET /debug/users?secret=super_secret_debug_key_2026 HTTP/2
+> Host: membership-backend-dhtw77aq7a-uc.a.run.app
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/2 200 
+< content-type: application/json
+< strict-transport-security: max-age=31536000; includeSubDomains
+< x-frame-options: DENY
+< x-content-type-options: nosniff
+< x-xss-protection: 1; mode=block
+< content-security-policy: default-src 'self'; connect-src 'self' *; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com
+< referrer-policy: strict-origin-when-cross-origin
+< x-cloud-trace-context: 9a95bfb9cd67bfee4e7cab80a06ed475
+< date: Tue, 17 Feb 2026 16:44:54 GMT
+< server: Google Frontend
+< content-length: 2746
+< alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+< 
+{ [1177 bytes data]
+100  2746  100  2746    0     0   7011      0 --:--:-- --:--:-- --:--:--  7023
+* Connection #0 to host membership-backend-dhtw77aq7a-uc.a.run.app left intact
+[{"id":1,"email":null,"full_name":"Full Tecno","is_owner":false,"is_admin":false},{"id":26,"email":"owner_1771218412@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":27,"email":"owner_1771218449@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":28,"email":"owner_1771218490@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":29,"email":"owner_1771218535@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":22,"email":null,"full_name":"Group","is_owner":false,"is_admin":false},{"id":30,"email":"owner_1771218565@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":31,"email":"owner_1771218600@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":32,"email":"owner_1771218627@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":33,"email":"referrer_1771201229@test.com","full_name":"Grandpa Referrer","is_owner":true,"is_admin":false},{"id":34,"email":"creator_1771201229@test.com","full_name":"Dad Creator","is_owner":true,"is_admin":false},{"id":35,"email":"subscriber_1771201229@test.com","full_name":"Rich Subscriber","is_owner":true,"is_admin":false},{"id":36,"email":"referrer_1771201277@test.com","full_name":"Grandpa Referrer","is_owner":true,"is_admin":false},{"id":37,"email":"creator_1771201277@test.com","full_name":"Dad Creator","is_owner":true,"is_admin":false},{"id":38,"email":"subscriber_1771201277@test.com","full_name":"Rich Subscriber","is_owner":true,"is_admin":false},{"id":39,"email":"referrer_1771201328@test.com","full_name":"Grandpa Referrer","is_owner":true,"is_admin":false},{"id":40,"email":"creator_1771201328@test.com","full_name":"Dad Creator","is_owner":true,"is_admin":false},{"id":41,"email":"subscriber_1771201328@test.com","full_name":"Rich Subscriber","is_owner":true,"is_admin":false},{"id":44,"email":"subscriber_1771201387@test.com","full_name":"Rich Subscriber","is_owner":true,"is_admin":false},{"id":42,"email":"referrer_1771201387@test.com","full_name":"Grandpa Referrer","is_owner":true,"is_admin":false},{"id":43,"email":"creator_1771201387@test.com","full_name":"Dad Creator","is_owner":true,"is_admin":false},{"id":45,"email":null,"full_name":"F C","is_owner":false,"is_admin":false},{"id":25,"email":"owner_1771218373@test.com","full_name":"Test Owner","is_owner":true,"is_admin":false},{"id":47,"email":null,"full_name":"Test Bot User","is_owner":false,"is_admin":false},{"id":2,"email":"fulltecnocol@gmail.com","full_name":"full tecno","is_owner":true,"is_admin":true},{"id":48,"email":null,"full_name":"FullT_Guard","is_owner":false,"is_admin":false},{"id":49,"email":null,"full_name":"FGate","is_owner":false,"is_admin":false}]

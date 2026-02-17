@@ -85,7 +85,7 @@ async def handle_registration_request(message: types.Message, session):
     await session.commit()
     
     # Create Inline Keyboard
-    dashboard_url = os.getenv("DASHBOARD_URL", "https://fgate.co")
+    dashboard_url = os.getenv("DASHBOARD_URL", "https://app.fgate.co")
     
     # Construct URL with params
     final_url = f"{dashboard_url}/register?token={token}"

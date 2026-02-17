@@ -21,15 +21,14 @@ app = FastAPI(title=f"FGate {SERVICE_TYPE.upper()} Service")
 
 # 1. Trusted Host Middleware (Security Hardening)
 # Broadened for Cloud Run internal health checks and domains
-# 1. Trusted Host Middleware (Security Hardening)
-# Broadened for Cloud Run internal health checks and domains
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # 2. CORS Middleware (Required for Dashboard)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "*",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
         "https://app.fgate.co",
         "https://fgate-dashboard.web.app",
         "https://fgate.co",
