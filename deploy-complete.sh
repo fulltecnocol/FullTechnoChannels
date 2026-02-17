@@ -44,7 +44,7 @@ gcloud run deploy $MAIN_SERVICE \
   --timeout=300 \
   --memory=1Gi \
   --set-secrets="DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,TELEGRAM_BOT_TOKEN=BOT_TOKEN:latest" \
-  --set-env-vars="SERVICE_TYPE=unified,WORKER_URL=$WORKER_URL,WEBHOOK_URL=https://membership-backend-dhtw77aq7a-uc.a.run.app" \
+  --set-env-vars="SERVICE_TYPE=unified,WORKER_URL=$WORKER_URL,WEBHOOK_URL=https://membership-backend-dhtw77aq7a-uc.a.run.app,GOOGLE_CLIENT_ID=1054327025113-765gvg5r9kjci5kbucurijnp0ih1ap7e.apps.googleusercontent.com" \
   --quiet
 
 # Get Main URL
