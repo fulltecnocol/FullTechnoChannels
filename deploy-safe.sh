@@ -30,7 +30,7 @@ echo "Checking Secret Manager configuration..."
   --memory=1Gi \
   --cpu-boost \
   --set-secrets="DATABASE_URL=DATABASE_URL:latest,JWT_SECRET_KEY=JWT_SECRET_KEY:latest,TELEGRAM_BOT_TOKEN=BOT_TOKEN:latest" \
-  --set-env-vars="SERVICE_TYPE=unified,GOOGLE_CLIENT_ID=1054327025113-765gvg5r9kjci5kbucurijnp0ih1ap7e.apps.googleusercontent.com,WEBHOOK_URL=https://membership-backend-dhtw77aq7a-uc.a.run.app" \
+  --set-env-vars="SERVICE_TYPE=unified,DASHBOARD_URL=https://fgate.co,GOOGLE_CLIENT_ID=1054327025113-765gvg5r9kjci5kbucurijnp0ih1ap7e.apps.googleusercontent.com,WEBHOOK_URL=https://membership-backend-dhtw77aq7a-uc.a.run.app" \
   --project $PROJECT_ID \
   --quiet
 

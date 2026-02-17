@@ -205,7 +205,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="TeleGate API", lifespan=lifespan)
+app = FastAPI(title="FGate API", lifespan=lifespan)
 
 # Configuración de CORS
 app.add_middleware(

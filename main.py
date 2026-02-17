@@ -17,7 +17,7 @@ load_dotenv(override=True)
 SERVICE_TYPE = os.getenv("SERVICE_TYPE", "unified").lower()
 
 # Create main application
-app = FastAPI(title=f"TeleGate {SERVICE_TYPE.upper()} Service")
+app = FastAPI(title=f"FGate {SERVICE_TYPE.upper()} Service")
 
 # 1. Trusted Host Middleware (Security Hardening)
 # Broadened for Cloud Run internal health checks and domains
@@ -28,7 +28,13 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 # 2. CORS Middleware (Required for Dashboard)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production, replace with specific Firebase domain
+    allow_origins=[
+        "*",
+        "https://app.fgate.co",
+        "https://fgate-dashboard.web.app",
+        "https://fgate.co",
+        "https://full-techno-channels.web.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,7 +53,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     # Allow Google Auth frames, scripts and API connections
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; connect-src 'self' https://membership-backend-dhtw77aq7a-uc.a.run.app; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com"
+        "default-src 'self'; connect-src 'self' *; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://accounts.google.com"
     )
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
@@ -66,7 +72,7 @@ async def health_check():
 
     logger = get_logger("health_check")
     health_status = {
-        "service": "TeleGate",
+        "service": "FGate",
         "status": "healthy",
         "timestamp": os.popen("date -u +%Y-%m-%dT%H:%M:%SZ").read().strip(),
         "components": {},
@@ -96,7 +102,7 @@ async def health_check():
 @app.get("/")
 async def root_path():
     return {
-        "service": "TeleGate",
+        "service": "FGate",
         "status": "running",
         "endpoints": {"api": "/api/docs", "bot_webhook": "/bot/webhook/..."},
     }

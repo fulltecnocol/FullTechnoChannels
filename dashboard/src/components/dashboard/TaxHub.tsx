@@ -77,7 +77,7 @@ export function TaxHub() {
                     <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
                         <ShieldCheck className="w-8 h-8 text-primary" /> Admin <span className="gradient-text">Tax Hub</span>
                     </h2>
-                    <p className="text-muted font-medium">Gestión fiscal personal para el dueño de TeleGate</p>
+                    <p className="text-muted font-medium">Gestión fiscal personal para el dueño de FGate</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <select

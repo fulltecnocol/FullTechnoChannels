@@ -216,7 +216,7 @@ async def finalize_booking(callback: types.CallbackQuery):
         
         # Generar Link Jitsi
         import uuid
-        room_id = f"TeleGate-{uuid.uuid4()}"
+        room_id = f"FGate-{uuid.uuid4()}"
         jitsi_link = f"https://meet.jit.si/{room_id}"
         
         # Calculate End Time

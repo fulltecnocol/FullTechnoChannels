@@ -1,15 +1,15 @@
 #!/bin/bash
-# 🔐 TeleGate API-Only Secure Deployment Script
+# 🔐 FGate API-Only Secure Deployment Script
 # Deploys ONLY the API service (without Bot integration)
 
 set -e
 
 PROJECT_ID="full-techno-channels"
 REGION="us-central1"
-SERVICE_NAME="telegate-api"
+SERVICE_NAME="fgate-api"
 
 echo "=========================================="
-echo "🚀 TeleGate API-Only Deployment"
+echo "🚀 FGate API-Only Deployment"
 echo "=========================================="
 
 # Standard deploy command - most compatible with all gcloud versions

@@ -1,7 +1,7 @@
 {
-    "name": "telegate-blockchain",
+    "name": "fgate-blockchain",
     "version": "1.0.0",
-    "description": "Smart contracts for TeleGate signature system",
+    "description": "Smart contracts for FGate signature system",
     "main": "index.js",
     "scripts": {
         "check-setup": "node scripts/check-setup.js",
@@ -19,7 +19,7 @@
         "smart-contracts",
         "signature"
     ],
-    "author": "Full Techno Hub",
+    "author": "FGate",
     "license": "MIT",
     "devDependencies": {
         "@nomicfoundation/hardhat-toolbox": "^4.0.0",

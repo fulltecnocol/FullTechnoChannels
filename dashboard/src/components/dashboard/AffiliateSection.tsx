@@ -26,7 +26,7 @@ export function AffiliateSection({ user, summary, copyToClipboard }: AffiliateSe
 
                             <div>
                                 <h3 className="text-2xl font-black text-white tracking-tight">Programa de Socios</h3>
-                                <p className="text-white/80 font-medium text-sm mt-2">Gana comisiones vitalicias invitando a otros creadores a usar TeleGate.</p>
+                                <p className="text-white/80 font-medium text-sm mt-2">Gana comisiones vitalicias invitando a otros creadores a usar FGate.</p>
                             </div>
 
                             <div className="p-4 bg-black/20 rounded-xl backdrop-blur-sm border border-white/10 space-y-2">

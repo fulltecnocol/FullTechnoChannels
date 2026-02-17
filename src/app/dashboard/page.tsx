@@ -349,7 +349,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        <p className="text-muted font-bold animate-pulse">Cargando TeleGate...</p>
+        <p className="text-muted font-bold animate-pulse">Cargando FGate...</p>
       </div>
     );
   }
@@ -369,7 +369,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black">T</div>
-            <span className="font-bold text-xl tracking-tight">TeleGate</span>
+            <span className="font-bold text-xl tracking-tight">FGate</span>
           </div>
           <button className="md:hidden text-muted hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
             <X className="w-6 h-6" />
@@ -433,7 +433,7 @@ export default function DashboardPage() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-xs">T</div>
-                <span className="font-bold text-lg tracking-tight">TeleGate</span>
+                <span className="font-bold text-lg tracking-tight">FGate</span>
               </div>
             </div>
 
@@ -610,7 +610,7 @@ export default function DashboardPage() {
         {/* Footer */}
         <footer className="pt-10 border-t border-surface-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs font-bold text-muted">
-            &copy; 2024 TeleGate Inc. Todos los derechos reservados.
+            &copy; 2024 FGate Inc. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-xs font-bold text-muted hover:text-primary transition-colors"> Términos </a>

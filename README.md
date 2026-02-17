@@ -1,4 +1,4 @@
-# Telegram Membership Bot
+# FGate Membership Bot
 
 Sistema automatizado de gestión de membresías para canales de Telegram.
 

@@ -1,19 +1,16 @@
-# 🚀 TeleGate - Guía Maestra de la Plataforma
+# 📘 FGate - Guía Maestra de la Plataforma
 
-Bienvenido a **TeleGate**, la infraestructura definitiva para monetizar comunidades en Telegram de forma automatizada, profesional y escalable. Este documento explica cómo funciona el ecosistema desde tres perspectivas: el Dueño del Canal, el Suscriptor y el Administrador.
+Bienvenido a **FGate**, la plataforma definitiva para la gestión automatizada de membresías en Telegram. Diseñada para creadores de contenido, traders y comunidades vip. Permite monetizar canales privados, gestionar suscripciones, cobrar vía Stripe/Crypto y administrar afiliados.
 
----
-
-## 🏗️ 1. Arquitectura del Sistema
-La plataforma se divide en tres piezas tecnológicas que trabajan en sincronía:
-*   **El Bot Central**: Actúa como el portero y gestor de ventas dentro de Telegram.
-*   **El Dashboard (Web)**: Panel de control premium para creadores de contenido alojado en `telegate.fulltechnohub.com`.
-*   **La API Core**: El cerebro que procesa pagos, valida suscripciones y gestiona la red de afiliados.
+El sistema se compone de 3 pilares:
+1.  **FGate Bot**: El motor que interactúa con el usuario en Telegram.
+2.  **FGate Dashboard**: El panel administrativo web (`https://fgate.co`) para control total.
+3.  **FGate Network**: El sistema de afiliados multinivel para crecimiento viral.
 
 ---
 
 ## 💎 2. Flujo para el Creador de Contenido
-Si tienes un canal de señales, contenido exclusivo o mentoría, así es como TeleGate trabaja para ti:
+Si tienes un canal de señales, contenido exclusivo o mentoría, así trabaja para ti:
 
 1.  **Registro y Vinculación**: Te registras en el Dashboard y vinculas tu bot/canal mediante un código de validación único.
 2.  **Creación de Planes**: Defines tus ofertas (Mensual, Trimestral, Anual).
@@ -77,4 +74,4 @@ Toma decisiones basadas en datos reales:
 
 ---
 
-**TeleGate: Menos administración, más facturación.**
+**FGate: Menos administración, más facturación.**

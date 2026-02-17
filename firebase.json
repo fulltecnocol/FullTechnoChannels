@@ -11,31 +11,40 @@
             ]
         }
     ],
-    "hosting": {
-        "source": ".",
-        "ignore": [
-            "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
-        ],
-        "rewrites": [
-            {
-                "source": "/api/**",
-                "run": {
-                    "serviceId": "membership-backend",
-                    "region": "us-central1"
-                }
-            },
-            {
-                "source": "/bot/**",
-                "run": {
-                    "serviceId": "membership-backend",
-                    "region": "us-central1"
-                }
+    "hosting": [
+        {
+            "target": "landing",
+            "source": ".",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**",
+                "dashboard/**"
+            ],
+            "frameworksBackend": {
+                "region": "us-central1"
             }
-        ],
-        "frameworksBackend": {
-            "region": "us-central1"
+        },
+        {
+            "target": "dashboard",
+            "source": "dashboard",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "frameworksBackend": {
+                "region": "us-central1"
+            },
+            "rewrites": [
+                {
+                    "source": "/api/**",
+                    "run": {
+                        "serviceId": "membership-backend",
+                        "region": "us-central1"
+                    }
+                }
+            ]
         }
-    }
+    ]
 }

@@ -22,7 +22,7 @@ export default function Error({
                 </div>
 
                 <div className="space-y-4">
-                    <h1 className="text-3xl font-black tracking-tight">TeleGate Error</h1>
+                    <h1 className="text-3xl font-black tracking-tight">FGate Error</h1>
                     <p className="text-slate-400 font-medium">
                         Se ha producido un error inesperado en la aplicación.
                     </p>
@@ -44,7 +44,7 @@ export default function Error({
                 </button>
 
                 <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">
-                    Enviado desde TeleGate Security Engine
+                    Enviado desde FGate Security Engine
                 </p>
             </div>
         </div>

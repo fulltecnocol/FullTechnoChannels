@@ -6,7 +6,7 @@ export function MockSidebar() {
         <div className="w-full h-full flex flex-col border-r border-surface-border bg-surface p-4 space-y-6">
             <div className="flex items-center gap-3 px-2">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-black text-sm">T</div>
-                <span className="font-bold text-lg tracking-tight text-white">TeleGate</span>
+                <span className="font-bold text-lg tracking-tight text-white">FGate</span>
             </div>
 
             <div className="flex-1 space-y-1">
@@ -20,8 +20,8 @@ export function MockSidebar() {
                     <div
                         key={i}
                         className={`flex items-center gap-3 p-3 rounded-lg text-xs font-bold ${item.active
-                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                                : "text-muted/50"
+                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                            : "text-muted/50"
                             }`}
                     >
                         <item.icon className="w-4 h-4" />

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup Cloud Monitoring for TeleGate
+Setup Cloud Monitoring for FGate
 Creates uptime checks and alert policies
 """
 
@@ -26,7 +26,7 @@ def run_command(cmd):
 def create_uptime_check():
     """Create uptime check using gcloud REST API"""
     uptime_config = {
-        "displayName": "TeleGate Health Check",
+        "displayName": "FGate Health Check",
         "monitoredResource": {"type": "uptime_url", "labels": {}},
         "httpCheck": {
             "requestMethod": "GET",
@@ -65,7 +65,7 @@ def create_uptime_check():
 def create_error_rate_alert():
     """Create alert for high error rate"""
     alert_config = {
-        "displayName": "TeleGate - High Error Rate",
+        "displayName": "FGate - High Error Rate",
         "conditions": [
             {
                 "displayName": "Error rate > 5%",
@@ -110,7 +110,7 @@ def create_error_rate_alert():
 def create_uptime_alert():
     """Create alert for uptime check failures"""
     alert_config = {
-        "displayName": "TeleGate - Service Down",
+        "displayName": "FGate - Service Down",
         "conditions": [
             {
                 "displayName": "Health check failing",
@@ -156,7 +156,7 @@ def create_uptime_alert():
 
 
 def main():
-    print("🚀 Setting up Cloud Monitoring for TeleGate...")
+    print("🚀 Setting up Cloud Monitoring for FGate...")
     print(f"Project: {PROJECT_ID}")
     print(f"Service: {SERVICE_URL}")
     print(f"Notification Channel: {NOTIFICATION_CHANNEL_ID}\n")

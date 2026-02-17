@@ -50,7 +50,7 @@ async def send_welcome(message: types.Message, command: CommandObject):
         ])
 
         await message.reply(
-            "¡Hola! Soy tu bot de membresía **TeleGate**.\n\n"
+            "¡Hola! Soy tu bot de membresía **FGate**.\n\n"
             "Usa un link de invitación para unirte a un canal, o regístrate para empezar a gestionar tus propias suscripciones.",
             reply_markup=keyboard,
             parse_mode="Markdown"
@@ -85,7 +85,7 @@ async def handle_registration_request(message: types.Message, session):
     await session.commit()
     
     # Create Inline Keyboard
-    dashboard_url = os.getenv("DASHBOARD_URL", "https://telegate.fulltechnohub.com")
+    dashboard_url = os.getenv("DASHBOARD_URL", "https://fgate.co")
     
     # Construct URL with params
     final_url = f"{dashboard_url}/register?token={token}"
@@ -129,8 +129,8 @@ async def process_code(message: types.Message, code: str, session):
             user.telegram_id = message.from_user.id
             await session.commit()
             await message.reply(
-                f"✅ **¡Cuenta TeleGate Vinculada!**\n\n"
-                f"Hola **{user.full_name}**, ahora recibirás notificaciones inmediatas de tus comisiones y ventas. Una solución de **Full Techno HUB**."
+                f"✅ **¡Cuenta FGate Vinculada!**\n\n"
+                f"Hola **{user.full_name}**, ahora recibirás notificaciones inmediatas de tus comisiones y ventas. Una solución de **FGate**."
             )
             return True
         else:

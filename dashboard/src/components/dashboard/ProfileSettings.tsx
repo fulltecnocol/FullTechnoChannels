@@ -157,7 +157,7 @@ export function ProfileSettings({ user, isRecovery, onUpdateProfile, onUpdatePas
 
                             <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
                                 <p className="text-[10px] text-primary font-medium leading-relaxed text-center">
-                                    Usa una contraseña segura. No la compartas con nadie. El equipo de TeleGate nunca te pedirá tu contraseña.
+                                    Usa una contraseña segura. No la compartas con nadie. El equipo de FGate nunca te pedirá tu contraseña.
                                 </p>
                             </div>
                         </div>

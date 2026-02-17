@@ -29,7 +29,7 @@ export default function LandingPage() {
                         <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent-gold to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                             <Bot className="w-6 h-6 text-primary-foreground" />
                         </div>
-                        <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
+                        <span className="font-extrabold text-2xl tracking-tighter text-white">F<span className="text-primary">Gate</span></span>
                     </div>
                     <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
                         <Link href="/#features" className="hover:text-primary transition-colors">Funcionalidades</Link>
@@ -63,7 +63,7 @@ export default function LandingPage() {
                             tu comunidad.
                         </h1>
                         <p className="text-xl text-muted max-w-xl leading-relaxed font-medium">
-                            TeleGate Dashboard: La herramienta de elite para la administración automatizada de miembros, diseñada por <span className="text-foreground font-bold">Full Techno HUB</span>.
+                            FGate Dashboard: La herramienta de elite para la administración automatizada de miembros, diseñada por <span className="text-foreground font-bold">FGate</span>.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-5 pt-4">
                             <Link href="/register" className="flex items-center justify-center gap-3 px-10 py-5 bg-primary text-primary-foreground rounded-2xl font-black text-lg shadow-xl shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 transition-all">
@@ -85,7 +85,7 @@ export default function LandingPage() {
                     </div>
                     <div className="relative animate-float lg:block flex justify-center">
                         <div className="w-full max-w-[500px] aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 border border-primary/20 bg-surface relative">
-                            <img src="/saas_hero_illustration.png" alt="TeleGate Dashboard" className="w-full h-full object-cover" />
+                            <img src="/saas_hero_illustration.png" alt="FGate Dashboard" className="w-full h-full object-cover" />
                         </div>
                         {/* Floating Stats Card */}
                         <div className="absolute -bottom-10 -left-10 premium-card p-6 scale-90 hidden sm:block animate-fade-in-up">
@@ -190,7 +190,7 @@ export default function LandingPage() {
                 <div className="absolute top-1/4 -right-64 w-full h-[800px] bg-primary/5 blur-[160px] rounded-full -z-10" />
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-32 space-y-6">
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">El Ecosistema TeleGate</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">El Ecosistema FGate</h2>
                         <h3 className="text-4xl lg:text-7xl font-black tracking-tighter leading-none">
                             Ingeniería de <span className="gradient-text italic">Siguiente Nivel.</span>
                         </h3>
@@ -337,11 +337,11 @@ export default function LandingPage() {
 
                     <h3 className="text-4xl lg:text-7xl font-black tracking-tighter text-white relative z-10 leading-none">¿Listo para escalar al infinito?</h3>
                     <p className="text-xl text-white/70 font-bold max-w-2xl mx-auto relative z-10 leading-relaxed">
-                        Optimiza tu operativa con la infraestructura de TeleGate. Potenciado por Full Techno HUB.
+                        Optimiza tu operativa con la infraestructura de FGate. Potenciado por FGate.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-6 relative z-10">
                         <Link href="/register" className="px-10 py-5 bg-white text-primary rounded-2xl font-black text-xl shadow-2xl hover:scale-[1.02] active:scale-95 transition-all">
-                            Acceso Admin TeleGate
+                            Acceso Admin FGate
                         </Link>
                         <Link href="/login" className="px-10 py-5 bg-black/20 text-white rounded-2xl font-black text-xl hover:bg-black/30 transition-all border border-white/20">
                             Ir al Dashboard
@@ -358,7 +358,7 @@ export default function LandingPage() {
                             <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent-gold to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                                 <Bot className="w-6 h-6 text-primary-foreground" />
                             </div>
-                            <span className="font-extrabold text-2xl tracking-tighter text-white">Tele<span className="text-primary">Gate</span></span>
+                            <span className="font-extrabold text-2xl tracking-tighter text-white">F<span className="text-primary">Gate</span></span>
                         </div>
                         <p className="text-xs text-muted leading-relaxed font-bold">La infraestructura definitiva para la monetización de comunidades en Telegram.</p>
                         <div className="flex gap-4">
@@ -398,9 +398,9 @@ export default function LandingPage() {
                     </div>
                 </div>
                 <div className="max-w-7xl mx-auto pt-20 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-surface-border mt-20 text-[10px] font-black text-muted uppercase tracking-[0.4em]">
-                    <p>© 2026 TeleGate. Todos los derechos reservados.</p>
+                    <p>© 2026 FGate. Todos los derechos reservados.</p>
                     <p className="flex items-center gap-2">
-                        Designed & Powered by <span className="text-primary">Full Techno HUB</span>
+                        Designed & Powered by <span className="text-primary">FGate</span>
                     </p>
                 </div>
             </footer>

@@ -1,6 +1,6 @@
 # 📜 Plan de Implementación: Contratos de Mandato Digital
 
-**Objetivo:** Implementar sistema de firma digital de contratos de mandato para creadores de canales en TeleGate, cumpliendo con la legislación colombiana.
+**Objetivo:** Implementar sistema de firma digital de contratos de mandato para creadores de canales en FGate, cumpliendo con la legislación colombiana.
 
 ---
 
@@ -14,7 +14,7 @@
 
 ### **Contrato de Mandato:**
 - **Mandante:** El creator (owner del canal)
-- **Mandatario:** Tu empresa (TeleGate/Full Techno Hub)
+- **Mandatario:** Tu empresa (FGate/FGate)
 - **Objeto:** Recaudar pagos de suscriptores a nombre del mandante
 
 ---
@@ -67,7 +67,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    TeleGate Backend                       │
+│                    FGate Backend                       │
 ├──────────────────────────────────────────────────────────┤
 │                                                           │
 │  ┌─────────────┐    ┌──────────────┐    ┌────────────┐ │
@@ -223,7 +223,7 @@ ADD COLUMN can_create_channels BOOLEAN DEFAULT FALSE;
         <strong>PRIMERA - OBJETO:</strong>
         EL MANDANTE confiere mandato especial a EL MANDATARIO para que en su nombre y representación
         reciba, administre y distribuya los pagos realizados por suscriptores de los canales privados
-        de Telegram administrados por EL MANDANTE a través de la plataforma TeleGate.
+        de Telegram administrados por EL MANDANTE a través de la plataforma FGate.
     </div>
 
     <div class="clause">
@@ -313,7 +313,7 @@ ADD COLUMN can_create_channels BOOLEAN DEFAULT FALSE;
     </div>
 
     <footer style="margin-top: 50px; font-size: 10px; text-align: center;">
-        <p>Documento generado electrónicamente por TeleGate - ID: {{ contrato_id }}</p>
+        <p>Documento generado electrónicamente por FGate - ID: {{ contrato_id }}</p>
         <p>Hash SHA-256: {{ document_hash }}</p>
     </footer>
 </body>

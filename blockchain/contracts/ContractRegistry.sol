@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * @title ContractRegistry
  * @dev Registro inmutable de contratos firmados en TeleGate
  * @notice Este contrato almacena hashes SHA-256 de contratos PDF firmados
- * @author TeleGate / Full Techno Hub
+ * @author FGate / FGate
  */
 contract ContractRegistry {
     

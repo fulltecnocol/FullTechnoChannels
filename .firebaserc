@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "full-techno-channels"
-  }
+  },
+  "targets": {
+    "full-techno-channels": {
+      "hosting": {
+        "landing": [
+          "full-techno-channels"
+        ],
+        "dashboard": [
+          "fgate-dashboard"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

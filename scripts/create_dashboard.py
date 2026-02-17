@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create TeleGate monitoring dashboard in Cloud Monitoring
+Create FGate monitoring dashboard in Cloud Monitoring
 """
 
 import json
@@ -11,7 +11,7 @@ SERVICE_NAME = "membership-backend"
 
 # Dashboard configuration
 dashboard_config = {
-    "displayName": "TeleGate - Production Dashboard",
+    "displayName": "FGate - Production Dashboard",
     "mosaicLayout": {
         "columns": 12,
         "tiles": [
@@ -255,7 +255,7 @@ dashboard_config = {
 
 def create_dashboard():
     """Create the monitoring dashboard"""
-    print("🎨 Creating TeleGate dashboard...")
+    print("🎨 Creating FGate dashboard...")
 
     # Get auth token
     try:

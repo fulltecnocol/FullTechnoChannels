@@ -32,7 +32,8 @@ export function AffiliateSection({ user, summary, configs, copyToClipboard }: Af
     const [updatingCode, setUpdatingCode] = useState(false);
 
     const currentReferralCode = stats?.referral_code || user?.referral_code || '';
-    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${currentReferralCode}` : '';
+    const botUsername = process.env.NEXT_PUBLIC_BOT_USERNAME || 'FullT_GuardBot';
+    const referralLink = `https://t.me/${botUsername}?start=ref_${currentReferralCode}`;
 
     const goldMin = configs.find(c => c.key === 'tier_gold_min')?.value || 6;
     const diamondMin = configs.find(c => c.key === 'tier_diamond_min')?.value || 21;

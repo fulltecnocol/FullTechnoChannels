@@ -45,7 +45,7 @@ async def bot_webhook(request: Request):
 async def bot_health_check():
     """Bot service health check"""
     health_status = {
-        "service": "TeleGate Bot",
+        "service": "FGate Bot",
         "status": "healthy",
         "components": {
             "bot": {"status": "configured" if bot else "not_initialized"},

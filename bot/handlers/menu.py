@@ -25,7 +25,7 @@ async def cmd_menu(message: types.Message):
         types.InlineKeyboardButton(text="🆘 Soporte", callback_data="support_help"),
     )
     await message.answer(
-        "👋 **Menú Principal de TeleGate**\n\n"
+        "👋 **Menú Principal de FGate**\n\n"
         "Selecciona una opción para continuar:",
         reply_markup=builder.as_markup(),
         parse_mode="Markdown",
@@ -77,7 +77,7 @@ async def show_profile(message: types.Message, tg_user: types.User):
         bot_info = await message.bot.get_me()
 
         profile_text = (
-            f"👤 **PERFIL TELEGATE: {tg_user.full_name}**\n"
+            f"👤 **PERFIL FGATE: {tg_user.full_name}**\n"
             f"━━━━━━━━━━━━━━━━━━\n\n"
             f"🆔 **ID**: `{user.id}`\n"
             f"🏆 **Rango**: {tier_info['tier']}\n"
@@ -97,7 +97,7 @@ async def show_profile(message: types.Message, tg_user: types.User):
         else:
             profile_text += "_No tienes membresías activas._\n"
 
-        profile_text += "\n\n_Powered by Full Techno HUB_"
+        profile_text += "\n\n_Powered by FGate_"
         
         # Cache message for 60 seconds
         await memory_cache.set(cache_key, profile_text, ttl_seconds=60)

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
 import ReactQueryProvider from "@/lib/react-query";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -15,13 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TeleGate | Admin Dashboard",
+  title: "FGate | Admin Dashboard",
   description: "Sistema automatizado de gestión de membresías de Telegram",
   openGraph: {
-    title: "TeleGate | Dashboard",
+    title: "FGate | Dashboard",
     description: "Panel administrativo premium para el control de suscripciones y bot de Telegram.",
     type: "website",
     locale: "es_ES",
+    siteName: "FGate",
   }
 };
 
@@ -36,7 +38,11 @@ export default function RootLayout({
         className={`${outfit.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

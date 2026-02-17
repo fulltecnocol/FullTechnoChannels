@@ -28,7 +28,7 @@ async def seed_data():
             print("   Creating default Owner (admin@telegate.com)...")
             owner = User(
                 email="admin@telegate.com",
-                full_name="TeleGate Admin",
+                full_name="FGate Admin",
                 is_owner=True,
                 is_admin=True,
                 hashed_password="hashed_password_placeholder",  # In production this should be properly hashed
@@ -52,7 +52,7 @@ async def seed_data():
             print("   Creating default Channel...")
             channel = Channel(
                 owner_id=owner.id,
-                title="TeleGate VIP Channel",
+                title="FGate VIP Channel",
                 validation_code=str(uuid.uuid4())[:8],
                 is_verified=True,  # Auto-verify for testing
                 telegram_id=-1001234567890,  # Mock ID

@@ -255,7 +255,7 @@ async def test_dependencies(suite: TestSuite):
 async def main():
     """Run all tests"""
     print("=" * 60)
-    print("TELEGATE APPLICATION TEST SUITE")
+    print("FGATE APPLICATION TEST SUITE")
     print("=" * 60)
 
     suite = TestSuite()

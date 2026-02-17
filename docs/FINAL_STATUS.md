@@ -25,8 +25,8 @@
 - Base de datos lista con tablas `owner_legal_info` y `signed_contracts`.
 - API endpoints conectados.
 
-### 4. Branding & UI (TeleGate 2.0)
-- **Nombre Oficial:** TeleGate (Reemplaza a Gestor VIP).
+### 4. Branding & UI (FGate 2.0)
+- **Nombre Oficial:** FGate (Reemplaza a Gestor VIP).
 - **Estética:** Dark Luxury (Obsidian & Metallic Gold) con Glassmorphism técnico.
 - **Logo:** Opción 1 (Architectural T Portal) integrada en Web y Dashboard.
 - **Firma:** "Designed & Powered by Full Techno HUB" integrada en bot y web.

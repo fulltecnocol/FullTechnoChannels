@@ -15,7 +15,7 @@ from api.services.pdf_service import PDFContractService
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="TeleGate Worker Service")
+app = FastAPI(title="FGate Worker Service")
 
 class PreviewRequest(BaseModel):
     legal_data: Dict[str, Any]

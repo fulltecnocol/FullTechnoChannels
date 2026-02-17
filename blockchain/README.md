@@ -1,4 +1,4 @@
-# 🔐 TeleGate - Smart Contracts
+# 🔐 FGate - Smart Contracts
 
 Sistema de registro inmutable de contratos firmados en Polygon blockchain.
 

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
 
 # Import modular routers
-from api.routes import auth, owner, admin, legal, calls, public, availability, affiliate
+from api.routes import auth, owner, admin, legal, calls, public, availability, affiliate, profiles
 
 # Import schemas and logic
 from shared.database import get_db, AsyncSessionLocal
@@ -50,12 +50,19 @@ WOMPI_EVENTS_SECRET = os.getenv("WOMPI_EVENTS_SECRET")
 if STRIPE_API_KEY:
     stripe.api_key = STRIPE_API_KEY
 
-app = FastAPI(title="TeleGate API")
+app = FastAPI(title="FGate API")
 
 # Middlewares
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://app.fgate.co",
+        "https://fgate-dashboard.web.app",
+        "https://fgate.co",
+        "https://full-techno-channels.web.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,11 +77,12 @@ app.include_router(calls.router)
 app.include_router(public.router)
 app.include_router(availability.router)
 app.include_router(affiliate.router)
+app.include_router(profiles.router)
 
 
 @app.get("/")
 async def root():
-    return {"name": "TeleGate API", "status": "online", "version": "2.0.0"}
+    return {"name": "FGate API", "status": "online", "version": "2.0.0"}
 
 
 # --- WEBHOOKS & PAYMENT LINKS ---

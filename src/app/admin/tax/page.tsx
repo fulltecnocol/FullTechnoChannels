@@ -88,7 +88,7 @@ export default function AdminTaxPage() {
                         <h1 className="text-4xl font-black tracking-tight">
                             Admin <span className="gradient-text">Tax Hub</span>
                         </h1>
-                        <p className="text-muted font-medium">Gestión fiscal personal para el dueño de TeleGate</p>
+                        <p className="text-muted font-medium">Gestión fiscal personal para el dueño de FGate</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <select
