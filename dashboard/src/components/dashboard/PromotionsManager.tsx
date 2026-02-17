@@ -94,11 +94,11 @@ export function PromotionsManager({
                                     </div>
                                     <button
                                         onClick={() => {
-                                            copyToClipboard(`https://t.me/TuBotMembresiaBot?start=${p.code}`);
+                                            copyToClipboard(`https://t.me/FTGateBot?start=${p.code}`);
                                         }}
                                         className="text-[10px] text-muted flex items-center gap-1.5 hover:text-primary transition-colors font-mono"
                                     >
-                                        t.me/bot?start={p.code} <Copy className="w-3 h-3" />
+                                        t.me/FTGateBot?start={p.code} <Copy className="w-3 h-3" />
                                     </button>
                                 </div>
                                 <div className="flex items-center gap-8">

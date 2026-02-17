@@ -7,7 +7,7 @@ interface AffiliateSectionProps {
 }
 
 export function AffiliateSection({ user, summary, copyToClipboard }: AffiliateSectionProps) {
-    const botUsername = process.env.NEXT_PUBLIC_BOT_USERNAME || 'FullT_GuardBot';
+    const botUsername = process.env.NEXT_PUBLIC_BOT_USERNAME || 'FTGateBot';
     const referralLink = `https://t.me/${botUsername}?start=ref_${user?.referral_code}`;
 
     return (

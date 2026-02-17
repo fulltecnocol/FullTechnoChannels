@@ -99,7 +99,7 @@ export function CreateChannelModal({ isOpen, onClose, onSubmit, step, createdCha
                                 </p>
                                 <div className="space-y-3">
                                     <a
-                                        href={`https://t.me/FullT_GuardBot?start=${createdChannel?.validation_code}`}
+                                        href={`https://t.me/FTGateBot?start=${createdChannel?.validation_code}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-full py-5 bg-[#0088cc] text-white rounded-2xl font-bold shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
