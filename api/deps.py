@@ -23,15 +23,25 @@ async def get_current_owner(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        print(f"DEBUG AUTH: token decoded for email: {email}")
         if email is None:
+            print("DEBUG AUTH: email is None in token")
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"DEBUG AUTH: JWTError: {e}")
         raise credentials_exception
 
     result = await db.execute(select(DBUser).where(DBUser.email == email))
     user = result.scalar_one_or_none()
-    if user is None or not user.is_owner:
+    if user is None:
+        print(f"DEBUG AUTH: User not found for email: {email}")
         raise credentials_exception
+    
+    if not user.is_owner:
+        print(f"DEBUG AUTH: User {email} is NOT owner (is_owner={user.is_owner})")
+        raise credentials_exception
+    
+    print(f"DEBUG AUTH: User {email} authenticated successfully as owner")
     return user
 
 

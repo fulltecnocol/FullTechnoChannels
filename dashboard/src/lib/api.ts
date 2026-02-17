@@ -4,7 +4,7 @@ import {
     LegalInfo, LegalStatus, UserAdmin
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://membership-backend-dhtw77aq7a-uc.a.run.app";
 
 export async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
