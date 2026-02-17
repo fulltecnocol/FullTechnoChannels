@@ -28,7 +28,7 @@ export default function HowItWorksPage() {
                             <Bot className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <span className="font-extrabold text-2xl tracking-tighter text-white">
-                            Tele<span className="text-primary">Gate</span>
+                            F<span className="text-primary">Gate</span>
                         </span>
                     </Link>
                     <div className="flex items-center gap-4">
