@@ -102,7 +102,7 @@ export default function LoginPage() {
                             <ShieldCheck className="w-8 h-8 text-primary" />
                         </div>
                         <h1 className="text-4xl font-black tracking-tight">
-                            Tele<span className="gradient-text">Gate</span>
+                            F<span className="gradient-text">Gate</span>
                         </h1>
                         <p className="text-muted font-medium">Panel Administrativo</p>
                     </div>

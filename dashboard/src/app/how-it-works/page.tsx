@@ -56,7 +56,7 @@ export default function HowItWorksPage() {
                             <span className="gradient-text">Monetización Autónoma</span>
                         </h1>
                         <p className="text-xl text-muted font-medium leading-relaxed max-w-2xl mx-auto">
-                            Descubre cómo TeleGate integra gestión, seguridad y distribución financiera en un solo núcleo operativo. Sin intervención manual. Sin errores.
+                            Descubre cómo FGate integra gestión, seguridad y distribución financiera en un solo núcleo operativo. Sin intervención manual. Sin errores.
                         </p>
                     </div>
                 </section>
@@ -70,7 +70,7 @@ export default function HowItWorksPage() {
                             </div>
                             <h2 className="text-4xl font-black tracking-tight">El Cerebro Digital</h2>
                             <p className="text-lg text-muted leading-relaxed font-medium">
-                                Todo comienza cuando conectas tu canal de Telegram a TeleGate. Nuestro <span className="text-white font-bold">Bot Guardián</span> asume el control inmediato de la seguridad.
+                                Todo comienza cuando conectas tu canal de Telegram a FGate. Nuestro <span className="text-white font-bold">Bot Guardián</span> asume el control inmediato de la seguridad.
                             </p>
 
                             <div className="space-y-4">

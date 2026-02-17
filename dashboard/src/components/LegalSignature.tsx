@@ -285,7 +285,7 @@ export function LegalSignature() {
                     <div className="flex items-center gap-3 p-6 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-sm">
                         <AlertTriangle className="w-6 h-6 shrink-0" />
                         <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                            Advertencia: La firma digital tiene validez legal vinculante. Al firmar, aceptas los términos y condiciones del contrato de mandato de TeleGate.
+                            Advertencia: La firma digital tiene validez legal vinculante. Al firmar, aceptas los términos y condiciones del contrato de mandato de FGate.
                         </p>
                     </div>
                 </div>

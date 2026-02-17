@@ -37,7 +37,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, setIsViewingAsAdmin,
                     <Bot className="w-7 h-7 text-primary-foreground" />
                 </div>
                 <div className="flex flex-col">
-                    <span className="font-extrabold text-xl tracking-tighter text-white leading-none">Tele<span className="text-primary">Gate</span></span>
+                    <span className="font-extrabold text-xl tracking-tighter text-white leading-none">F<span className="text-primary">Gate</span></span>
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted mt-1">Premium Core</span>
                 </div>
             </div>

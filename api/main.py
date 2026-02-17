@@ -84,6 +84,8 @@ app.include_router(profiles.router)
 # --- DEBUG ENDPOINTS (TEMPORARY) ---
 @app.get("/debug/users")
 async def debug_users(secret: str, db: AsyncSessionLocal = Depends(get_db)):
+    if ENV == "production":
+        raise HTTPException(status_code=404)
     if secret != "super_secret_debug_key_2026":
         raise HTTPException(status_code=403)
     
@@ -103,6 +105,8 @@ async def debug_users(secret: str, db: AsyncSessionLocal = Depends(get_db)):
 
 @app.post("/debug/promote")
 async def debug_promote(secret: str, email: str, db: AsyncSessionLocal = Depends(get_db)):
+    if ENV == "production":
+        raise HTTPException(status_code=404)
     if secret != "super_secret_debug_key_2026":
         raise HTTPException(status_code=403)
     
@@ -119,6 +123,8 @@ async def debug_promote(secret: str, email: str, db: AsyncSessionLocal = Depends
 
 @app.get("/debug/channels")
 async def debug_channels(secret: str, owner_id: int, db: AsyncSessionLocal = Depends(get_db)):
+    if ENV == "production":
+        raise HTTPException(status_code=404)
     if secret != "super_secret_debug_key_2026":
         raise HTTPException(status_code=403)
     
