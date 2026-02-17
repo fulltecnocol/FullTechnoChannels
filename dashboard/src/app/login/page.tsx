@@ -176,7 +176,7 @@ export default function LoginPage() {
                             <span className="bg-surface px-4">o continuar con</span>
                         </div>
 
-                        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+                        {(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1054327025113-765gvg5r9kjci5kbucurijnp0ih1ap7e.apps.googleusercontent.com") && (
                             <div className="flex justify-center mb-8">
                                 <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
