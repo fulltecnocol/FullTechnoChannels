@@ -39,7 +39,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, setIsViewingAsAdmin,
                 </div>
             </div>
 
-            <nav className="flex-1 space-y-2">
+            <nav className="flex-1 space-y-2 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-surface-border scrollbar-track-transparent">
                 {menuItems.map((item) => (
                     <button
                         key={item.id}
@@ -63,7 +63,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, setIsViewingAsAdmin,
             </nav>
 
             <div className="premium-card p-4 bg-primary/5 border-primary/10 text-xs font-bold text-primary flex items-center justify-center gap-2">
-                <Zap className="w-3.5 h-3.5" /> Plan Pro Premium
+                <Zap className="w-3.5 h-3.5" /> Plan Pro Premium v2.2
             </div>
         </aside>
     );

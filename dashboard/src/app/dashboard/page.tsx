@@ -441,8 +441,6 @@ export default function Dashboard() {
             {activeTab === "admin" && summary?.is_admin && (
               <AdminSystem
                 adminUsers={adminUsers}
-                configs={configs}
-                handleConfigUpdate={handleConfigUpdate}
                 adminWithdrawals={adminWithdrawals}
                 handleProcessWithdrawal={handleProcessWithdrawal}
                 adminTickets={adminTickets}

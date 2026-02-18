@@ -5,7 +5,9 @@ import {
     AffiliateNetworkResponse, AffiliateRank, RankCreate, AffiliateStats, LeaderboardEntry
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://membership-backend-1054327025113.us-central1.run.app";
+// Hardcoded for production stability
+const API_URL = "https://membership-backend-1054327025113.us-central1.run.app";
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://membership-backend-1054327025113.us-central1.run.app";
 
 export async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
@@ -162,13 +164,28 @@ export const adminApi = {
     getExpenses: (year?: number) => apiRequest<any[]>(`/api/admin/expenses${year ? `?year=${year}` : ''}`),
     createExpense: (data: any) => apiRequest<any>(`/api/admin/expenses`, { method: "POST", body: JSON.stringify(data) }),
     deleteExpense: (id: number) => apiRequest<void>(`/api/admin/expenses/${id}`, { method: "DELETE" }),
+    // User Management
+    updateUplink: (userId: number, referrerId: number) => apiRequest<void>(`/api/admin/users/${userId}/uplink`, {
+        method: "PATCH",
+        body: JSON.stringify({ referrer_id: referrerId }),
+    }),
+    deleteUser: (userId: number) => apiRequest<void>(`/api/admin/users/${userId}`, { method: "DELETE" }),
+    getSignedContract: async (userId: number) => {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_URL}/api/admin/users/${userId}/contract`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error("Error descargando contrato");
+        return response.blob();
+    },
     // Affiliate Admin
-    getAffiliateStats: () => apiRequest<AdminAffiliateStats>("/api/affiliate/admin/stats"),
-    getAffiliateLedger: (limit: number, offset: number) => apiRequest<AffiliateLedgerEntry[]>(`/api/affiliate/admin/ledger?limit=${limit}&offset=${offset}`),
-    getAffiliateTree: (userId: number) => apiRequest<AffiliateNetworkResponse>(`/api/affiliate/admin/audit/${userId}`),
-    getAffiliateRanks: () => apiRequest<AffiliateRank[]>("/api/affiliate/ranks"),
-    createAffiliateRank: (data: RankCreate) => apiRequest<AffiliateRank>("/api/affiliate/ranks", { method: "POST", body: JSON.stringify(data) }),
-    deleteAffiliateRank: (id: number) => apiRequest<void>(`/api/affiliate/ranks/${id}`, { method: "DELETE" }),
+    getAffiliateStats: () => apiRequest<AdminAffiliateStats>("/api/admin/affiliates/stats"),
+    getAffiliateLedger: (limit: number, offset: number) => apiRequest<AffiliateLedgerEntry[]>(`/api/admin/affiliates/ledger?limit=${limit}&offset=${offset}`),
+    getAffiliateTree: (userId: number) => apiRequest<AffiliateNetworkResponse>(`/api/admin/affiliates/tree/${userId}`),
+    getAffiliateRanks: () => apiRequest<AffiliateRank[]>("/api/admin/ranks"),
+    createAffiliateRank: (data: RankCreate) => apiRequest<AffiliateRank>("/api/admin/ranks", { method: "POST", body: JSON.stringify(data) }),
+    updateAffiliateRank: (id: number, data: RankCreate) => apiRequest<AffiliateRank>(`/api/admin/ranks/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    deleteAffiliateRank: (id: number) => apiRequest<void>(`/api/admin/ranks/${id}`, { method: "DELETE" }),
 };
 
 export const affiliateApi = {

@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     shared-mime-info \
     libgdk-pixbuf-2.0-0 \
     libgirepository1.0-dev \
+    libcairo2 \
+    fonts-dejavu \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy root requirements

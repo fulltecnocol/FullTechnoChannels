@@ -72,16 +72,17 @@ app.add_middleware(
 )
 
 # Include Modular Routers
-app.include_router(auth.router, prefix="/api")
-app.include_router(owner.router, prefix="/api")
-app.include_router(admin.router, prefix="/api")
-app.include_router(legal.router, prefix="/api")
-app.include_router(payments.router, prefix="/api")  # Routes for payments, webhooks, and links
-app.include_router(calls.router, prefix="/api")
-app.include_router(public.router, prefix="/api")
-app.include_router(availability.router, prefix="/api")
-app.include_router(affiliate.router, prefix="/api")
-app.include_router(profiles.router, prefix="/api")
+# Include Modular Routers
+app.include_router(auth.router)
+app.include_router(owner.router)
+app.include_router(admin.router)
+app.include_router(legal.router)
+app.include_router(payments.router)  # Routes for payments, webhooks, and links
+app.include_router(calls.router)
+app.include_router(public.router)
+app.include_router(availability.router)
+app.include_router(affiliate.router)
+app.include_router(profiles.router)
 
 
 # --- DEBUG ENDPOINTS (TEMPORARY) ---

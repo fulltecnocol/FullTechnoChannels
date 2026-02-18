@@ -11,6 +11,13 @@ class UserAdminResponse(BaseModel):
     is_owner: bool
     legal_verification_status: str
     created_at: datetime
+    referred_by_id: Optional[int] = None
+    referrer_name: Optional[str] = None
+    referral_code: Optional[str] = None
+    rut_url: Optional[str] = None
+    bank_cert_url: Optional[str] = None
+    chamber_commerce_url: Optional[str] = None
+    contract_signed: bool = False
 
     class Config:
         from_attributes = True
@@ -66,6 +73,9 @@ class UserAdmin(BaseModel):
     is_owner: bool
     legal_verification_status: str
     created_at: datetime
+    referred_by_id: Optional[int]
+    referrer_name: Optional[str] = None
+    referral_code: Optional[str] = None
 
     class Config:
         from_attributes = True

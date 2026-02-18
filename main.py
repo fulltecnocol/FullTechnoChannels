@@ -10,7 +10,7 @@ from bot.main import app as bot_app, on_bot_startup
 import os
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+# load_dotenv(override=True)  # Disabled for production to use Cloud Run env vars
 
 # Selective service mounting based on SERVICE_TYPE env var
 # Options: unified (default), api, bot
@@ -34,7 +34,8 @@ app.add_middleware(
         "https://app.fgate.co",
         "https://fgate-dashboard.web.app",
         "https://fgate.co",
-        "https://full-techno-channels.web.app"
+        "https://full-techno-channels.web.app",
+        "https://telegate-dashboard.web.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],

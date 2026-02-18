@@ -11,7 +11,6 @@ from aiogram.types import (
     ReplyKeyboardRemove,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
-    INPUT_FILE_TYPES,
 )
 
 from bot.states.signature_states import SignatureFlow

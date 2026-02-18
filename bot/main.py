@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Update
 
-load_dotenv(override=True)
+# load_dotenv(override=True)  # Disabled for production to use Cloud Run env vars
 
 # Forzar el uso del Loop por defecto (Asyncio) en lugar de uvloop si está instalado
 # Esto es crítico para evitar problemas de SSL/DNS con Supabase en algunos entornos
@@ -19,7 +19,16 @@ API_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("BOT_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 WEBHOOK_PATH = f"/webhook/{API_TOKEN}"
 
-bot = Bot(token=API_TOKEN)
+if not API_TOKEN:
+    logging.warning("No TELEGRAM_BOT_TOKEN found. Bot functionality will be disabled.")
+    bot = None
+else:
+    try:
+        bot = Bot(token=API_TOKEN)
+    except Exception as e:
+        logging.error(f"Failed to initialize Bot: {e}")
+        bot = None
+
 dp = None
 
 # --- Configuración para Despliegue (Webhook vs Polling) ---

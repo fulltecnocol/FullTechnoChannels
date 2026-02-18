@@ -130,8 +130,52 @@ async def get_admin_users(
     current_user: DBUser = Depends(get_current_admin),
     db: AsyncSessionLocal = Depends(get_db),
 ):
-    result = await db.execute(select(DBUser).order_by(DBUser.created_at.desc()))
-    return result.scalars().all()
+    result = await db.execute(
+        select(DBUser)
+        .options(
+            selectinload(DBUser.referrer),
+            selectinload(DBUser.legal_info)
+        )
+        .order_by(DBUser.created_at.desc())
+    )
+    users = result.scalars().all()
+    
+    # Map to DTO manually to ensure referrer_name is populated
+    response = []
+    for u in users:
+        referrer_name = None
+        if u.referrer:
+            referrer_name = u.referrer.full_name or u.referrer.username or u.referrer.email
+            
+        # Extract Legal Docs & Status
+        rut_url = None
+        bank_cert_url = None
+        chamber_commerce_url = None
+        contract_signed = False
+
+        if u.legal_info:
+            rut_url = u.legal_info.rut_url
+            bank_cert_url = u.legal_info.bank_cert_url
+            chamber_commerce_url = u.legal_info.chamber_commerce_url
+            contract_signed = u.legal_info.contract_signed
+
+        response.append(UserAdminResponse(
+            id=u.id,
+            full_name=u.full_name,
+            email=u.email,
+            is_admin=u.is_admin,
+            is_owner=u.is_owner,
+            legal_verification_status=u.legal_verification_status,
+            created_at=u.created_at,
+            referred_by_id=u.referred_by_id,
+            referrer_name=referrer_name,
+            referral_code=u.referral_code,
+            rut_url=rut_url,
+            bank_cert_url=bank_cert_url,
+            chamber_commerce_url=chamber_commerce_url,
+            contract_signed=contract_signed
+        ))
+    return response
 
 
 @router.delete("/users/{id}")
@@ -252,11 +296,12 @@ async def get_user_signed_contract_pdf(
     pdf_bytes = None
     
     if contract and contract.pdf_url:
-        if storage.file_exists(contract.pdf_url):
-            try:
+        try:
+            # Wrap entire storage access in try/except to prevent crash on file_exists or read
+            if storage.file_exists(contract.pdf_url):
                 pdf_bytes = await storage.read_file(contract.pdf_url)
-            except Exception as e:
-                logging.error(f"Error reading contract from storage: {e}")
+        except Exception as e:
+            logging.error(f"Error accessing contract from storage (proceeding to regen): {e}")
 
     # 4. Fallback: Generar PDF on the fly si no existe o falló la lectura
     if not pdf_bytes:
@@ -473,6 +518,7 @@ from pydantic import BaseModel
 class RankCreate(BaseModel):
     name: str
     min_referrals: int
+    max_depth: int = 1
     bonus_percentage: float = 0.0
     icon: str = None
 
@@ -513,6 +559,40 @@ async def create_admin_rank(
     await db.commit()
     await db.refresh(new_rank)
     return new_rank
+
+@router.put("/ranks/{rank_id}", response_model=RankResponse)
+async def update_admin_rank(
+    rank_id: int,
+    rank_data: RankCreate,
+    current_user: DBUser = Depends(get_current_admin),
+    db: AsyncSessionLocal = Depends(get_db),
+):
+    """Update an existing affiliate rank"""
+    rank = await db.get(AffiliateRank, rank_id)
+    if not rank:
+        raise HTTPException(status_code=404, detail="Rank not found")
+    
+    # Check if name or min_referrals is taken by ANOTHER rank
+    conflict = await db.execute(
+        select(AffiliateRank).where(
+            and_(
+                (AffiliateRank.name == rank_data.name) | (AffiliateRank.min_referrals == rank_data.min_referrals),
+                AffiliateRank.id != rank_id
+            )
+        )
+    )
+    if conflict.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Rank name or referral count already exists")
+
+    rank.name = rank_data.name
+    rank.min_referrals = rank_data.min_referrals
+    rank.max_depth = rank_data.max_depth
+    rank.bonus_percentage = rank_data.bonus_percentage
+    rank.icon = rank_data.icon
+
+    await db.commit()
+    await db.refresh(rank)
+    return rank
 
 @router.delete("/ranks/{rank_id}")
 async def delete_admin_rank(
@@ -621,6 +701,8 @@ async def verify_crypto_payment(
         provider_tx_id=f"CRYPTO_VERIFIED_{payment_id}",
         method="crypto",
     )
+
+
 
     payment.status = "completed"
     await db.commit()

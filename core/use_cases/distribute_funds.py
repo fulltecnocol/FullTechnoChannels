@@ -89,22 +89,47 @@ async def distribute_payment_funds(
 
     current_referrer_id = owner.referred_by_id if owner else None
 
+    # Cache ranks to avoid fetching in loop
+    ranks_res = await db.execute(select(AffiliateRank).order_by(AffiliateRank.min_referrals.desc()))
+    all_ranks = ranks_res.scalars().all()
+
+    async def _get_rank_depth(user_id: int) -> int:
+        # Count direct referrals
+        res = await db.execute(select(func.count(User.id)).where(User.referred_by_id == user_id))
+        count = res.scalar() or 0
+        
+        # Determine Rank
+        for rank in all_ranks:
+            if count >= rank.min_referrals:
+                return rank.max_depth
+        return 1 # Default (Bronze-ish) usually level 1
+
     for level in range(1, 11):
         if not current_referrer_id:
             break
 
+        # Check if Referrer qualifies for this level
+        referrer_depth = await _get_rank_depth(current_referrer_id)
+        
+        if level > referrer_depth:
+            # User NOT qualified for this level. 
+            # Money stays with platform (Breakage).
+            # We must still move up the chain!
+            
+            # ... but first we simply SKIP this payment
+            # Fetch next referrer and continue
+            ref_result = await db.execute(select(User).where(User.id == current_referrer_id))
+            referrer_user = ref_result.scalar_one_or_none()
+            if referrer_user:
+                current_referrer_id = referrer_user.referred_by_id
+            else:
+                current_referrer_id = None
+            continue
+
         # Obtener porcentaje para este nivel
         default_fees = {
-            1: 0.03,
-            2: 0.01,
-            3: 0.005,
-            4: 0.003,
-            5: 0.002,
-            6: 0.001,
-            7: 0.001,
-            8: 0.001,
-            9: 0.001,
-            10: 0.001,
+            1: 0.03, 2: 0.01, 3: 0.005, 4: 0.003, 5: 0.002,
+            6: 0.001, 7: 0.001, 8: 0.001, 9: 0.001, 10: 0.001,
         }
         fee_key = f"affiliate_level_{level}_fee"
         level_fee_percent = await get_config_value(

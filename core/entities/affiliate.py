@@ -29,6 +29,7 @@ class AffiliateRank(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     min_referrals = Column(Integer, unique=True) # Cantidad de referidos directos necesarios
+    max_depth = Column(Integer, default=1) # Profundidad máxima de comisiones (1 a 10)
     bonus_percentage = Column(Float, default=0.0) # Bonus opcional (0.01 = 1%)
     icon = Column(String, nullable=True) # Emoji o URL
     

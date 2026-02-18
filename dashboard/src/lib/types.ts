@@ -181,6 +181,13 @@ export interface UserAdmin {
     is_owner: boolean;
     legal_verification_status: string;
     created_at: string;
+    referred_by_id?: number;
+    referrer_name?: string;
+    referral_code?: string;
+    rut_url?: string;
+    bank_cert_url?: string;
+    chamber_commerce_url?: string;
+    contract_signed?: boolean;
 }
 
 export interface RegisterData {
@@ -315,6 +322,7 @@ export interface AffiliateRank {
     id: number;
     name: string;
     min_referrals: number;
+    max_depth?: number;
     bonus_percentage: number;
     icon?: string;
     created_at: string;
@@ -323,6 +331,7 @@ export interface AffiliateRank {
 export interface RankCreate {
     name: string;
     min_referrals: number;
+    max_depth?: number;
     bonus_percentage: number;
     icon?: string;
 }
