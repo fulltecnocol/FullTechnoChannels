@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # FIX: Ensure signature models are registered with Base metadata
 try:
-    from shared import signature_models
+    # Removed: from shared import signature_models
 except ImportError:
     pass
 
@@ -113,7 +113,7 @@ async def test_database_connection(suite: TestSuite):
     print("\n🗄️  Testing Database Connection...")
 
     try:
-        from shared.database import init_db, AsyncSessionLocal, engine
+        from infrastructure.database.connection import init_db, AsyncSessionLocal, engine
         from sqlalchemy import text
 
         # Test engine creation

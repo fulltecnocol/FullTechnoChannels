@@ -262,7 +262,7 @@ export function LegalSignature() {
                         {otpSent && (
                             <div className="max-w-md mx-auto space-y-4 animate-fade-in">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary text-center block">Introduce el código enviado por @FullT_GuardBot</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-primary text-center block">Introduce el código enviado por @FTGateBot</label>
                                     <input
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value)}

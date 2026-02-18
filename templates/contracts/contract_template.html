@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contrato FGate - {{ contract_id }}</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; margin: 40px; font-size: 14px; line-height: 1.6; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .footer { position: fixed; bottom: 30px; width: 100%; text-align: center; font-size: 10px; color: #666; border-top: 1px solid #ccc; padding-top: 10px; }
+        .section { margin-bottom: 20px; }
+        .title { font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
+        .signature-box { border: 1px solid #000; padding: 15px; margin-top: 30px; display: inline-block; width: 45%; vertical-align: top; }
+        .signature-img { max-height: 60px; display: block; margin-bottom: 5px; }
+        .row { display: flex; justify-content: space-between; gap: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+body>
+    <div class="header">
+        <h1>CONTRATO DE ADHESIÓN FGATE</h1>
+        <p>Referencia: <strong>{{ contract_id }}</strong> | Fecha: {{ signature_date }}</p>
+    </div>
+
+    <div class="section">
+        <p>Este documento certifica el acuerdo entre <strong>FGate Platform</strong> ("La Empresa") y:</p>
+        <table>
+            <tr><th>Nombre Completo</th><td>{{ full_name }}</td></tr>
+            <tr><th>Documento Identidad</th><td>{{ id_type }} {{ id_number }}</td></tr>
+            <tr><th>Email</th><td>{{ email }} (Telegram ID: {{ telegram_id }})</td></tr>
+            <tr><th>Dirección</th><td>{{ address }}, {{ city }}</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="title">TÉRMINOS Y CONDICIONES</div>
+        <p>
+            Al firmar este documento, el usuario acepta todos los términos de uso de la plataforma FGate, incluyendo las políticas de gestión de pagos, comisiones de afiliados y normativas de contenido.
+            El usuario declara bajo gravedad de juramento que los fondos utilizados provienen de actividades lícitas y asume toda responsabilidad fiscal en su jurisdicción.
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="title">DETALLES DE FIRMA DIGITAL</div>
+        <p>Este documento ha sido firmado electrónicamente mediante autenticación OTP.</p>
+        <ul>
+            <li><strong>Código OTP:</strong> {{ signature_code }}</li>
+            <li><strong>Hash del Documento:</strong> {{ document_hash }}</li>
+            <li><strong>Transacción Blockchain:</strong> {{ blockchain_tx_hash }} ({{ blockchain_network }})</li>
+            <li><strong>IP Origen:</strong> {{ ip_address }}</li>
+        </ul>
+    </div>
+
+    <div class="row" style="margin-top: 50px;">
+        <div class="signature-box">
+            <strong>POR LA EMPRESA:</strong><br><br>
+            <br>
+            <em>FGate Legal Team</em>
+        </div>
+        <div class="signature-box">
+            <strong>POR EL USUARIO:</strong><br><br>
+            <div style="font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; color: darkblue;">
+                FIRMIDO DIGITALMENTE<br>
+                {{ full_name }}
+            </div>
+            <br>
+            <small>ID: {{ id_number }}</small>
+        </div>
+    </div>
+
+    <div class="footer">
+        Generado automáticamente por FGate Platform el {{ generated_at }}. Validez jurídica según Ley 527 de 1999 (Colombia) y equivalentes internacionales.
+    </div>
+</body>
+</html>

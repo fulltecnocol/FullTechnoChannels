@@ -27,7 +27,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install weasyprint uvicorn fastapi httpx
 
 # Copy shared code and worker code
-COPY shared /app/shared
+COPY core /app/core
+COPY infrastructure /app/infrastructure
+COPY application /app/application
 COPY api /app/api
 COPY worker /app/worker
 

@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import asyncio
-from shared.database import init_db, AsyncSessionLocal
+from infrastructure.database.connection import init_db, AsyncSessionLocal
 from sqlalchemy import text
 import logging
 

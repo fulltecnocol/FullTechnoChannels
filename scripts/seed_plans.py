@@ -1,6 +1,6 @@
 import asyncio
-from shared.database import AsyncSessionLocal, init_db
-from shared.models import Plan
+from infrastructure.database.connection import AsyncSessionLocal, init_db
+from core.entities import Plan
 from sqlalchemy.future import select
 
 

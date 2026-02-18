@@ -26,6 +26,10 @@ export interface Channel {
     welcome_message?: string;
     expiration_message?: string;
     created_at: string;
+    plans?: Plan[];
+    logo_url?: string;
+    subscriber_count?: number;
+    monthly_price?: number;
 }
 
 export interface Plan {
@@ -63,6 +67,8 @@ export interface Payment {
     affiliate_amount: number;
     affiliate_id?: number;
     created_at: string;
+    user_email?: string;
+    transaction_hash?: string;
 }
 
 export interface Withdrawal {
@@ -75,6 +81,7 @@ export interface Withdrawal {
     details?: string;
     is_express: boolean;
     created_at: string;
+    request_date?: string;
     payout_id?: number;
 }
 
@@ -174,4 +181,148 @@ export interface UserAdmin {
     is_owner: boolean;
     legal_verification_status: string;
     created_at: string;
+}
+
+export interface RegisterData {
+    email: string;
+    password: string;
+    fullName: string;
+    referral_code?: string;
+    registration_token?: string;
+}
+
+export interface PasswordUpdateData {
+    old_password: string;
+    new_password: string;
+    confirm_password: string;
+}
+
+export interface PromotionCreateData {
+    code: string;
+    promo_type: 'discount' | 'trial';
+    value: number;
+    max_uses?: number | null;
+}
+
+export interface PlanCreateData {
+    name: string;
+    description: string;
+    price: number;
+    duration_days: number;
+}
+
+export interface PlanUpdateData {
+    name?: string;
+    description?: string;
+    price?: number;
+    duration_days?: number;
+    is_active?: boolean;
+}
+
+export interface ExpenseCreateData {
+    description: string;
+    amount: number;
+    category: string;
+    date: string;
+}
+
+export interface Expense {
+    id: number;
+    description: string;
+    amount: number;
+    category: string;
+    date: string;
+}
+
+export interface TaxSummary {
+    gross_revenue: number;
+    total_expenses: number;
+    net_income: number;
+}
+
+export interface SupportTicketItem {
+    id: number;
+    subject: string;
+    status: 'open' | 'closed' | 'pending';
+    updated_at: string;
+}
+
+// --- Affiliate System Types ---
+
+export interface AffiliateNode {
+    id: number;
+    name: string;
+    level: number;
+    avatar_url?: string;
+    total_referrals: number;
+    join_date?: string;
+    children: AffiliateNode[];
+}
+
+export interface AffiliateNetworkResponse {
+    user_id: number;
+    root_name: string;
+    children: AffiliateNode[];
+}
+
+export interface AffiliateStats {
+    total_earnings: number;
+    earnings_by_level: { level: number; amount: number }[];
+    recent_history: {
+        id: number;
+        amount: number;
+        level: number;
+        date: string;
+        source_user: string;
+    }[];
+    direct_referrals: number;
+    referral_code: string;
+}
+
+export interface AdminAffiliateStats {
+    total_commissions_paid: number;
+    active_recruiters: number;
+    earnings_by_level: { level: number; amount: number }[];
+}
+
+export interface AffiliateLedgerEntry {
+    id: number;
+    affiliate_name: string;
+    affiliate_id: number;
+    source_user: string;
+    amount: number;
+    level: number;
+    created_at: string;
+    payment_id: number;
+}
+
+export interface Badge {
+    id: string;
+    name: string;
+    icon: string;
+}
+
+export interface LeaderboardEntry {
+    id: number;
+    name: string;
+    earnings: number;
+    referrals: number;
+    badges: Badge[];
+    avatar?: string;
+}
+
+export interface AffiliateRank {
+    id: number;
+    name: string;
+    min_referrals: number;
+    bonus_percentage: number;
+    icon?: string;
+    created_at: string;
+}
+
+export interface RankCreate {
+    name: string;
+    min_referrals: number;
+    bonus_percentage: number;
+    icon?: string;
 }

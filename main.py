@@ -29,6 +29,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
         "https://app.fgate.co",
         "https://fgate-dashboard.web.app",
         "https://fgate.co",
@@ -65,11 +67,11 @@ async def health_check():
     Comprehensive health check for Cloud Monitoring uptime checks
     Returns 200 if healthy, 503 if unhealthy
     """
-    from shared.database import AsyncSessionLocal
+    from infrastructure.database.connection import AsyncSessionLocal
     from sqlalchemy import text
-    from shared.logger import get_logger
+    import logging
 
-    logger = get_logger("health_check")
+    logger = logging.getLogger("health_check")
     health_status = {
         "service": "FGate",
         "status": "healthy",

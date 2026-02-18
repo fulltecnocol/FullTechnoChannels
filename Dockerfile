@@ -29,7 +29,9 @@ RUN pip install --no-cache-dir python-dotenv
 # Copy source code
 COPY api/ ./api/
 COPY bot/ ./bot/
-COPY shared/ ./shared/
+COPY application/ ./application/
+COPY core/ ./core/
+COPY infrastructure/ ./infrastructure/
 COPY templates/ ./templates/
 COPY main.py ./
 

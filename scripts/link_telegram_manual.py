@@ -1,7 +1,12 @@
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-# Supabase URL directly
-DATABASE_URL = "postgresql://postgres:KJvNk1AF1LmxHhtK@db.oavgufpxufhwcznucbaf.supabase.co:5432/postgres"
+# Load environment variables
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("❌ DATABASE_URL not found. Please create a .env file with DATABASE_URL")
 
 
 def link_telegram(email, telegram_id):

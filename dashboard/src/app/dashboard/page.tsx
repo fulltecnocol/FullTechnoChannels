@@ -1,6 +1,6 @@
-
 "use client";
 
+import { Plus, Gift, Bell, LifeBuoy } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -17,6 +17,7 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { RevenueCharts } from '@/components/dashboard/RevenueCharts';
+import { affiliateApi, callsApi } from '@/lib/api';
 import { ChannelList } from '@/components/dashboard/ChannelList';
 import { CreateChannelModal } from '@/components/dashboard/CreateChannelModal';
 // import { DeleteChannelModal } from '@/components/dashboard/DeleteChannelModal'; // Not used in original? Verified in ChannelList it has onDeleteChannel callback
@@ -30,11 +31,14 @@ import { LegalSignature } from '@/components/LegalSignature';
 import { TaxHub } from '@/components/dashboard/TaxHub';
 import { PromotionsManager } from '@/components/dashboard/PromotionsManager';
 import { BrandingEditor } from '@/components/dashboard/BrandingEditor';
+import CallsManagement from '@/components/dashboard/CallsManagement';
+import { AdminAffiliateCenter } from '@/components/dashboard/AdminAffiliateCenter';
 
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Data States
@@ -97,6 +101,8 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
+      setError(null);
+      console.log("DASHBOARD_FETCH_DATA_START");
       const [summaryData, channelsData, withdrawalsData, analyticsData, ticketsData] = await Promise.all([
         ownerApi.getSummary(),
         ownerApi.getChannels(),
@@ -104,13 +110,20 @@ export default function Dashboard() {
         ownerApi.getAnalytics(),
         supportApi.getTickets()
       ]);
+      console.log("DASHBOARD_SUMMARY_DATA:", {
+        id: summaryData.id,
+        email: summaryData.email,
+        is_admin: summaryData.is_admin,
+        channels_count: channelsData.length
+      });
       setSummary(summaryData);
       setChannels(channelsData);
       setWithdrawals(withdrawalsData);
       setAnalytics(analyticsData);
       setSupportTickets(ticketsData);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching data:", err);
+      setError(err.message || "Error desconocido al cargar los datos");
     }
   };
 
@@ -301,6 +314,22 @@ export default function Dashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 text-center">
+        <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
+          <LifeBuoy className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Error de Conexión</h2>
+        <p className="text-muted-foreground mb-8 max-w-md">{error}</p>
+        <div className="flex gap-4">
+          <button onClick={fetchData} className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold">Reintentar</button>
+          <button onClick={handleLogout} className="px-6 py-3 bg-surface-border text-white rounded-xl font-bold">Cerrar Sesión</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <DashboardSidebar
@@ -364,8 +393,9 @@ export default function Dashboard() {
 
             {activeTab === "affiliates" && (
               <AffiliateSection
-                summary={summary}
                 user={user}
+                summary={summary}
+                configs={configs}
                 copyToClipboard={copyToClipboard}
               />
             )}
@@ -405,6 +435,8 @@ export default function Dashboard() {
 
             {activeTab === "legal" && <LegalSignature />}
 
+            {activeTab === "calls" && <CallsManagement />}
+
             {/* Admin Tabs */}
             {activeTab === "admin" && summary?.is_admin && (
               <AdminSystem
@@ -418,6 +450,10 @@ export default function Dashboard() {
                 setActiveTab={setActiveTab}
                 mounted={mounted}
               />
+            )}
+
+            {activeTab === "admin_affiliates" && summary?.is_admin && (
+              <AdminAffiliateCenter />
             )}
 
             {activeTab === "admin_payments" && summary?.is_admin && (

@@ -23,5 +23,5 @@ async def test_debug_endpoints_secured_in_production(monkeypatch):
 @pytest.mark.asyncio
 async def test_auth_token_fail():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.post("/token", data={"username": "wrong@test.com", "password": "bad"})
-    assert response.status_code in [400, 401, 404] # 404 if it expects /api/token
+        response = await ac.post("/api/token", data={"username": "wrong@test.com", "password": "bad"})
+    assert response.status_code in [400, 401]

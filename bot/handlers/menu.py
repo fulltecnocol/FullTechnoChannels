@@ -3,8 +3,8 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.future import select
 from sqlalchemy import and_
-from shared.database import AsyncSessionLocal
-from shared.models import Subscription, Plan, Channel
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import Subscription, Plan, Channel
 from bot.handlers.initial import get_or_create_user
 from datetime import datetime
 
@@ -42,9 +42,10 @@ async def cmd_profile(message: types.Message):
 
 async def show_profile(message: types.Message, tg_user: types.User):
     # Check Cache First
-    from shared.cache import memory_cache
-    cache_key = f"profile_msg_{tg_user.id}"
-    cached_text = await memory_cache.get(cache_key)
+    # from shared.cache import memory_cache # TODO: Move to infra
+    # cache_key = f"profile_msg_{tg_user.id}"
+    # cached_text = await memory_cache.get(cache_key)
+    cached_text = None # Temp bypass until cache is refactored
     
     if cached_text:
         await message.answer(cached_text, parse_mode="Markdown")
@@ -70,7 +71,7 @@ async def show_profile(message: types.Message, tg_user: types.User):
         subs = sub_res.all()
 
         # 2. Obtener Info de Afiliados
-        from shared.accounting import get_affiliate_tier_info
+        from core.use_cases.distribute_funds import get_affiliate_tier_info
 
         tier_info = await get_affiliate_tier_info(session, user.id)
         
@@ -100,7 +101,7 @@ async def show_profile(message: types.Message, tg_user: types.User):
         profile_text += "\n\n_Powered by FGate_"
         
         # Cache message for 60 seconds
-        await memory_cache.set(cache_key, profile_text, ttl_seconds=60)
+        # await memory_cache.set(cache_key, profile_text, ttl_seconds=60)
         
         await message.answer(profile_text, parse_mode="Markdown")
 

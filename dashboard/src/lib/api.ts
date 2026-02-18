@@ -1,10 +1,11 @@
 import {
     AuthResponse, SummaryData, Channel, Withdrawal, SupportTicket,
     TicketDetailsResponse, ConfigItem, AnalyticsData, Promotion, Payment,
-    LegalInfo, LegalStatus, UserAdmin
+    LegalInfo, LegalStatus, UserAdmin, AdminAffiliateStats, AffiliateLedgerEntry,
+    AffiliateNetworkResponse, AffiliateRank, RankCreate, AffiliateStats, LeaderboardEntry
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://membership-backend-dhtw77aq7a-uc.a.run.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://membership-backend-1054327025113.us-central1.run.app";
 
 export async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
@@ -36,51 +37,51 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestInit
 }
 
 export const ownerApi = {
-    getSummary: () => apiRequest<SummaryData>("/owner/dashboard/summary"),
-    getChannels: () => apiRequest<Channel[]>("/owner/channels"),
-    createChannel: (title: string) => apiRequest<Channel>("/owner/channels", {
+    getSummary: () => apiRequest<SummaryData>("/api/owner/dashboard/summary"),
+    getChannels: () => apiRequest<Channel[]>("/api/owner/channels"),
+    createChannel: (title: string) => apiRequest<Channel>("/api/owner/channels", {
         method: "POST",
         body: JSON.stringify({ title }),
     }),
-    deleteChannel: (id: number, confirm: boolean = false) => apiRequest<void>(`/owner/channels/${id}${confirm ? '?confirm=true' : ''}`, { method: "DELETE" }),
-    getDeleteChannelCost: (id: number) => apiRequest<any>(`/owner/channels/${id}/delete-cost`),
-    getWithdrawals: () => apiRequest<Withdrawal[]>("/owner/withdrawals"),
-    requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/owner/withdrawals", {
+    deleteChannel: (id: number, confirm: boolean = false) => apiRequest<void>(`/api/owner/channels/${id}${confirm ? '?confirm=true' : ''}`, { method: "DELETE" }),
+    getDeleteChannelCost: (id: number) => apiRequest<any>(`/api/owner/channels/${id}/delete-cost`),
+    getWithdrawals: () => apiRequest<Withdrawal[]>("/api/owner/withdrawals"),
+    requestWithdrawal: (data: { amount: number; method: string; details: string }) => apiRequest<Withdrawal>("/api/owner/withdrawals", {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    getTickets: () => apiRequest<SupportTicket[]>("/owner/tickets"),
-    createTicket: (data: { subject: string; content: string }) => apiRequest<SupportTicket>("/owner/tickets", {
+    getTickets: () => apiRequest<SupportTicket[]>("/api/owner/tickets"),
+    createTicket: (data: { subject: string; content: string }) => apiRequest<SupportTicket>("/api/owner/tickets", {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    getTicketDetails: (id: number) => apiRequest<TicketDetailsResponse>(`/owner/tickets/${id}`),
-    replyTicket: (id: number, content: string) => apiRequest<void>(`/owner/tickets/${id}/reply`, {
+    getTicketDetails: (id: number) => apiRequest<TicketDetailsResponse>(`/api/owner/tickets/${id}`),
+    replyTicket: (id: number, content: string) => apiRequest<void>(`/api/owner/tickets/${id}/reply`, {
         method: "POST",
         body: JSON.stringify({ content }),
     }),
-    updateBranding: (channelId: number, data: { welcome_message: string; expiration_message: string }) => apiRequest<Channel>(`/owner/channels/${channelId}/branding`, {
+    updateBranding: (channelId: number, data: { welcome_message: string; expiration_message: string }) => apiRequest<Channel>(`/api/owner/channels/${channelId}/branding`, {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    updateProfile: (data: { full_name: string; avatar_url: string }) => apiRequest<void>("/owner/profile", {
+    updateProfile: (data: { full_name: string; avatar_url: string }) => apiRequest<void>("/api/owner/profile", {
         method: "PUT",
         body: JSON.stringify(data),
     }),
-    updatePassword: (data: any) => apiRequest<void>("/owner/password", {
+    updatePassword: (data: any) => apiRequest<void>("/api/owner/password", {
         method: "PUT",
         body: JSON.stringify(data),
     }),
-    getPromotions: (channelId: number) => apiRequest<Promotion[]>(`/owner/channels/${channelId}/promotions`),
-    createPromotion: (channelId: number, data: any) => apiRequest<Promotion>(`/owner/channels/${channelId}/promotions`, {
+    getPromotions: (channelId: number) => apiRequest<Promotion[]>(`/api/owner/channels/${channelId}/promotions`),
+    createPromotion: (channelId: number, data: any) => apiRequest<Promotion>(`/api/owner/channels/${channelId}/promotions`, {
         method: "POST",
         body: JSON.stringify(data),
     }),
-    deletePromotion: (promoId: number) => apiRequest<void>(`/owner/promotions/${promoId}`, {
+    deletePromotion: (promoId: number) => apiRequest<void>(`/api/owner/promotions/${promoId}`, {
         method: "DELETE",
     }),
-    getAnalytics: () => apiRequest<AnalyticsData>("/owner/analytics"),
-    getProfile: () => apiRequest<any>("/owner/profile"),
+    getAnalytics: () => apiRequest<AnalyticsData>("/api/owner/analytics"),
+    getProfile: () => apiRequest<any>("/api/owner/profile"),
 };
 
 export const authApi = {
@@ -94,8 +95,8 @@ export const authApi = {
         const formData = new URLSearchParams();
         formData.append("username", data.email);
         formData.append("password", data.password);
-        console.log("LOGIN REQUEST:", { url: `${API_URL}/token`, username: data.email });
-        return fetch(`${API_URL}/token`, {
+        console.log("LOGIN REQUEST:", { url: `${API_URL}/api/token`, username: data.email });
+        return fetch(`${API_URL}/api/token`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: formData,
@@ -109,8 +110,8 @@ export const authApi = {
         });
     },
     register: (data: any) => {
-        console.log("REGISTER REQUEST:", { url: `${API_URL}/register`, data });
-        return apiRequest<void>("/register", {
+        console.log("REGISTER REQUEST:", { url: `${API_URL}/api/register`, data });
+        return apiRequest<void>("/api/register", {
             method: "POST",
             body: JSON.stringify({
                 email: data.email,
@@ -121,11 +122,11 @@ export const authApi = {
             }),
         });
     },
-    googleAuth: (credential: string, referralCode?: string, registrationToken?: string) => apiRequest<AuthResponse>("/auth/google", {
+    googleAuth: (credential: string, referralCode?: string, registrationToken?: string) => apiRequest<AuthResponse>("/api/auth/google", {
         method: "POST",
         body: JSON.stringify({ credential, referral_code: referralCode, registration_token: registrationToken }),
     }),
-    magicLogin: (token: string) => apiRequest<AuthResponse>(`/auth/magic-login?token=${token}`, {
+    magicLogin: (token: string) => apiRequest<AuthResponse>(`/api/auth/magic-login?token=${token}`, {
         method: "POST",
     }),
 };
@@ -136,31 +137,69 @@ export const channelApi = ownerApi;
 export const supportApi = ownerApi;
 
 export const adminApi = {
-    getConfig: () => apiRequest<ConfigItem[]>("/admin/config"),
-    updateConfig: (key: string, value: number) => apiRequest<ConfigItem>("/admin/config", {
+    getConfig: () => apiRequest<ConfigItem[]>("/api/admin/config"),
+    updateConfig: (key: string, value: number) => apiRequest<ConfigItem>("/api/admin/config", {
         method: "POST",
         body: JSON.stringify({ key, value }),
     }),
-    getWithdrawals: () => apiRequest<Withdrawal[]>("/admin/withdrawals"),
-    processWithdrawal: (id: number, status: string) => apiRequest<Withdrawal>(`/admin/withdrawals/${id}/process`, {
+    getWithdrawals: () => apiRequest<Withdrawal[]>("/api/admin/withdrawals"),
+    processWithdrawal: (id: number, status: string) => apiRequest<Withdrawal>(`/api/admin/withdrawals/${id}/process`, {
         method: "POST",
         body: JSON.stringify({ status }),
     }),
-    getTickets: () => apiRequest<SupportTicket[]>("/admin/tickets"),
-    getTicketDetails: (id: number) => apiRequest<TicketDetailsResponse>(`/admin/tickets/${id}`),
-    replyTicket: (id: number, content: string) => apiRequest<void>(`/admin/tickets/${id}/reply`, {
+    getTickets: () => apiRequest<SupportTicket[]>("/api/admin/tickets"),
+    getTicketDetails: (id: number) => apiRequest<TicketDetailsResponse>(`/api/admin/tickets/${id}`),
+    replyTicket: (id: number, content: string) => apiRequest<void>(`/api/admin/tickets/${id}/reply`, {
         method: "POST",
         body: JSON.stringify({ content }),
     }),
-    getPayments: () => apiRequest<Payment[]>("/admin/payments/pending"),
-    verifyPayment: (id: number) => apiRequest<Payment>(`/admin/payments/${id}/verify-crypto`, {
+    getPayments: () => apiRequest<Payment[]>("/api/admin/payments/pending"),
+    verifyPayment: (id: number) => apiRequest<Payment>(`/api/admin/payments/${id}/verify-crypto`, {
         method: "POST",
     }),
-    getUsers: () => apiRequest<UserAdmin[]>("/admin/users"),
-    getTaxSummary: (year?: number) => apiRequest<any>(`/admin/tax/summary${year ? `?year=${year}` : ''}`),
-    getExpenses: (year?: number) => apiRequest<any[]>(`/admin/expenses${year ? `?year=${year}` : ''}`),
-    createExpense: (data: any) => apiRequest<any>(`/admin/expenses`, { method: "POST", body: JSON.stringify(data) }),
-    deleteExpense: (id: number) => apiRequest<void>(`/admin/expenses/${id}`, { method: "DELETE" }),
+    getUsers: () => apiRequest<UserAdmin[]>("/api/admin/users"),
+    getTaxSummary: (year?: number) => apiRequest<any>(`/api/admin/tax/summary${year ? `?year=${year}` : ''}`),
+    getExpenses: (year?: number) => apiRequest<any[]>(`/api/admin/expenses${year ? `?year=${year}` : ''}`),
+    createExpense: (data: any) => apiRequest<any>(`/api/admin/expenses`, { method: "POST", body: JSON.stringify(data) }),
+    deleteExpense: (id: number) => apiRequest<void>(`/api/admin/expenses/${id}`, { method: "DELETE" }),
+    // Affiliate Admin
+    getAffiliateStats: () => apiRequest<AdminAffiliateStats>("/api/affiliate/admin/stats"),
+    getAffiliateLedger: (limit: number, offset: number) => apiRequest<AffiliateLedgerEntry[]>(`/api/affiliate/admin/ledger?limit=${limit}&offset=${offset}`),
+    getAffiliateTree: (userId: number) => apiRequest<AffiliateNetworkResponse>(`/api/affiliate/admin/audit/${userId}`),
+    getAffiliateRanks: () => apiRequest<AffiliateRank[]>("/api/affiliate/ranks"),
+    createAffiliateRank: (data: RankCreate) => apiRequest<AffiliateRank>("/api/affiliate/ranks", { method: "POST", body: JSON.stringify(data) }),
+    deleteAffiliateRank: (id: number) => apiRequest<void>(`/api/affiliate/ranks/${id}`, { method: "DELETE" }),
+};
+
+export const affiliateApi = {
+    getNetwork: () => apiRequest<AffiliateNetworkResponse>("/api/affiliate/network"),
+    getStats: () => apiRequest<AffiliateStats>("/api/affiliate/stats"),
+    getLeaderboard: () => apiRequest<LeaderboardEntry[]>("/api/affiliate/leaderboard"),
+    checkCode: (code: string) => apiRequest<{ available: boolean }>(`/api/affiliate/check-code/${code}`),
+    updateCode: (code: string) => apiRequest<void>("/api/affiliate/update-code", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+    }),
+};
+
+export const callsApi = {
+    getServices: () => apiRequest<any[]>("/api/calls/services"),
+    createService: (data: any) => apiRequest<any>("/api/calls/services", {
+        method: "POST",
+        body: JSON.stringify(data),
+    }),
+    updateService: (id: number, data: any) => apiRequest<any>(`/api/calls/services/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+    }),
+    deleteService: (id: number) => apiRequest<void>(`/api/calls/services/${id}`, { method: "DELETE" }),
+    getSlots: (serviceId: number) => apiRequest<any[]>(`/api/calls/services/${serviceId}/slots`),
+    toggleSlot: (serviceId: number, date: string, hour: number, available: boolean) =>
+        apiRequest<any>(`/api/calls/services/${serviceId}/slots/toggle`, {
+            method: "POST",
+            body: JSON.stringify({ date, hour, available }),
+        }),
+    getBookings: () => apiRequest<any[]>("/api/calls/bookings"),
 };
 
 export const legalApi = {

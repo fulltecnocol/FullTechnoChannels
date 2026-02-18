@@ -7,19 +7,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
 
 # Import modular routers
-from api.routes import auth, owner, admin, legal, calls, public, availability, affiliate, profiles
+from api.routes import (
+    auth,
+    owner,
+    admin,
+    legal,
+    payments,
+    calls,
+    public,
+    availability,
+    affiliate,
+    profiles,
+)
 
 # Import schemas and logic
-from shared.database import get_db, AsyncSessionLocal
-from shared.models import Plan
-from api.schemas.misc import PaymentRequest
-from api.services.membership_service import activate_membership
-from shared.logging_config import configure_logger
+from infrastructure.database.connection import get_db, AsyncSessionLocal
+import logging
 import sentry_sdk
 import structlog
 
 # Initialize Logging
-configure_logger()
+logging.basicConfig(level=logging.INFO)
 logger = structlog.get_logger(__name__)
 
 # Initialize Sentry
@@ -37,15 +45,6 @@ if SENTRY_DSN:
 
 # Configuration
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-WOMPI_PUBLIC_KEY = os.getenv("WOMPI_PUBLIC_KEY")
-WOMPI_API_BASE = (
-    "https://production.wompi.co/v1"
-    if os.getenv("ENV") == "production"
-    else "https://sandbox.wompi.co/v1"
-)
-WOMPI_INTEGRITY_SECRET = os.getenv("WOMPI_INTEGRITY_SECRET")
-WOMPI_EVENTS_SECRET = os.getenv("WOMPI_EVENTS_SECRET")
 
 if STRIPE_API_KEY:
     stripe.api_key = STRIPE_API_KEY
@@ -58,10 +57,14 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
         "https://app.fgate.co",
         "https://fgate-dashboard.web.app",
         "https://fgate.co",
-        "https://full-techno-channels.web.app"
+        "https://full-techno-channels.web.app",
+        "https://full-techno-channels--full-techno-channels.us-central1.hosted.app",
+        "https://full-techno-channels.firebaseapp.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -69,16 +72,16 @@ app.add_middleware(
 )
 
 # Include Modular Routers
-app.include_router(auth.router)
-app.include_router(owner.router)
-app.include_router(admin.router)
-app.include_router(legal.router)
-app.include_router(calls.router)
-app.include_router(public.router)
-app.include_router(availability.router)
-app.include_router(affiliate.router)
-app.include_router(profiles.router)
-
+app.include_router(auth.router, prefix="/api")
+app.include_router(owner.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
+app.include_router(legal.router, prefix="/api")
+app.include_router(payments.router, prefix="/api")  # Routes for payments, webhooks, and links
+app.include_router(calls.router, prefix="/api")
+app.include_router(public.router, prefix="/api")
+app.include_router(availability.router, prefix="/api")
+app.include_router(affiliate.router, prefix="/api")
+app.include_router(profiles.router, prefix="/api")
 
 
 # --- DEBUG ENDPOINTS (TEMPORARY) ---
@@ -88,165 +91,66 @@ async def debug_users(secret: str, db: AsyncSessionLocal = Depends(get_db)):
         raise HTTPException(status_code=404)
     if secret != "super_secret_debug_key_2026":
         raise HTTPException(status_code=403)
-    
-    from shared.models import User
+
+    from core.entities import User
+
     result = await db.execute(select(User))
     users = result.scalars().all()
     return [
         {
-            "id": u.id, 
-            "email": u.email, 
-            "full_name": u.full_name, 
-            "is_owner": u.is_owner, 
-            "is_admin": u.is_admin
-        } 
+            "id": u.id,
+            "email": u.email,
+            "full_name": u.full_name,
+            "is_owner": u.is_owner,
+            "is_admin": u.is_admin,
+        }
         for u in users
     ]
 
+
 @app.post("/debug/promote")
-async def debug_promote(secret: str, email: str, db: AsyncSessionLocal = Depends(get_db)):
+async def debug_promote(
+    secret: str, email: str, db: AsyncSessionLocal = Depends(get_db)
+):
     if ENV == "production":
         raise HTTPException(status_code=404)
     if secret != "super_secret_debug_key_2026":
         raise HTTPException(status_code=403)
-    
-    from shared.models import User
+
+    from core.entities import User
+
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     user.is_owner = True
     user.is_admin = True
     await db.commit()
     return {"status": "promoted", "email": email}
 
+
 @app.get("/debug/channels")
-async def debug_channels(secret: str, owner_id: int, db: AsyncSessionLocal = Depends(get_db)):
+async def debug_channels(
+    secret: str, owner_id: int, db: AsyncSessionLocal = Depends(get_db)
+):
     if ENV == "production":
         raise HTTPException(status_code=404)
     if secret != "super_secret_debug_key_2026":
         raise HTTPException(status_code=403)
-    
-    from shared.models import Channel
+
+    from core.entities import Channel
+
     result = await db.execute(select(Channel).where(Channel.owner_id == owner_id))
     channels = result.scalars().all()
     return [
-        {"id": c.id, "title": c.title, "is_verified": c.is_verified} 
-        for c in channels
+        {"id": c.id, "title": c.title, "is_verified": c.is_verified} for c in channels
     ]
+
+
 # -----------------------------------
+
 
 @app.get("/")
 async def root():
     return {"name": "FGate API", "status": "online", "version": "2.0.0"}
-
-
-# --- WEBHOOKS & PAYMENT LINKS ---
-
-
-@app.post("/webhook/stripe")
-async def stripe_webhook(request: Request, db: AsyncSessionLocal = Depends(get_db)):
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature")
-    try:
-        event = (
-            stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-            if STRIPE_WEBHOOK_SECRET
-            else {}
-        )
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid Stripe Event")
-
-    if event.get("type") == "checkout.session.completed":
-        session = event["data"]["object"]
-        meta = session.get("metadata", {})
-        await activate_membership(
-            user_id=int(meta.get("user_id")),
-            plan_id=int(meta.get("plan_id")),
-            db=db,
-            promo_id=int(meta.get("promo_id"))
-            if meta.get("promo_id") != "None"
-            else None,
-            provider_tx_id=session.get("id"),
-            method="stripe",
-        )
-    return {"status": "success"}
-
-
-@app.post("/webhook/wompi")
-async def wompi_webhook(request: Request, db: AsyncSessionLocal = Depends(get_db)):
-    payload = await request.json()
-    # Logic for signature verification (simplified here for brevity)
-    event = payload.get("event")
-    data = payload.get("data", {}).get("transaction", {})
-    if event == "transaction.updated" and data.get("status") == "APPROVED":
-        ref = data.get("reference", "").split("_")
-        try:
-            await activate_membership(
-                user_id=int(ref[1]),
-                plan_id=int(ref[3]),
-                db=db,
-                promo_id=int(ref[5]) if int(ref[5]) > 0 else None,
-                provider_tx_id=data.get("id"),
-                method="wompi",
-            )
-            return {"status": "ok"}
-        except Exception:
-            pass
-    return {"status": "ignored"}
-
-
-@app.post("/payments/create-link")
-async def create_payment_link(
-    data: PaymentRequest, db: AsyncSessionLocal = Depends(get_db)
-):
-    plan_result = await db.execute(select(Plan).where(Plan.id == data.plan_id))
-    plan = plan_result.scalar_one_or_none()
-    if not plan:
-        raise HTTPException(status_code=404)
-
-    final_price = plan.price
-    # (Promo application logic here...)
-
-    ref = f"user_{data.user_id}_plan_{data.plan_id}_p_{data.promo_id or 0}_{int(datetime.utcnow().timestamp())}"
-
-    if data.method == "stripe":
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "usd",
-                        "product_data": {"name": f"VIP: {plan.name}"},
-                        "unit_amount": int(final_price * 100),
-                    },
-                    "quantity": 1,
-                }
-            ],
-            mode="payment",
-            success_url=f"{os.getenv('DASHBOARD_URL', 'https://app.fgate.co')}/success",
-            cancel_url=f"{os.getenv('DASHBOARD_URL', 'https://app.fgate.co')}/cancel",
-            client_reference_id=ref,
-            metadata={
-                "user_id": data.user_id,
-                "plan_id": data.plan_id,
-                "promo_id": str(data.promo_id),
-            },
-        )
-        return {"url": session.url}
-
-    elif data.method == "wompi":
-        int(final_price * 4000 * 100)  # COP conversion
-        # Integrity signature calculation...
-        return {"url": "https://checkout.wompi.co/l/..."}  # Placeholder
-
-    elif data.method == "crypto":
-        # Create pending payment
-        return {
-            "method": "crypto",
-            "address": os.getenv("CRYPTO_WALLET_ADDRESS"),
-            "amount": final_price,
-        }
-
-    raise HTTPException(status_code=400, detail="Método no soportado")

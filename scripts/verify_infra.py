@@ -9,7 +9,7 @@ sys.path.append(os.getcwd())
 
 load_dotenv()
 
-from shared.database import get_redis, get_db
+from infrastructure.database.connection import get_redis, get_db
 
 async def verify_infra():
     print("🔍 Verifying Infrastructure...")

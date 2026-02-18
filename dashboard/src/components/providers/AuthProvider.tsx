@@ -36,6 +36,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     useEffect(() => {
+        console.log("AUTH_PROVIDER_MOUNTED");
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+        if (!clientId) {
+            console.error("❌ NEXT_PUBLIC_GOOGLE_CLIENT_ID is not configured");
+        }
+        console.log("GOOGLE_CLIENT_ID_IN_USE:", clientId ? "Present" : "Missing", clientId?.substring(0, 10) + "...");
+        console.log("CURRENT_ORIGIN:", typeof window !== 'undefined' ? window.location.origin : "SSR");
         checkAuth();
     }, []);
 
@@ -43,14 +50,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const token = localStorage.getItem("token");
         if (!token) {
             setLoading(false);
-            if (pathname !== "/login" && pathname !== "/register") {
+            if (pathname !== "/" && pathname !== "/login" && pathname !== "/register") {
                 router.push("/login");
             }
             return;
         }
 
         try {
-            const userData = await apiRequest<User>("/owner/profile");
+            const userData = await apiRequest<User>("/api/owner/profile");
             setUser(userData);
         } catch (error) {
             // Token invalid
@@ -77,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1054327025113-765gvg5r9kjci5kbucurijnp0ih1ap7e.apps.googleusercontent.com"}>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
             <AuthContext.Provider value={{ user, loading, login, logout }}>
                 {children}
             </AuthContext.Provider>

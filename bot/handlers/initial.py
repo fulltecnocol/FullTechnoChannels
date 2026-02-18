@@ -1,8 +1,8 @@
 from aiogram import Router, types, F
 from aiogram.filters import Command, CommandObject
-from sqlalchemy.future import select
-from shared.database import AsyncSessionLocal
-from shared.models import User as DBUser, Promotion, RegistrationToken
+from sqlalchemy import select
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import User as DBUser, Promotion, RegistrationToken
 from datetime import datetime, timedelta
 import random
 

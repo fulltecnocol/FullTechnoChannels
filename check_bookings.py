@@ -1,7 +1,7 @@
 
 import asyncio
-from shared.database import AsyncSessionLocal
-from shared.models import CallBooking
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import CallBooking
 from sqlalchemy import select
 
 async def check_bookings():

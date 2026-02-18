@@ -22,16 +22,13 @@ export function DashboardSidebar({ activeTab, setActiveTab, setIsViewingAsAdmin,
         { id: "settings", label: "Configuración", icon: Settings },
         ...(summary?.is_admin ? [
             { id: "admin", label: "Admin Sistema", icon: ShieldEllipsis },
+            { id: "admin_affiliates", label: "Admin Afiliados", icon: Users },
             { id: "admin_payments", label: "Admin Pagos", icon: CreditCard }
         ] : []),
     ];
 
     return (
         <aside className="hidden md:flex w-72 flex-col border-r border-surface-border bg-surface/50 backdrop-blur-xl p-8 space-y-10 h-screen sticky top-0">
-            {/* DEBUG: Remove after fix */}
-            <div className="text-[10px] text-muted-foreground hidden">
-                Admin: {summary?.is_admin ? "YES" : "NO"} / ID: {summary?.id}
-            </div>
             <div className="flex items-center gap-4 group cursor-pointer">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary via-accent-gold to-secondary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 group-hover:rotate-12 transition-all">
                     <Bot className="w-7 h-7 text-primary-foreground" />

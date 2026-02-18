@@ -4,11 +4,11 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.future import select
 from sqlalchemy import and_
-from shared.database import AsyncSessionLocal
-from shared.models import CallService, User
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import CallService, User
 
 from datetime import datetime
-from shared.utils.calendar import generate_calendar_links
+# from shared.utils.calendar import generate_calendar_links # TODO: Check if this exists or implementation moved
 
 router = Router()
 
@@ -101,7 +101,7 @@ async def show_slots(callback: types.CallbackQuery):
         from_date = now.strftime("%Y-%m-%d")
         to_date = (now + timedelta(days=14)).strftime("%Y-%m-%d")
         
-        from shared.services.availability_service import get_available_slots
+        from infrastructure.cache.availability_cache import get_available_slots
         slots = await get_available_slots(session, service_id, from_date, to_date)
         
         # Filter only future slots (double check execution time)
@@ -146,7 +146,7 @@ async def ask_payment(callback: types.CallbackQuery):
     start_time = datetime.strptime(ts_str, "%Y%m%d%H%M")
     
     async with AsyncSessionLocal() as session:
-        from shared.models import CallBooking
+        from core.entities import CallBooking
         # Check against CallBooking (Capacity)
         # Note: We should technically checking AvailabilityRange equality too, but overlapping check is enough for safety.
         # Check if already booked
@@ -200,7 +200,7 @@ async def finalize_booking(callback: types.CallbackQuery):
              return
 
         # Double Check Overlap / Availability
-        from shared.models import CallBooking
+        from core.entities import CallBooking
         existing = await session.execute(
             select(CallBooking).where(
                 and_(

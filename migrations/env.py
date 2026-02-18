@@ -7,9 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-from shared.database import DATABASE_URL, get_base
-import shared.models  # noqa
-import shared.signature_models  # noqa
+from infrastructure.database.connection import DATABASE_URL, get_base
+import core.entities  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

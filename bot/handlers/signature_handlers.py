@@ -1,4 +1,5 @@
 import logging
+import os
 from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -10,15 +11,13 @@ from aiogram.types import (
     ReplyKeyboardRemove,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
+    INPUT_FILE_TYPES,
 )
-from sqlalchemy import select
-import os
-from aiogram.types import BufferedInputFile
 
 from bot.states.signature_states import SignatureFlow
-from shared.database import AsyncSessionLocal
-from shared.models import User
-from shared.signature_models import OwnerLegalInfo, SignedContract
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities.user import User
+from core.entities.legal import OwnerLegalInfo, SignedContract, SignatureCode
 
 # Router específico para firma
 signature_router = Router()
@@ -568,7 +567,7 @@ async def handle_sign_request(callback: types.CallbackQuery, state: FSMContext):
     try:
         import secrets
         from datetime import datetime
-        from shared.signature_models import SignatureCode
+        from core.entities.legal import SignatureCode
 
         async with AsyncSessionLocal() as session:
             # Get user
@@ -640,17 +639,16 @@ async def process_otp_verification(message: types.Message, state: FSMContext):
         # Por ahora, solo validamos que el PDF se genera correctamente sin errores.
         
         try:
-             import httpx
-             import os
-             
-             WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
-             
-             # Recuperar datos legales para enviar al worker
-             # Recuperar datos legales para enviar al worker
-             async with AsyncSessionLocal() as session:
-                # First get user
-                res_user = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
-                db_user = res_user.scalar_one_or_none()
+            from infrastructure.external_apis.pdf_generator import PDFContractService
+            from infrastructure.storage.storage_factory import StorageFactory
+            from core.entities import User, OwnerLegalInfo, SignedContract
+            from aiogram.types import BufferedInputFile
+            
+            async with AsyncSessionLocal() as session:
+                # 1. Recuperar Usuario y Datos Legales
+                res = await session.execute(select(User).where(User.telegram_id == message.from_user.id))
+                db_user = res.scalar_one_or_none()
+                
                 if not db_user:
                      await message.answer("❌ Error: Usuario no encontrado.")
                      return
@@ -659,69 +657,75 @@ async def process_otp_verification(message: types.Message, state: FSMContext):
                     select(OwnerLegalInfo).where(OwnerLegalInfo.owner_id == db_user.id)
                 )
                 legal_info = res_legal.scalar_one_or_none()
-                legal_dict = {
-                    c.name: getattr(legal_info, c.name)
-                    for c in legal_info.__table__.columns
+                
+                if not legal_info:
+                    raise Exception("Falta información legal asociada al usuario.")
+
+                # 2. Generar UUID y Hash Simulado
+                process_id = uuid.uuid4().hex
+                fake_tx = "0x" + uuid.uuid4().hex + uuid.uuid4().hex
+                doc_hash = "0x" + uuid.uuid4().hex 
+                
+                # 3. Preparar Datos para PDF
+                pdf_data = {
+                    "contract_id": f"CTR-{process_id[:8].upper()}",
+                    "signature_date": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                    "full_name": legal_info.full_name,
+                    "id_type": legal_info.id_type,
+                    "id_number": legal_info.id_number,
+                    "email": db_user.email or "N/A",
+                    "telegram_id": str(db_user.telegram_id),
+                    "address": legal_info.address,
+                    "city": legal_info.city,
+                    "signature_code": input_otp,
+                    "document_hash": doc_hash,
+                    "blockchain_tx_hash": fake_tx,
+                    "blockchain_network": "Polygon Amoy (Testnet)",
+                    "ip_address": "127.0.0.1 (Local)"
                 }
-             
-             signature_data_preview = {
-                "signature_date": datetime.utcnow().isoformat(),
-                "signature_code": input_otp,
-                "telegram_user_id": str(message.from_user.id),
-                "ip_address": "Telegram Bot",
-                "document_hash": "PENDING",
-                "blockchain_tx_hash": "PENDING",
-                "blockchain_network": "Polygon Amoy",
-                "contract_id": "PENDING",
-             }
-
-             async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    f"{WORKER_URL}/sign-contract",
-                    json={
-                        "legal_data": legal_dict,
-                        "signature_data": signature_data_preview
-                    }
+                
+                # 4. Generar PDF (CPU Bound -> run_in_executor)
+                loop = asyncio.get_running_loop()
+                pdf_bytes = await loop.run_in_executor(None, PDFContractService.generate_contract_pdf, legal_info.__dict__, pdf_data)
+                
+                # 5. Guardar en Disco/Nube
+                filename = f"contract_{db_user.id}_{process_id}.pdf"
+                storage = StorageFactory.get_provider()
+                await storage.save_file(pdf_bytes, filename)
+                
+                # 6. Guardar en BD
+                signed = SignedContract(
+                    owner_id=db_user.id,
+                    pdf_url=filename, 
+                    pdf_hash=doc_hash,
+                    blockchain_tx_hash=fake_tx,
+                    blockchain_confirmed=True,
+                    signature_code=input_otp,
+                    signed_at=datetime.utcnow()
                 )
-                response.raise_for_status()
-                # Si no falla, es que se generó bien.
+                session.add(signed)
+                
+                db_user.legal_verification_status = "contract_signed"
+                db_user.can_create_channels = True
+                await session.commit()
+                
+                # Enviar PDF al usuario
+                doc_file = BufferedInputFile(pdf_bytes, filename="Contrato_FGate_Firmado.pdf")
+                await message.reply_document(doc_file, caption="✅ **Aquí tienes tu copia del contrato firmado.**")
+
+                await state.clear()
+                await message.answer(
+                    "🎉 **¡CONTRATO FIRMADO EXITOSAMENTE!**\n\n"
+                    "Tu cuenta ha sido verificada y habilitada para recibir pagos.\n\n"
+                    f"🔗 **Registro Blockchain (Polygon):**\n`{fake_tx}`\n\n"
+                    "Guardaremos una copia de seguridad. Puedes descargar tu contrato en cualquier momento con `/contract`.",
+                    parse_mode="Markdown",
+                )
+
         except Exception as e:
-             logging.error(f"Worker signing failed: {e}")
-             await message.answer("❌ Error generando contrato firmado. Intenta nuevamente.")
+             logging.error(f"Error generando contrato local: {e}", exc_info=True)
+             await message.answer(f"❌ Error interno al generar contrato: {str(e)}")
              return
-
-        fake_tx = "0x" + uuid.uuid4().hex + uuid.uuid4().hex
-
-        async with AsyncSessionLocal() as session:
-            # Get user and info...
-            # Actualizar estado user
-            res = await session.execute(
-                select(User).where(User.telegram_id == message.from_user.id)
-            )
-            db_user = res.scalar_one_or_none()
-            db_user.legal_verification_status = "contract_signed"
-            db_user.can_create_channels = True
-
-            # Crear contrato dummy
-            signed = SignedContract(
-                owner_id=db_user.id,
-                pdf_url="https://storage.googleapis.com/.../contract.pdf",
-                pdf_hash="0x...",
-                blockchain_tx_hash=fake_tx,
-                blockchain_confirmed=True,  # Simulamos instantáneo
-                signature_code=input_otp,
-            )
-            session.add(signed)
-            await session.commit()
-
-        await state.clear()
-        await message.answer(
-            "🎉 **¡CONTRATO FIRMADO EXITOSAMENTE!**\n\n"
-            "Tu cuenta ha sido verificada y habilitada para recibir pagos.\n\n"
-            f"🔗 **Registro Blockchain (Polygon):**\n`{fake_tx}`\n\n"
-            "Guardaremos una copia de seguridad. Puedes descargar tu contrato en cualquier momento con `/contract`.",
-            parse_mode="Markdown",
-        )
 
         # Enviar notificación administrativa si es necesario
 
@@ -742,6 +746,10 @@ async def cmd_download_contract(message: types.Message):
     await message.answer("🔍 Buscando contrato firmado...")
 
     try:
+        file_data = None
+        filename = None
+        caption = None
+        
         async with AsyncSessionLocal() as session:
             # 1. Buscar contrato firmado
             res_contract = await session.execute(
@@ -769,66 +777,73 @@ async def cmd_download_contract(message: types.Message):
                 )
                 return
 
-            # 3. Preparar datos
-            legal_dict = {
-                c.name: getattr(legal_info, c.name)
-                for c in legal_info.__table__.columns
-            }
-
-            signature_data = {
-                "signature_date": signed_contract.signed_at,
-                "signature_code": signed_contract.signature_code,
-                "telegram_user_id": str(user_id),
-                "ip_address": "Telegram Bot (Signed)",
-                "document_hash": signed_contract.pdf_hash,
-                "blockchain_tx_hash": signed_contract.blockchain_tx_hash,
-                "blockchain_network": "Polygon Amoy",
-                "contract_id": f"CTR-{signed_contract.id}",
-            }
-
-            # 4. Generar Documento (PDF) vía Worker
-            WORKER_URL = os.getenv("WORKER_URL", "http://localhost:8001")
+            # 3. Obtener Documento (Factory)
+            from infrastructure.storage.storage_factory import StorageFactory
+            from infrastructure.external_apis.pdf_generator import PDFContractService
             
-            try:
-                import httpx
-                import base64
-                
-                # Formatear fechas para JSON
-                signature_data["signature_date"] = signature_data["signature_date"].isoformat()
-                
-                async with httpx.AsyncClient(timeout=30.0) as client:
-                    response = await client.post(
-                        f"{WORKER_URL}/sign-contract",
-                        json={
-                            "legal_data": legal_dict,
-                            "signature_data": signature_data
-                        }
-                    )
-                    response.raise_for_status()
-                    data = response.json()
-                    pdf_bytes = base64.b64decode(data["pdf_base64"])
+            storage = StorageFactory.get_provider()
+            filename = signed_contract.pdf_url
+            
+            # Verificar si existe como archivo local (no URL http)
+            is_local_file = filename and not filename.startswith("http") and storage.file_exists(filename)
+            
+            if is_local_file:
+                 logging.info(f"Serving local contract: {filename}")
+                 file_data = await storage.read_file(filename)
+            else:
+                 # Fallback: Regenerar PDF si no existe en disco o es registro antiguo
+                 logging.warning(f"Contract file not found locally ({filename}). Regenerating...")
+                 await message.bot.send_chat_action(chat_id=user_id, action="upload_document")
+                 
+                 # Generar datos
+                 process_id = uuid.uuid4().hex
+                 doc_hash = signed_contract.pdf_hash or ("0x" + uuid.uuid4().hex)
+                 
+                 pdf_data = {
+                    "contract_id": f"CTR-{signed_contract.id}",
+                    "signature_date": signed_contract.signed_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                    "full_name": legal_info.full_name,
+                    "id_type": legal_info.id_type,
+                    "id_number": legal_info.id_number,
+                    "email": "N/A",
+                    "telegram_id": str(user_id),
+                    "address": legal_info.address,
+                    "city": legal_info.city,
+                    "signature_code": signed_contract.signature_code,
+                    "document_hash": doc_hash,
+                    "blockchain_tx_hash": signed_contract.blockchain_tx_hash,
+                    "blockchain_network": "Polygon Amoy",
+                    "ip_address": "N/A (Regenerated)"
+                 }
+                 
+                 loop = asyncio.get_running_loop()
+                 file_data = await loop.run_in_executor(None, PDFContractService.generate_contract_pdf, legal_info.__dict__, pdf_data)
+                 
+                 # Guardar el regenerado
+                 new_filename = f"contract_{signed_contract.id}_{process_id}.pdf"
+                 await storage.save_file(file_data, new_filename)
+                 
+                 # Actualizar BD
+                 signed_contract.pdf_url = new_filename
+                 await session.commit()
+                 filename = new_filename
 
-                file_data = pdf_bytes
-                filename = f"Contrato_Mandato_Firmado_{signed_contract.id}.pdf"
-                caption = (
-                    "✅ **CONTRATO DE MANDATO (FIRMADO)**\n\n"
-                    f"📅 Fecha: {signed_contract.signed_at.strftime('%Y-%m-%d')}\n"
-                    f"🔗 Blockchain TX: `{signed_contract.blockchain_tx_hash}`"
-                )
-            except Exception as e_api:
-                logging.error(f"Worker download failed: {e_api}")
-                await message.answer(f"❌ Error recuperando contrato: {e_api}")
-                return
+            caption = (
+                "✅ **CONTRATO DE MANDATO (FIRMADO)**\n\n"
+                f"📅 Fecha: {signed_contract.signed_at.strftime('%Y-%m-%d')}\n"
+                f"🔗 Blockchain TX: `{signed_contract.blockchain_tx_hash}`"
+            )
 
-            # 5. Enviar
+        # 5. Enviar (Fuera del session para no bloquear)
+        if file_data and filename:
             file = BufferedInputFile(file_data, filename=filename)
             await message.answer_document(
                 document=file, caption=caption, parse_mode="Markdown"
             )
 
     except Exception as e:
-        logging.error(f"Error /contract: {e}")
-        await message.answer(f"❌ Error interno recuperando contrato: {str(e)}")
+        logging.error(f"Error in cmd_download_contract: {e}", exc_info=True)
+        await message.answer(f"❌ Error al recuperar el contrato: {str(e)}")
 
 
 # --- UTILIDAD ---

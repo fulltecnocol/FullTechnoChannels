@@ -66,16 +66,23 @@ export default function LoginPage() {
     const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
         setLoading(true);
         setError("");
+        console.log("GOOGLE_AUTH_TRIGGERED");
+
         if (!credentialResponse.credential) {
+            console.error("GOOGLE_AUTH_MISSING_CREDENTIAL");
             setError("Error al autenticar con Google");
             setLoading(false);
             return;
         }
+
         try {
+            console.log("GOOGLE_AUTH_CALLING_BACKEND");
             const data = await authApi.googleAuth(credentialResponse.credential);
+            console.log("GOOGLE_AUTH_SUCCESS");
             localStorage.setItem("token", data.access_token);
             window.location.href = "/dashboard";
         } catch (err: unknown) {
+            console.error("GOOGLE_AUTH_BACKEND_ERROR:", err);
             setError(err instanceof Error ? err.message : "Error al autenticar con Google");
         } finally {
             setLoading(false);
@@ -176,18 +183,15 @@ export default function LoginPage() {
                             <span className="bg-surface px-4">o continuar con</span>
                         </div>
 
-                        {(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1054327025113-765gvg5r9kjci5kbucurijnp0ih1ap7e.apps.googleusercontent.com") && (
-                            <div className="flex justify-center mb-8">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={() => setError("Error al conectar con Google")}
-                                    useOneTap
-                                    theme="filled_black"
-                                    shape="pill"
-                                    text="continue_with"
-                                />
-                            </div>
-                        )}
+                        <div className="flex justify-center mb-8">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={() => setError("Error al conectar con Google")}
+                                theme="filled_black"
+                                shape="pill"
+                                text="continue_with"
+                            />
+                        </div>
 
                         <div className="pt-6 border-t border-white/5 space-y-4">
                             <div className="text-center">

@@ -225,7 +225,6 @@ function RegisterForm() {
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={() => setError("Error al conectar con Google")}
-                            useOneTap
                             theme="filled_black"
                             shape="pill"
                             text="signup_with"

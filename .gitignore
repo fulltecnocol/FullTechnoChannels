@@ -11,10 +11,28 @@ __pycache__/
 *$py.class
 env/
 venv/
+
+# Environment files (use .example versions)
 .env
+.env.local
+.env.production
+.env.*.local
+.env.backup*
+
+# Deployment scripts (use .example versions)
+deploy-*.sh
+!deploy-*.sh.example
 
 # Database
 membership.db
+
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc
+
+# Google Cloud
+.gcloudignore
 
 # OS
 .DS_Store

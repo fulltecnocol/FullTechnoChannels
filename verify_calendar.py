@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from shared.utils.calendar import generate_calendar_links
+from infrastructure.utils.calendar import generate_calendar_links
 
 def test_calendar_links():
     start = datetime(2026, 3, 1, 10, 0, 0)

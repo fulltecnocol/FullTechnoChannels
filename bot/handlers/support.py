@@ -1,8 +1,8 @@
 from aiogram import Router, types, F
 from aiogram.filters import Command, CommandObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from shared.database import AsyncSessionLocal
-from shared.models import SupportTicket, TicketMessage
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import SupportTicket, TicketMessage
 from bot.handlers.initial import get_or_create_user
 
 router = Router()

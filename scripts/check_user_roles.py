@@ -1,6 +1,6 @@
 import asyncio
-from shared.database import AsyncSessionLocal
-from shared.models import User
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import User
 from sqlalchemy.future import select
 
 async def check_users():

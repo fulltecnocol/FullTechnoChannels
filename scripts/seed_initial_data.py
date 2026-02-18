@@ -7,8 +7,8 @@ from sqlalchemy.future import select
 # Add root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from shared.database import AsyncSessionLocal
-from shared.models import User, Channel, Plan
+from infrastructure.database.connection import AsyncSessionLocal
+from core.entities import User, Channel, Plan
 
 
 async def seed_data():

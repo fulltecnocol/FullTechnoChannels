@@ -49,7 +49,7 @@ export default function LinkInBioPage() {
 
     const loadProfile = async () => {
         try {
-            const data = await apiRequest<PublicProfile>("/owner/profile");
+            const data = await apiRequest<PublicProfile>("/api/owner/profile");
             setProfile(data);
             setLinks(data.links.sort((a, b) => a.order_index - b.order_index));
         } catch (error) {
@@ -64,7 +64,7 @@ export default function LinkInBioPage() {
         if (!profile) return;
         setSaving(true);
         try {
-            await apiRequest("/owner/profile", {
+            await apiRequest("/api/owner/profile", {
                 method: "PUT",
                 body: JSON.stringify({
                     slug: profile.slug,
@@ -84,7 +84,7 @@ export default function LinkInBioPage() {
     const handleAddLink = async () => {
         if (!newLink.title || !newLink.url) return;
         try {
-            const addedLink = await apiRequest<ProfileLink>("/owner/links", {
+            const addedLink = await apiRequest<ProfileLink>("/api/owner/links", {
                 method: "POST",
                 body: JSON.stringify(newLink)
             });
@@ -100,7 +100,7 @@ export default function LinkInBioPage() {
     const handleDeleteLink = async (id: number) => {
         if (!confirm("¿Eliminar este enlace?")) return;
         try {
-            await apiRequest(`/owner/links/${id}`, { method: "DELETE" });
+            await apiRequest(`/api/owner/links/${id}`, { method: "DELETE" });
             setLinks(links.filter(l => l.id !== id));
             toast.success("Enlace eliminado");
         } catch (error) {
